@@ -1,4 +1,6 @@
-"""DMA timing models. complete(dma, inflight, t) returns the completion time in cycles."""
+"""DMA timing models. The machine calls issue(d, t) when a DMA starts and project(t) before
+it reads completion times at a wait; project assumes no further arrivals, which holds
+because the core is stalled at the wait."""
 
 import bisect
 import math
@@ -6,33 +8,15 @@ import math
 GRANULE_BYTES = 32
 
 
-class SerialHbm:
-    """Fixed issue latency, then transfers share one HBM pipe FIFO at a fixed bandwidth."""
+class Curve:
+    """Single-stream copy time vs bytes, log-size interpolation, linear extrapolation above."""
 
-    def __init__(self, latency_cycles, bytes_per_cycle):
-        self.latency = latency_cycles
-        self.bw = bytes_per_cycle
-        self.free = 0.0
-
-    def complete(self, d, inflight, t):
-        start = max(t + self.latency, self.free)
-        self.free = start + d.granules * GRANULE_BYTES / self.bw
-        return self.free
-
-
-class TableHbm:
-    """Single-stream copy time T(bytes) measured by bench dma_seq, split into a latency part
-    L = T(smallest) that overlaps across transfers and a transfer part T - L that occupies
-    one shared HBM pipe in FIFO order. A lone transfer reproduces T(bytes) exactly."""
-
-    def __init__(self, table_cycles):
-        pts = sorted(table_cycles)
+    def __init__(self, points):
+        pts = sorted(points)
         self.logb = [math.log(b) for b, _ in pts]
         self.t = [c for _, c in pts]
-        self.latency = self.t[0]
-        self.free = 0.0
 
-    def copy_cycles(self, nbytes):
+    def __call__(self, nbytes):
         x = math.log(max(nbytes, 1))
         i = bisect.bisect_left(self.logb, x)
         if i <= 0:
@@ -44,8 +28,167 @@ class TableHbm:
         x0, x1, y0, y1 = self.logb[i - 1], self.logb[i], self.t[i - 1], self.t[i]
         return y0 + (y1 - y0) * (x - x0) / (x1 - x0)
 
-    def complete(self, d, inflight, t):
-        transfer = self.copy_cycles(d.granules * GRANULE_BYTES) - self.latency
+
+class TableHbm:
+    """Single-stream table; latency overlaps, transfer parts serialize on one FIFO pipe."""
+
+    def __init__(self, table_cycles):
+        self.curve = Curve(table_cycles)
+        self.latency = self.curve.t[0]
+        self.free = 0.0
+
+    def copy_cycles(self, nbytes):
+        return self.curve(nbytes)
+
+    def issue(self, d, t):
+        transfer = self.curve(d.granules * GRANULE_BYTES) - self.latency
         start = max(t + self.latency, self.free)
         self.free = start + transfer
-        return self.free
+        d.done = self.free
+
+    def project(self, t):
+        pass
+
+
+class _Xfer:
+    __slots__ = ("d", "ready", "left", "cap", "write")
+
+    def __init__(self, d, ready, nbytes, cap, write):
+        self.d, self.ready, self.left, self.cap, self.write = d, ready, float(nbytes), cap, write
+
+
+class SharedHbm:
+    """Processor sharing over one aggregate HBM bandwidth.
+
+    A transfer of s bytes waits `issue_cycles` on a serial descriptor engine, then a start-up
+    latency L(s) = T_single(s) - s / bw (direction-specific curve and bandwidth), which overlaps
+    with other transfers, then moves its bytes at a fair share of the aggregate: `bw_read` when
+    only reads move, `bw_write` when only writes move, `bw_mixed` otherwise. A transfer that
+    starts while the other direction is in flight pays `mix_cycles` more start-up. A lone transfer
+    reproduces its measured single-stream time exactly."""
+
+    def __init__(self, read_cycles, write_cycles, bw_read, bw_write, bw_mixed, issue_cycles, mix_cycles=0.0):
+        self.curves = {False: Curve(read_cycles), True: Curve(write_cycles)}
+        self.bw = {False: bw_read, True: bw_write}
+        self.bw_mixed, self.issue_cycles, self.mix_cycles = bw_mixed, issue_cycles, mix_cycles
+        self.engine_free = 0.0
+        self.active = []
+        self.now = 0.0
+
+    def issue(self, d, t):
+        self._advance(t)
+        write = d.kind.endswith("to_hbm")
+        nbytes = d.granules * GRANULE_BYTES
+        start = max(t, self.engine_free)
+        self.engine_free = start + self.issue_cycles
+        latency = max(0.0, self.curves[write](nbytes) - nbytes / self.bw[write])
+        if any(x.write != write and x.left > 0 for x in self.active):
+            latency += self.mix_cycles
+        self.active.append(_Xfer(d, start + latency, nbytes, math.inf, write))
+        self.project(t)
+
+    def project(self, t):
+        self._advance(t)
+        state = [(x, x.ready, x.left) for x in self.active]
+        done = self._run(list(self.active), self.now, until=math.inf)
+        for x, ready, left in state:
+            x.ready, x.left = ready, left
+        for x in self.active:
+            x.d.done = done[id(x)]
+
+    def _rates(self, xs, now):
+        moving = [x for x in xs if x.ready <= now and x.left > 0]
+        if not moving:
+            return moving, {}
+        writes = sum(x.write for x in moving)
+        if writes == 0:
+            cap_total = self.bw[False]
+        elif writes == len(moving):
+            cap_total = self.bw[True]
+        else:
+            cap_total = self.bw_mixed
+        # water-filling: fair share of the aggregate, capped per stream
+        rates, pool, left = {}, list(moving), cap_total
+        while pool:
+            share = left / len(pool)
+            capped = [x for x in pool if x.cap <= share]
+            if not capped:
+                for x in pool:
+                    rates[id(x)] = share
+                break
+            for x in capped:
+                rates[id(x)] = x.cap
+                left -= x.cap
+                pool.remove(x)
+        return moving, rates
+
+    def _run(self, xs, now, until):
+        """Serve transfers from `now` until `until` (or all done); mutates xs; returns done times."""
+        done = {}
+        while xs and now < until:
+            moving, rates = self._rates(xs, now)
+            nxt_ready = min((x.ready for x in xs if x.ready > now), default=math.inf)
+            nxt_done = min((now + x.left / rates[id(x)] for x in moving), default=math.inf)
+            step_to = min(nxt_ready, nxt_done, until)
+            if step_to == math.inf:
+                break
+            for x in moving:
+                x.left -= rates[id(x)] * (step_to - now)
+            now = step_to
+            for x in [x for x in xs if x.ready <= now and x.left <= 1e-6]:
+                done[id(x)] = now
+                xs.remove(x)
+        return done
+
+    def _advance(self, t):
+        if t <= self.now:
+            return
+        finished = self._run(self.active, self.now, until=t)
+        for x in list(self.active):
+            if id(x) in finished:
+                x.d.done = finished[id(x)]
+        self.now = t
+
+
+class NoDma:
+    """For microbenchmarks that must not DMA."""
+
+    def issue(self, d, t):
+        raise AssertionError("unexpected DMA")
+
+    def project(self, t):
+        pass
+
+
+class FifoHbm:
+    """Same start-up latency and bandwidths as SharedHbm, but bytes are served first-in
+    first-out: a transfer gets the whole aggregate bandwidth once those issued before it are
+    done. Writes and reads share the pipe; a transfer whose service overlaps the other
+    direction's in-flight start-up uses `bw_mixed` and pays `mix_cycles`."""
+
+    def __init__(self, read_cycles, write_cycles, bw_read, bw_write, bw_mixed, issue_cycles, mix_cycles=0.0):
+        self.curves = {False: Curve(read_cycles), True: Curve(write_cycles)}
+        self.bw = {False: bw_read, True: bw_write}
+        self.bw_mixed, self.issue_cycles, self.mix_cycles = bw_mixed, issue_cycles, mix_cycles
+        self.engine_free = 0.0
+        self.pipe_free = 0.0
+        self.recent = []  # (direction, busy_until) of queued transfers
+
+    def issue(self, d, t):
+        write = d.kind.endswith("to_hbm")
+        nbytes = d.granules * GRANULE_BYTES
+        start = max(t, self.engine_free)
+        self.engine_free = start + self.issue_cycles
+        latency = max(0.0, self.curves[write](nbytes) - nbytes / self.bw[write])
+        self.recent = [(w, until) for w, until in self.recent if until > start]
+        mixed = any(w != write for w, _ in self.recent)
+        bw = self.bw_mixed if mixed else self.bw[write]
+        if mixed:
+            latency += self.mix_cycles
+        begin = max(start + latency, self.pipe_free)
+        self.pipe_free = begin + nbytes / bw
+        self.recent.append((write, self.pipe_free))
+        d.done = self.pipe_free
+
+    def project(self, t):
+        pass

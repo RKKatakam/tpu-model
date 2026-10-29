@@ -15,15 +15,12 @@ from scipy.optimize import minimize
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from model.core import CoreParams, Scoreboard  # noqa: E402
+from model.dma import NoDma  # noqa: E402
 from model.machine import Machine  # noqa: E402
 from model.predict import load_records  # noqa: E402
 
 CLOCK_GHZ = 1.5  # HARDWARE_FACTS F7
 
-
-class NoDma:
-    def complete(self, *a):
-        raise AssertionError("DMA in a no-DMA microbenchmark")
 
 
 def cycles(record, params):

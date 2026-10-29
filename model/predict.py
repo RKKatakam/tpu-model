@@ -6,7 +6,7 @@ import statistics
 from dataclasses import asdict, dataclass
 
 from model.core import CoreParams, Scoreboard
-from model.dma import TableHbm
+from model.dma import FifoHbm, SharedHbm, TableHbm
 from model.machine import Machine
 from parser import bundles, dumps
 
@@ -72,10 +72,30 @@ def load_core(path="model/params/core.json"):
     return CoreParams(latency=c["latency"], units=c["units"])
 
 
-def simulate(program, params, core=None):
-    table = [(b, ns * params.clock_ghz) for b, ns in params.dma_table_ns]
+def load_dma(path="model/params/dma.json"):
+    with open(path) as f:
+        d = json.load(f)
+    return d["dma"] | {"engine": d["provenance"].get("engine", "SharedHbm")}
+
+
+def dma_model(dma, clock_ghz):
+    cyc = lambda tbl: [(b, ns * clock_ghz) for b, ns in tbl]  # noqa: E731
+    engine = {"SharedHbm": SharedHbm, "FifoHbm": FifoHbm}[dma.get("engine", "SharedHbm")]
+    return engine(
+        cyc(dma["read_table_ns"]), cyc(dma["write_table_ns"]),
+        dma["bw_read_GBps"] / clock_ghz, dma["bw_write_GBps"] / clock_ghz, dma["bw_mixed_GBps"] / clock_ghz,
+        dma["issue_ns"] * clock_ghz, dma["mix_ns"] * clock_ghz,
+    )
+
+
+def simulate(program, params, core=None, dma=None):
+    """Replay with the given core and DMA parameters (None = phase-1 minimal model)."""
+    if dma is None:
+        engine = TableHbm([(b, ns * params.clock_ghz) for b, ns in params.dma_table_ns])
+    else:
+        engine = dma_model(dma, params.clock_ghz)
     sb = Scoreboard(core) if core is not None else None
-    return Machine(program, core=sb).run(TableHbm(table))
+    return Machine(program, core=sb).run(engine)
 
 
 def predict_ns(trace, params):

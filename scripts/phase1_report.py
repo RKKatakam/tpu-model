@@ -13,16 +13,13 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from model.dma import NoDma  # noqa: E402
 from model.machine import Machine  # noqa: E402
 from model.predict import Params, load_records, predict_ns, simulate  # noqa: E402
 
 SURFACE, INK, MUTED = "#fcfcfb", "#0b0b0b", "#52514e"
 SERIES = ["#2a78d6", "#eb6834", "#1baf7a"]
 
-
-class NoDma:
-    def complete(self, d, inflight, t):
-        raise AssertionError("unexpected DMA in a no-DMA microbenchmark")
 
 
 def issued(r):

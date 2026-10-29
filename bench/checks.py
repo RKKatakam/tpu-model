@@ -59,6 +59,23 @@ def check(kernel, params, program):
         # The epilogue reads the semaphore back (vsyncmov + vpop.sfrf) and halts if it is non-zero.
         vec = {m: n for m, n in c.items() if m.startswith("v") and not m.startswith("vsync") and m != "vpop.sfrf"}
         expect(not vec, f"vector ops {vec}")
+    elif kernel in ("dma_out", "dma_conc", "dma_inout", "dma_strided"):
+        starts = collections.Counter(
+            (op.mnemonic, op.labels.get("size_in_granules"))
+            for b in program.bundles
+            for op in b.ops
+            if op.mnemonic.startswith("dma.") and op.mnemonic != "dma.done.wait"
+        )
+        g = params["rows"] * 128 * 4 // 32
+        want = {
+            "dma_out": {("dma.vmem_to_hbm", str(g)): params["reps"]},
+            "dma_conc": {("dma.hbm_to_vmem", str(g)): params["reps"] * params.get("streams", 1)},
+            "dma_inout": {("dma.hbm_to_vmem", str(g)): params["reps"], ("dma.vmem_to_hbm", str(g)): params["reps"]},
+            "dma_strided": {("dma.hbm_to_vmem", str(g)): params["reps"]},
+        }[kernel]
+        expect(dict(starts) == want, f"dma starts {dict(starts)} want {want}")
+        vec = {m: n for m, n in c.items() if m.startswith("v") and not m.startswith("vsync") and m != "vpop.sfrf"}
+        expect(not vec, f"vector ops {vec}")
     return fails, c
 
 

@@ -264,7 +264,57 @@ def dma_strided(params):
     return fn, [jax.ShapeDtypeStruct((rows, width), jnp.float32)]
 
 
+def dma_stream(params):
+    """Pallas-pipelined stream over a (rows, cols) f32 array with `reads` inputs and `writes`
+    outputs per grid step and only vld/vst/vadd as compute.
+
+    reads=1,writes=0 keeps the output block resident (written once at the end);
+    reads=0 writes a constant. isolates: sustained read/write mix under the pipeline emitter.
+    """
+    rows, cols, br = params["rows"], params["cols"], params["block_rows"]
+    nr, nw = params["reads"], params["writes"]
+    blk = pl.BlockSpec((br, cols), lambda i: (i, 0))
+    resident = pl.BlockSpec((8, cols), lambda i: (0, 0))
+
+    def kernel(*refs):
+        ins, outs = refs[:nr], refs[nr:]
+        if nr == 0:
+            val = jnp.full((br, cols), 1.0, jnp.float32)
+        else:
+            val = ins[0][...]
+            for r in ins[1:]:
+                val = val + r[...]
+        if nw == 0:
+            outs[0][...] = val[:8]
+        else:
+            for o in outs:
+                o[...] = val
+
+    out_shape = [jax.ShapeDtypeStruct((rows, cols) if nw else (8, cols), jnp.float32) for _ in range(max(nw, 1))]
+    out_specs = [blk if nw else resident for _ in range(max(nw, 1))]
+
+    def fn(*xs):
+        res = pl.pallas_call(
+            kernel,
+            out_shape=out_shape,
+            grid=(rows // br,),
+            in_specs=[blk] * nr,
+            out_specs=out_specs,
+            name="k_dma_stream",
+        )(*xs)
+        return res
+
+    specs = [jax.ShapeDtypeStruct((rows, cols), jnp.float32) for _ in range(nr)]
+    if not specs:
+        # pallas_call needs no inputs here, but jit needs an argument to key the call on.
+        def fn0(dummy):
+            return fn()
+        return fn0, [jax.ShapeDtypeStruct((8, 128), jnp.float32)]
+    return fn, specs
+
+
 MICRO = {
+    "dma_stream": (dma_stream, "micro"),
     "vop_chain": (vop_chain, "micro"),
     "mem_chain": (mem_chain, "micro"),
     "mxu_dot": (mxu_dot, "micro"),

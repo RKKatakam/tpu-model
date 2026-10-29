@@ -184,6 +184,7 @@ class Machine:
             for op in b.ops:
                 if op.mnemonic == "dma.done.wait" and self.pred_ok(op):
                     flag, need = self.val(op.args[0]), self.val(op.args[1])
+                    dma_model.project(t)
                     ready = self._flag_ready_time(inflight, flag, need, t)
                     if ready > t:
                         key = (pc, op.comment[:40])
@@ -219,7 +220,7 @@ class Machine:
                 elif m.startswith("dma.") and m != "dma.done.wait":
                     d = Dma((pc, j), m, self.val(op.labels["size_in_granules"]),
                             self.val(op.labels["dst_syncflagno"]), t, descriptor=op.comment)
-                    d.done = dma_model.complete(d, inflight, t)
+                    dma_model.issue(d, t)
                     inflight.append(d)
                     trace.dmas.append(d)
                 elif m == "sbr.rel":
@@ -255,6 +256,7 @@ class Machine:
             if new_branch is not None:
                 branch = new_branch
             pc += 1
+        dma_model.project(t)
         trace.cycles = max([t] + [d.done for d in inflight])
         return trace
 

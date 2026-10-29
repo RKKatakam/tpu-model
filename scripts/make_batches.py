@@ -140,6 +140,15 @@ CORPUS_TAGS = {
 }
 
 
+def phase3c_configs():
+    cfgs = []
+    for nr, nw in ((1, 0), (0, 1), (1, 1), (2, 1), (1, 2)):
+        for br in (64, 256, 1024):
+            p = {"rows": 16384, "cols": 1024, "block_rows": br, "reads": nr, "writes": nw}
+            cfgs.append(device("dma_stream", p, f"dma_stream__r{nr}w{nw}_b{br}", reps=50))
+    return cfgs
+
+
 def corpus(kernel, params, rid, reps=50):
     return {"record_id": rid, "kernel": kernel, "kernel_tag": CORPUS_TAGS[kernel], "params": params,
             "mode": "device", "reps": reps, "warmup": 5, "seed": 0, "timeout_s": 600}
@@ -198,6 +207,7 @@ def split(cfgs, parts):
 BATCHES = {
     "phase3a": {"flags": DUMP_FLAGS, "configs": phase3a_configs()},
     "phase3b": {"flags": DUMP_FLAGS, "configs": phase3b_configs()},
+    "phase3c": {"flags": DUMP_FLAGS, "configs": phase3c_configs()},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},
     "phase0_aot": {

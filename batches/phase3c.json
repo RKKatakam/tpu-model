@@ -1,0 +1,247 @@
+{
+ "batch_id": "phase3c",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "dma_stream__r1w0_b64",
+   "kernel": "dma_stream",
+   "kernel_tag": "k_dma_stream",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 64,
+    "reads": 1,
+    "writes": 0
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_stream__r1w0_b256",
+   "kernel": "dma_stream",
+   "kernel_tag": "k_dma_stream",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 256,
+    "reads": 1,
+    "writes": 0
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_stream__r1w0_b1024",
+   "kernel": "dma_stream",
+   "kernel_tag": "k_dma_stream",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 1024,
+    "reads": 1,
+    "writes": 0
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_stream__r0w1_b64",
+   "kernel": "dma_stream",
+   "kernel_tag": "k_dma_stream",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 64,
+    "reads": 0,
+    "writes": 1
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_stream__r0w1_b256",
+   "kernel": "dma_stream",
+   "kernel_tag": "k_dma_stream",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 256,
+    "reads": 0,
+    "writes": 1
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_stream__r0w1_b1024",
+   "kernel": "dma_stream",
+   "kernel_tag": "k_dma_stream",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 1024,
+    "reads": 0,
+    "writes": 1
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_stream__r1w1_b64",
+   "kernel": "dma_stream",
+   "kernel_tag": "k_dma_stream",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 64,
+    "reads": 1,
+    "writes": 1
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_stream__r1w1_b256",
+   "kernel": "dma_stream",
+   "kernel_tag": "k_dma_stream",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 256,
+    "reads": 1,
+    "writes": 1
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_stream__r1w1_b1024",
+   "kernel": "dma_stream",
+   "kernel_tag": "k_dma_stream",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 1024,
+    "reads": 1,
+    "writes": 1
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_stream__r2w1_b64",
+   "kernel": "dma_stream",
+   "kernel_tag": "k_dma_stream",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 64,
+    "reads": 2,
+    "writes": 1
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_stream__r2w1_b256",
+   "kernel": "dma_stream",
+   "kernel_tag": "k_dma_stream",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 256,
+    "reads": 2,
+    "writes": 1
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_stream__r2w1_b1024",
+   "kernel": "dma_stream",
+   "kernel_tag": "k_dma_stream",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 1024,
+    "reads": 2,
+    "writes": 1
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_stream__r1w2_b64",
+   "kernel": "dma_stream",
+   "kernel_tag": "k_dma_stream",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 64,
+    "reads": 1,
+    "writes": 2
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_stream__r1w2_b256",
+   "kernel": "dma_stream",
+   "kernel_tag": "k_dma_stream",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 256,
+    "reads": 1,
+    "writes": 2
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_stream__r1w2_b1024",
+   "kernel": "dma_stream",
+   "kernel_tag": "k_dma_stream",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 1024,
+    "reads": 1,
+    "writes": 2
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  }
+ ]
+}

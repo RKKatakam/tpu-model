@@ -6,7 +6,7 @@ import os
 
 import pytest
 
-from model.dma import SerialHbm
+from model.dma import TableHbm
 from model.machine import Machine
 from parser import bundles, dumps
 
@@ -30,7 +30,7 @@ def program(kernel):
 
 @pytest.mark.parametrize("kernel", sorted(EXPECTED))
 def test_replay_issues_one_dma_per_block_change(kernel):
-    trace = Machine(program(kernel)).run(SerialHbm(500, 546))
+    trace = Machine(program(kernel)).run(TableHbm([(512, 450), (4 << 20, 9000)]))
     assert collections.Counter((d.kind, d.granules) for d in trace.dmas) == EXPECTED[kernel]
     assert trace.halts == []
 

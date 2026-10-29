@@ -736,7 +736,7 @@
   "split": "calib",
   "sweep": "splash{\"d\": 64, \"h\": 16, \"mask\": \"causal\", \"s\": 4096}",
   "meas": 633586.0,
-  "ours": 616650.3194333978,
+  "ours": 623388.4661227918,
   "xla": NaN
  },
  {
@@ -746,7 +746,7 @@
   "split": "calib",
   "sweep": "splash{\"d\": 64, \"h\": 16, \"mask\": \"causal\", \"s\": 4096}",
   "meas": 3768057.0,
-  "ours": 3737333.964304127,
+  "ours": 3741682.623077221,
   "xla": NaN
  },
  {
@@ -756,7 +756,7 @@
   "split": "calib",
   "sweep": "splash{\"d\": 64, \"h\": 16, \"mask\": \"causal\", \"s\": 4096}",
   "meas": 1073573.0,
-  "ours": 1119911.3026926224,
+  "ours": 1125852.888428005,
   "xla": NaN
  },
  {
@@ -766,7 +766,7 @@
   "split": "calib",
   "sweep": "splash{\"d\": 64, \"h\": 16, \"mask\": \"causal\", \"s\": 4096}",
   "meas": 574928.5,
-  "ours": 581768.9653643657,
+  "ours": 589351.6352821836,
   "xla": NaN
  },
  {
@@ -776,7 +776,7 @@
   "split": "valid",
   "sweep": "splash{\"d\": 64, \"h\": 16, \"mask\": \"causal\", \"s\": 4096}",
   "meas": 592091.0,
-  "ours": 600477.2643737365,
+  "ours": 612158.558009223,
   "xla": NaN
  },
  {
@@ -1176,7 +1176,7 @@
   "split": "calib",
   "sweep": "ragged{\"head_dim\": 128, \"kv_heads\": 8, \"kv_len\": 2048, \"kv_pages_per_block\": 32, \"n_decode\": 32, \"n_prefill\": 0, \"page_size\": 16, \"prefill_len\": 0, \"prefix\": 0, \"q_heads\": 32, \"queries_per_block\": 64, \"total_pages\": 4096}",
   "meas": 805518.5,
-  "ours": 715183.837397931,
+  "ours": 801596.9425681158,
   "xla": NaN
  },
  {
@@ -1186,7 +1186,7 @@
   "split": "calib",
   "sweep": "ragged{\"head_dim\": 128, \"kv_heads\": 8, \"kv_len\": 2048, \"kv_pages_per_block\": 8, \"n_decode\": 32, \"n_prefill\": 0, \"page_size\": 16, \"prefill_len\": 0, \"prefix\": 0, \"q_heads\": 32, \"queries_per_block\": 16, \"total_pages\": 4096}",
   "meas": 615837.0,
-  "ours": 545803.9918955092,
+  "ours": 615434.510340906,
   "xla": NaN
  },
  {
@@ -1196,7 +1196,7 @@
   "split": "valid",
   "sweep": "ragged{\"head_dim\": 128, \"kv_heads\": 8, \"kv_len\": 1024, \"kv_pages_per_block\": 32, \"n_decode\": 16, \"n_prefill\": 2, \"page_size\": 16, \"prefill_len\": 256, \"prefix\": 512, \"q_heads\": 32, \"queries_per_block\": 64, \"total_pages\": 4096}",
   "meas": 333809.5,
-  "ours": 295557.518562547,
+  "ours": 330404.07756513404,
   "xla": NaN
  },
  {
@@ -1206,7 +1206,7 @@
   "split": "valid",
   "sweep": "ragged{\"head_dim\": 128, \"kv_heads\": 8, \"kv_len\": 1024, \"kv_pages_per_block\": 8, \"n_decode\": 16, \"n_prefill\": 2, \"page_size\": 16, \"prefill_len\": 256, \"prefix\": 512, \"q_heads\": 32, \"queries_per_block\": 16, \"total_pages\": 4096}",
   "meas": 397318.0,
-  "ours": 350238.1924949566,
+  "ours": 392959.2341052254,
   "xla": NaN
  },
  {
@@ -1216,7 +1216,7 @@
   "split": "valid",
   "sweep": "ragged{\"head_dim\": 128, \"kv_heads\": 8, \"kv_len\": 0, \"kv_pages_per_block\": 32, \"n_decode\": 0, \"n_prefill\": 4, \"page_size\": 16, \"prefill_len\": 512, \"prefix\": 0, \"q_heads\": 32, \"queries_per_block\": 64, \"total_pages\": 4096}",
   "meas": 211956.5,
-  "ours": 188187.08787994017,
+  "ours": 209631.12418946,
   "xla": NaN
  },
  {
@@ -1226,7 +1226,7 @@
   "split": "calib",
   "sweep": "ragged{\"head_dim\": 128, \"kv_heads\": 8, \"kv_len\": 0, \"kv_pages_per_block\": 8, \"n_decode\": 0, \"n_prefill\": 4, \"page_size\": 16, \"prefill_len\": 512, \"prefix\": 0, \"q_heads\": 32, \"queries_per_block\": 16, \"total_pages\": 4096}",
   "meas": 657389.5,
-  "ours": 578344.7422432053,
+  "ours": 644804.4894108485,
   "xla": NaN
  },
  {
@@ -1416,7 +1416,7 @@
   "split": "calib",
   "sweep": "ragged{\"head_dim\": 128, \"kv_heads\": 8, \"kv_len\": 2048, \"kv_pages_per_block\": 16, \"n_decode\": 32, \"n_prefill\": 0, \"page_size\": 16, \"prefill_len\": 0, \"prefix\": 0, \"q_heads\": 32, \"queries_per_block\": 128, \"total_pages\": 4096}",
   "meas": 2403734.0,
-  "ours": 2018333.723772503,
+  "ours": 2456272.7418844462,
   "xla": NaN
  },
  {
@@ -1426,7 +1426,7 @@
   "split": "valid",
   "sweep": "ragged{\"head_dim\": 128, \"kv_heads\": 8, \"kv_len\": 2048, \"kv_pages_per_block\": 16, \"n_decode\": 32, \"n_prefill\": 0, \"page_size\": 16, \"prefill_len\": 0, \"prefix\": 0, \"q_heads\": 32, \"queries_per_block\": 32, \"total_pages\": 4096}",
   "meas": 675340.5,
-  "ours": 591649.0076999112,
+  "ours": 681976.4420697239,
   "xla": NaN
  },
  {
@@ -1436,7 +1436,7 @@
   "split": "valid",
   "sweep": "ragged{\"head_dim\": 128, \"kv_heads\": 8, \"kv_len\": 1024, \"kv_pages_per_block\": 16, \"n_decode\": 16, \"n_prefill\": 2, \"page_size\": 16, \"prefill_len\": 256, \"prefix\": 512, \"q_heads\": 32, \"queries_per_block\": 32, \"total_pages\": 4096}",
   "meas": 316888.0,
-  "ours": 276967.3726836294,
+  "ours": 319051.4015071707,
   "xla": NaN
  },
  {
@@ -1446,7 +1446,7 @@
   "split": "valid",
   "sweep": "ragged{\"head_dim\": 128, \"kv_heads\": 8, \"kv_len\": 0, \"kv_pages_per_block\": 16, \"n_decode\": 0, \"n_prefill\": 4, \"page_size\": 16, \"prefill_len\": 512, \"prefix\": 0, \"q_heads\": 32, \"queries_per_block\": 32, \"total_pages\": 4096}",
   "meas": 348198.5,
-  "ours": 304614.5541372942,
+  "ours": 350265.02608139237,
   "xla": NaN
  },
  {

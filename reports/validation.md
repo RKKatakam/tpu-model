@@ -6,17 +6,17 @@ Error = predicted / measured - 1 on the median device time. XLA = `estimated_cyc
 
 | class | n | ours median | ours p90 | ours worst | XLA median | XLA p90 | XLA worst | ours within 5% | ours within 10% |
 |---|---|---|---|---|---|---|---|---|---|
-| compute | 38 | 2.3% | 4.7% | 12.6% | 9.7% | 18.9% | 19.3% | 35/38 | 37/38 |
+| compute | 38 | 2.4% | 4.7% | 12.6% | 9.7% | 18.9% | 19.3% | 35/38 | 37/38 |
 | streaming | 9 | 2.3% | 8.0% | 11.9% | 31.4% | 52.2% | 52.3% | 6/9 | 8/9 |
-| latency | 16 | 7.7% | 12.5% | 12.6% | - | - | - | 5/16 | 10/16 |
+| latency | 16 | 2.8% | 7.7% | 8.7% | - | - | - | 11/16 | 16/16 |
 
 ## Per-class error, split = calib
 
 | class | n | ours median | ours p90 | ours worst | XLA median | XLA p90 | XLA worst | ours within 5% | ours within 10% |
 |---|---|---|---|---|---|---|---|---|---|
-| compute | 40 | 1.3% | 7.3% | 15.4% | 2.1% | 20.1% | 25.8% | 35/40 | 38/40 |
+| compute | 40 | 1.4% | 7.3% | 15.4% | 2.1% | 20.1% | 25.8% | 35/40 | 38/40 |
 | streaming | 16 | 1.1% | 11.4% | 19.7% | 44.2% | 72.9% | 73.2% | 14/16 | 14/16 |
-| latency | 19 | 5.5% | 12.8% | 19.8% | - | - | - | 9/19 | 14/19 |
+| latency | 19 | 3.4% | 6.1% | 19.8% | - | - | - | 13/19 | 18/19 |
 
 ## Per-class error, supplementary kernels (flash), all splits
 
@@ -130,16 +130,16 @@ Error = predicted / measured - 1 on the median device time. XLA = `estimated_cyc
 | prng__threefry_b256x1024 | compute | valid | 337.25 | -0.1% | +0.2% |
 | prng__threefry_b256x256 | compute | calib | 351.23 | -0.6% | -0.1% |
 | prng__threefry_b512x512 | compute | calib | 337.79 | -0.1% | +0.2% |
-| ragged__decode_kv16_q128 | latency | calib | 2403.73 | -16.0% | +nan% |
-| ragged__decode_kv16_q32 | latency | valid | 675.34 | -12.4% | +nan% |
-| ragged__decode_kv32_q64 | latency | calib | 805.52 | -11.2% | +nan% |
-| ragged__decode_kv8_q16 | latency | calib | 615.84 | -11.4% | +nan% |
-| ragged__mixed_kv16_q32 | latency | valid | 316.89 | -12.6% | +nan% |
-| ragged__mixed_kv32_q64 | latency | valid | 333.81 | -11.5% | +nan% |
-| ragged__mixed_kv8_q16 | latency | valid | 397.32 | -11.8% | +nan% |
-| ragged__prefill_kv16_q32 | latency | valid | 348.20 | -12.5% | +nan% |
-| ragged__prefill_kv32_q64 | latency | valid | 211.96 | -11.2% | +nan% |
-| ragged__prefill_kv8_q16 | latency | calib | 657.39 | -12.0% | +nan% |
+| ragged__decode_kv16_q128 | latency | calib | 2403.73 | +2.2% | +nan% |
+| ragged__decode_kv16_q32 | latency | valid | 675.34 | +1.0% | +nan% |
+| ragged__decode_kv32_q64 | latency | calib | 805.52 | -0.5% | +nan% |
+| ragged__decode_kv8_q16 | latency | calib | 615.84 | -0.1% | +nan% |
+| ragged__mixed_kv16_q32 | latency | valid | 316.89 | +0.7% | +nan% |
+| ragged__mixed_kv32_q64 | latency | valid | 333.81 | -1.0% | +nan% |
+| ragged__mixed_kv8_q16 | latency | valid | 397.32 | -1.1% | +nan% |
+| ragged__prefill_kv16_q32 | latency | valid | 348.20 | +0.6% | +nan% |
+| ragged__prefill_kv32_q64 | latency | valid | 211.96 | -1.1% | +nan% |
+| ragged__prefill_kv8_q16 | latency | calib | 657.39 | -1.9% | +nan% |
 | rmsnorm__r16384_c2048_b128 | streaming | calib | 406.87 | +1.4% | -64.8% |
 | rmsnorm__r16384_c2048_b256 | streaming | calib | 407.78 | +1.1% | -72.8% |
 | rmsnorm__r16384_c2048_b32 | streaming | calib | 430.70 | -4.8% | -29.8% |
@@ -154,11 +154,11 @@ Error = predicted / measured - 1 on the median device time. XLA = `estimated_cyc
 | softmax__r8192_c1024_b256 | streaming | valid | 102.53 | +0.7% | -52.3% |
 | softmax__r8192_c1024_b64 | streaming | valid | 109.64 | -6.8% | -18.7% |
 | softmax__r8192_c1024_b8 | streaming | valid | 367.99 | -2.3% | +42.4% |
-| splash__h16_s4096_d64_causal_q1024_kv1024_c1024 | compute | calib | 633.59 | -2.7% | +nan% |
-| splash__h16_s4096_d64_causal_q128_kv128_c128 | compute | calib | 3768.06 | -0.8% | +nan% |
-| splash__h16_s4096_d64_causal_q256_kv512_c256 | compute | calib | 1073.57 | +4.3% | +nan% |
-| splash__h16_s4096_d64_causal_q512_kv1024_c512 | compute | calib | 574.93 | +1.2% | +nan% |
-| splash__h16_s4096_d64_causal_q512_kv512_c512 | compute | valid | 592.09 | +1.4% | +nan% |
+| splash__h16_s4096_d64_causal_q1024_kv1024_c1024 | compute | calib | 633.59 | -1.6% | +nan% |
+| splash__h16_s4096_d64_causal_q128_kv128_c128 | compute | calib | 3768.06 | -0.7% | +nan% |
+| splash__h16_s4096_d64_causal_q256_kv512_c256 | compute | calib | 1073.57 | +4.9% | +nan% |
+| splash__h16_s4096_d64_causal_q512_kv1024_c512 | compute | calib | 574.93 | +2.5% | +nan% |
+| splash__h16_s4096_d64_causal_q512_kv512_c512 | compute | valid | 592.09 | +3.4% | +nan% |
 | splash__h4_s2048_d256_causal_q1024_kv1024_c1024 | compute | calib | 85.25 | -2.2% | +nan% |
 | splash__h4_s2048_d256_causal_q128_kv128_c128 | compute | calib | 290.25 | +0.8% | +nan% |
 | splash__h4_s2048_d256_causal_q256_kv512_c256 | compute | valid | 83.03 | +4.1% | +nan% |

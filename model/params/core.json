@@ -4,7 +4,12 @@
    "vadd.f32": 2,
    "vmul.f32": 2,
    "vmax.f32": 2,
-   "vmem_raw": 10
+   "vmem_raw": 10,
+   "slot_occupancy": {
+    "vld.sshfl": 2.2962116901998018,
+    "vst.sshfl": 2.2962116901998018,
+    "vst.msk": 2.2962116901998018
+   }
   },
   "units": {
    "eup": {
@@ -260,6 +265,22 @@
    "vop_chain__sum_lane_nv1_k1024": -0.028561537129998316,
    "vop_chain__sum_lane_nv1_k256": -0.028753993610223683,
    "vop_chain__sum_lane_nv8_k128": 0.002548853016142827
+  },
+  "slot_occupancy_calib": {
+   "value": 2.2962116901998018,
+   "records": [
+    "ragged__decode_kv32_q64",
+    "ragged__decode_kv8_q16",
+    "ragged__prefill_kv8_q16",
+    "ragged__decode_kv16_q128"
+   ],
+   "err": [
+    -0.004868364205023457,
+    -0.0006535652438778294,
+    -0.01914391785866909,
+    0.021857136390485143
+   ],
+   "note": "fitted on the calibration split (ragged paged attention); no microbenchmark emits these ops"
   }
  },
  "provenance": {

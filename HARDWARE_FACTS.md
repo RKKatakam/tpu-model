@@ -237,6 +237,11 @@ xprof 2.24.1, Python 3.12.3 (see `VERSIONS.lock`).
   with moderate core work run slower than the replay (-17..-21%). Tested and rejected (fit does not
   improve them or breaks other DMA benchmarks): one shared queue, posted write completion,
   per-direction start-up adjustment, semaphore wake-up cost paid only on blocking waits.
+- H15. Sublane-shuffle and masked VMEM accesses (`vld.sshfl`, `vst.sshfl`, `vst.msk`) hold their issue
+  slot ~2.3 cycles. Fitted on the 4 calibration-split ragged paged attention records (no microbenchmark
+  emits these ops: f32 and bf16 masked/strided Pallas accesses, and ragged's own strided uint32 K/V
+  load in isolation, all compile to plain vld/vst, which cost what the model says; phase3k-3o2).
+  Model parameter from the calibration corpus, not a measured fact.
 - H10. DMA queueing structure: one FIFO per direction, heads interleaving (`model/dma.py:DirFifoHbm`).
   Chosen because it fits F14/F15 better than processor sharing or one FIFO; not observed directly.
 - H6. Meaning of each bundle mnemonic and slot.

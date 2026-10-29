@@ -205,6 +205,8 @@ class Scoreboard:
         self.scalar = "sld" in params.latency or "saddr" in params.latency
         # VMEM read-after-write: a vld of an address stored within `vmem_raw` cycles waits (phase3k)
         self.vmem_raw = params.latency.get("vmem_raw", 0)
+        # cycles an op holds its issue slot (default 1): e.g. sublane-shuffle / masked VMEM accesses
+        self.occ = params.latency.get("slot_occupancy", {})
         self.last_store = {}
         self.mem_addrs = {}  # op index in the current bundle -> VMEM address (set by the Machine)
 
@@ -240,7 +242,7 @@ class Scoreboard:
                         lat = _longest_prefix(m, self.p.latency, self.p.default_latency)
                     dest = (op.dest_reg, lat, _mclass(m))
                 mem = ("ld", j) if slot == "vld" else ("st", j) if slot == "vst" else None
-                groups.setdefault(slot, []).append((tuple(srcs), unit, dest, op.dest_reg, mem))
+                groups.setdefault(slot, []).append((tuple(srcs), unit, dest, op.dest_reg, mem, m))
             dma = any(op.mnemonic.startswith("dma.") and op.mnemonic != "dma.done.wait" for op in b.ops)
             inf = self.cache[b.index] = _Bundle(groups, tuple(ssrcs), tuple(sdests), dma)
         return inf
@@ -257,7 +259,7 @@ class Scoreboard:
         floor, latest, latest_cause = {}, t, None
         for slot, ops in inf.groups.items():
             g, c = max(t, self.slot_free.get(slot, 0.0)), None
-            for srcs, unit, dest, _, mem in ops:
+            for srcs, unit, dest, _, mem, _m in ops:
                 for r in srcs:
                     tr = self.ready_at.get(r, 0.0)
                     if tr > g:
@@ -289,9 +291,9 @@ class Scoreboard:
             self.producer[r] = m
         for slot, ops in inf.groups.items():
             g = self.pending[slot]
-            self.slot_free[slot] = g + 1
+            self.slot_free[slot] = g + max([1.0] + [self.occ.get(o[5], 1.0) for o in ops])
             self.done_max = max(self.done_max, g + 1)
-            for srcs, unit, dest, dreg, mem in ops:
+            for srcs, unit, dest, dreg, mem, _m in ops:
                 if mem and mem[0] == "st" and self.vmem_raw:
                     addr = self.mem_addrs.get(mem[1])
                     if addr is not None:

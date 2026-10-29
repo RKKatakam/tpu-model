@@ -48,14 +48,16 @@ class Trace:
     cycles: float = 0.0
     bundles_issued: int = 0
     stall_cycles: float = 0.0
+    core_stall_cycles: float = 0.0
     stalls: dict = field(default_factory=dict)
     dmas: list = field(default_factory=list)
     halts: list = field(default_factory=list)
 
 
 class Machine:
-    def __init__(self, program, operand_bases=None, smem=None, max_bundles=50_000_000):
+    def __init__(self, program, operand_bases=None, smem=None, max_bundles=50_000_000, core=None):
         self.p = program
+        self.core = core
         self.regs = {}
         self.smem = dict(smem or {})
         self.flags = {}
@@ -189,6 +191,10 @@ class Machine:
                         trace.stall_cycles += ready - t
                         t = ready
                     self._retire(inflight, t)
+            if self.core is not None:
+                t_issue = self.core.issue_time(b, t)
+                trace.core_stall_cycles += t_issue - t
+                t = t_issue
             writes, new_branch, pseudo = [], None, []
             for j, op in enumerate(b.ops):
                 if not self.pred_ok(op):
@@ -237,6 +243,8 @@ class Machine:
                         self.flags[addr] = self.flags.get(addr, 0) + val
                 else:
                     self.regs[key] = val
+            if self.core is not None:
+                self.core.commit(b, t)
             t += 1
             trace.bundles_issued += 1
             if branch is not None:

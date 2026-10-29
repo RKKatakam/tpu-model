@@ -5,6 +5,7 @@ import os
 import statistics
 from dataclasses import asdict, dataclass
 
+from model.core import CoreParams, Scoreboard
 from model.dma import TableHbm
 from model.machine import Machine
 from parser import bundles, dumps
@@ -65,9 +66,16 @@ def load_records(batch_dir):
     return out
 
 
-def simulate(program, params):
+def load_core(path="model/params/core.json"):
+    with open(path) as f:
+        c = json.load(f)["core"]
+    return CoreParams(latency=c["latency"], units=c["units"])
+
+
+def simulate(program, params, core=None):
     table = [(b, ns * params.clock_ghz) for b, ns in params.dma_table_ns]
-    return Machine(program).run(TableHbm(table))
+    sb = Scoreboard(core) if core is not None else None
+    return Machine(program, core=sb).run(TableHbm(table))
 
 
 def predict_ns(trace, params):

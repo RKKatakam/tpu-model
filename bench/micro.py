@@ -805,7 +805,46 @@ def scoped_stream(params):
     return fn, [jax.ShapeDtypeStruct((rows, cols), jnp.float32)]
 
 
+# op -> (dtype, step): one dependent step of the chain; c is a run-time vreg (no constant folding)
+VOPS2 = {
+    "add_s32": (jnp.int32, lambda v, c: v + c),
+    "sub_f32": (jnp.float32, lambda v, c: v - c),
+    "and_u32": (jnp.uint32, lambda v, c: v & c),
+    "xor_u32": (jnp.uint32, lambda v, c: v ^ c),
+    "shrl_u32": (jnp.uint32, lambda v, c: v >> c),
+    "shll_u32": (jnp.uint32, lambda v, c: v << c),
+    "mul_u32": (jnp.uint32, lambda v, c: v * c),
+    "mul_s32": (jnp.int32, lambda v, c: v * c),
+    "select": (jnp.float32, lambda v, c: jnp.where(c > 0, v, c)),
+    "cmp_select": (jnp.float32, lambda v, c: jnp.where(v > c, v - c, v + c)),
+    "cvt_f32_s32": (jnp.float32, lambda v, c: (v.astype(jnp.int32) + 1).astype(jnp.float32)),
+    "pack_bf16": (jnp.float32, lambda v, c: (v.astype(jnp.bfloat16) * c.astype(jnp.bfloat16)).astype(jnp.float32)),
+    "div_f32": (jnp.float32, lambda v, c: v / c),
+}
+
+
+def vop_chain2(params):
+    """k rounds of one VOPS2 step on nv independent vregs of the op's dtype (nv=1: latency, nv=8:
+    throughput), operand c loaded from VMEM at run time.
+
+    isolates: result latency / issue rate of integer, select/compare, conversion and divide ops.
+    """
+    k, nv, opname = params["k"], params["nv"], params["op"]
+    dt, op = VOPS2[opname]
+
+    def kernel(x_hbm, o_hbm, buf):
+        vs = [buf[pl.ds(8 * i, 8), :] for i in range(nv)]
+        c = buf[pl.ds(8 * nv, 8), :]
+        for _ in range(k):
+            vs = [op(v, c) for v in vs]
+        for i, v in enumerate(vs):
+            buf[pl.ds(8 * i, 8), :] = v
+
+    return _no_dma_call(kernel, [pltpu.VMEM((8 * (nv + 1), 128), dt)], "k_vop_chain2")
+
+
 MICRO = {
+    "vop_chain2": (vop_chain2, "micro"),
     "scoped_stream": (scoped_stream, "micro"),
     "kv_strided": (kv_strided, "micro"),
     "tgmm_tile": (tgmm_tile, "micro"),

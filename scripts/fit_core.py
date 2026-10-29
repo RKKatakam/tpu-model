@@ -1,6 +1,6 @@
 """Fit vector-side core parameters (latencies, EUP/XLU/MXU unit timings) from phase3a microbenchmarks.
 
-usage: fit_core.py PHASE3A_DIR PHASE3D_DIR PHASE3F_DIR PHASE3E_DIR PHASE3J_DIR PHASE3N_DIR OUT_JSON
+usage: fit_core.py PHASE3A_DIR PHASE3D_DIR PHASE3F_DIR PHASE3E_DIR PHASE3J_DIR PHASE3N_DIR PHASE3P_DIR OUT_JSON
 Each parameter family is fitted only on the microbenchmark that isolates it; MXU parameters are
 fitted on reps=4 runs and checked on reps=16 runs.
 """
@@ -49,7 +49,7 @@ def fit(objective_records, build, x0, names):
     return dict(zip(names, res.x)), res
 
 
-def main(batch_dir, f32_dir, f3_dir, gather_dir, xpose_dir, tgmm_dir, out_json):
+def main(batch_dir, f32_dir, f3_dir, gather_dir, xpose_dir, tgmm_dir, int8_dir, out_json):
     recs = load_records(batch_dir)
     vop = {r.raw["record_id"]: r for r in recs if r.raw["kernel"] == "vop_chain"}
     report = {}
@@ -205,15 +205,47 @@ def main(batch_dir, f32_dir, f3_dir, gather_dir, xpose_dir, tgmm_dir, out_json):
     allx = [r for rs in xp_recs.values() for r in rs]
     report["xlu_xpose_err"] = {r.raw["record_id"]: float(e) for r, e in zip(allx, rel_errors(allx, final))}
 
+    # int8 matmuls (phase3p): one vmatmul.s8 streams 32 rows and yields 4 int32 result vregs. Fitted:
+    # occupancy, result latency, result interval (plain s8 x s8), then the push cost of int8 weights,
+    # transposed int8 weights and transposed f32 weights; fit on reps 4, check on reps 16.
+    p3p = [r for r in load_records(int8_dir) if r.raw["kernel"] == "mxu_dot"]
+
+    def kind_of(r):
+        p = r.raw["params"]
+        return ("s8" if p.get("lhs") == "s8" else "f32") + ("T" if p.get("rhs_t") else "")
+
+    def with_mxu(work_s8=None, push=None):
+        mx = dict(final.units["mxu"])
+        if work_s8 is not None:
+            mx["work"] = dict(mx["work"], s8={"occupancy": work_s8[0], "latency": work_s8[1], "interval": work_s8[2], "results": 4})
+        if push:
+            mx["push_by_kind"] = dict(mx.get("push_by_kind", {}), **push)
+        return CoreParams(latency=final.latency, units=final.units | {"mxu": mx}, issue_lead=LEAD)
+
+    s8 = [r for r in p3p if kind_of(r) == "s8"]
+    got, _ = fit([r for r in s8 if r.raw["params"]["reps"] == 4], lambda x: with_mxu(work_s8=x), [16.0, 120.0, 8.0],
+                 ["occupancy", "result_latency", "result_interval"])
+    work_s8 = [got["occupancy"], got["result_latency"], got["result_interval"]]
+    report["mxu_s8"] = got
+    pushes = {}
+    for kind, key, recs in (("s8", "s8", s8), ("s8T", "s8x", [r for r in p3p if kind_of(r) == "s8T"]),
+                            ("f32T", "f32x", [r for r in p3p if kind_of(r) == "f32T"])):
+        got, _ = fit([r for r in recs if r.raw["params"]["reps"] == 4],
+                     lambda x, key=key: with_mxu(work_s8=work_s8, push=dict(pushes, **{key: x[0]})), [4.0], ["push_cycles"])
+        pushes[key] = got["push_cycles"]
+    final = with_mxu(work_s8=work_s8, push=pushes)
+    report["mxu_push_by_kind"] = pushes
+    report["mxu_s8_err"] = {r.raw["record_id"]: float(e) for r, e in zip(p3p, rel_errors(p3p, final))}
+
     # cast and roll_sublane chains were folded by the compiler (1 to 4 bundles); not usable.
     usable = [r for r in vop.values() if r.raw["params"]["op"] not in ("cast", "roll_sublane")]
     report["vop_err"] = {r.raw["record_id"]: float(e) for r, e in zip(usable, rel_errors(usable, final))}
 
     with open(out_json, "w") as f:
         json.dump({"core": {"latency": final.latency, "units": final.units, "issue_lead": LEAD}, "fit_report": report,
-                   "provenance": {"sources": [batch_dir, f32_dir, f3_dir, gather_dir, xpose_dir, tgmm_dir], "script": "scripts/fit_core.py"}}, f, indent=1)
+                   "provenance": {"sources": [batch_dir, f32_dir, f3_dir, gather_dir, xpose_dir, tgmm_dir, int8_dir], "script": "scripts/fit_core.py"}}, f, indent=1)
     print(json.dumps(report, indent=1))
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:8])
+    main(*sys.argv[1:9])

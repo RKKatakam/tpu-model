@@ -127,6 +127,11 @@ def check(kernel, params, program):
         if want:
             expect(c[want] >= 1, f"no {want}: {sorted(m for m in c if m.startswith(('vld', 'vst')))}")
         expect(not dma_ops(c), f"unexpected DMA ops {dma_ops(c)}")
+    elif kernel == "vop_chain2":
+        vec = sum(v for m, v in c.items() if m.startswith("v") and not m.startswith(("vld", "vst", "vsync", "vnop", "vpop.sfrf")))
+        expect(vec >= params["k"] * params["nv"], f"vector ops {vec} < k*nv={params['k'] * params['nv']} (folded?)")
+        expect(not dma_ops(c), f"unexpected DMA ops {dma_ops(c)}")
+        expect(not has_spill(program), "spills")
     elif kernel == "xpose_chain":
         n = sum(v for m, v in c.items() if m.startswith("vxpose"))
         expect(n >= params["k"] * params["nv"], f"vxpose ops {n} want >= {params['k'] * params['nv']}")

@@ -59,6 +59,19 @@ def classify(mnemonic):
     return None
 
 
+def push_cost(up, mnemonic):
+    """Cycles a weight push occupies its MXU's push path, by weight dtype and transposition.
+    `push_by_kind` keys: bf16, f32, s8, each with an 'x' suffix for transposed (`.xpose`) pushes."""
+    dt = "bf16" if ".bf16" in mnemonic else "s8" if ".s8" in mnemonic else "f32"
+    kind = dt + ("x" if ".xpose" in mnemonic else "")
+    table = up.get("push_by_kind", {})
+    if kind in table:
+        return table[kind]
+    if kind.endswith("x"):  # older parameter sets: one transposed cost (bf16, measured)
+        return up.get("push_cycles_xpose", up["push_cycles"])
+    return up["push_cycles"] if dt == "bf16" else up.get("push_cycles_f32", up["push_cycles"])
+
+
 def _mclass(mnemonic):
     """Mnemonic without unit index, for attribution ('vpop.f32.mrf.mxu2' -> 'vpop.f32.mrf')."""
     return re.sub(r"\.(mxu|xlu)\d+$", "", mnemonic)
@@ -67,7 +80,7 @@ def _mclass(mnemonic):
 def _work_key(cls, mnemonic):
     """Sub-key selecting per-op parameters inside a unit class."""
     if cls == "mxu":
-        return "bf16" if ".bf16" in mnemonic else "f32"
+        return "bf16" if ".bf16" in mnemonic else "s8" if ".s8" in mnemonic else "f32"
     if cls == "xlu":
         return "xlane" if ".xlane" in mnemonic else "permute"
     return "default"
@@ -133,12 +146,7 @@ class Units:
             q.extend(t + wp["latency"] + j * wp.get("interval", 0) for j in range(wp.get("results", 1)))
         elif role == "push":
             up = self.p[cls]
-            if ".xpose" in mnemonic:
-                cost = up.get("push_cycles_xpose", up["push_cycles"])
-            elif ".bf16" in mnemonic:
-                cost = up["push_cycles"]
-            else:
-                cost = up.get("push_cycles_f32", up["push_cycles"])
+            cost = push_cost(up, mnemonic)
             done = t + cost
             self.push_busy[key] = done
             msr = re.search(r"\.(msr\w)\.", mnemonic).group(1)

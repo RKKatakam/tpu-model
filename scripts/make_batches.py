@@ -303,6 +303,17 @@ def diag_sync_configs():
     return cfgs
 
 
+def phase3q_configs():
+    """Latency (nv=1) and issue rate (nv=8) of vector ops the model has not measured (integer ALU,
+    integer multiply, select / compare, conversions, divide)."""
+    cfgs = []
+    for op in ("add_s32", "sub_f32", "and_u32", "xor_u32", "shrl_u32", "shll_u32", "mul_u32", "mul_s32",
+               "select", "cmp_select", "cvt_f32_s32", "pack_bf16", "div_f32"):
+        for nv, k in ((1, 256), (1, 1024), (8, 128)):
+            cfgs.append(device("vop_chain2", {"k": k, "nv": nv, "op": op}, f"vop_chain2__{op}_nv{nv}_k{k}"))
+    return cfgs
+
+
 def trace_probe_configs():
     """Does an in-kernel named_scope produce trace events, and under which profiler option?"""
     cfgs = []
@@ -524,6 +535,7 @@ BATCHES = {
     "trace_probe": {"flags": DUMP_FLAGS, "configs": trace_probe_configs()},
     "phase3p": {"flags": DUMP_FLAGS, "configs": phase3p_configs()},
     "diag_sync": {"flags": DUMP_FLAGS, "configs": diag_sync_configs()},
+    "phase3q": {"flags": DUMP_FLAGS, "configs": phase3q_configs()},
     "phase3o2": {"flags": DUMP_FLAGS, "configs": [c for c in phase3o_configs() if c["params"]["step"] > 1]},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},

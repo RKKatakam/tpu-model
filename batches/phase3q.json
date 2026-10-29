@@ -1,0 +1,529 @@
+{
+ "batch_id": "phase3q",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "vop_chain2__add_s32_nv1_k256",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "add_s32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__add_s32_nv1_k1024",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "add_s32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__add_s32_nv8_k128",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "add_s32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__sub_f32_nv1_k256",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "sub_f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__sub_f32_nv1_k1024",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "sub_f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__sub_f32_nv8_k128",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "sub_f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__and_u32_nv1_k256",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "and_u32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__and_u32_nv1_k1024",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "and_u32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__and_u32_nv8_k128",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "and_u32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__xor_u32_nv1_k256",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "xor_u32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__xor_u32_nv1_k1024",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "xor_u32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__xor_u32_nv8_k128",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "xor_u32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__shrl_u32_nv1_k256",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "shrl_u32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__shrl_u32_nv1_k1024",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "shrl_u32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__shrl_u32_nv8_k128",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "shrl_u32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__shll_u32_nv1_k256",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "shll_u32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__shll_u32_nv1_k1024",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "shll_u32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__shll_u32_nv8_k128",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "shll_u32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__mul_u32_nv1_k256",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "mul_u32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__mul_u32_nv1_k1024",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "mul_u32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__mul_u32_nv8_k128",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "mul_u32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__mul_s32_nv1_k256",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "mul_s32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__mul_s32_nv1_k1024",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "mul_s32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__mul_s32_nv8_k128",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "mul_s32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__select_nv1_k256",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "select"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__select_nv1_k1024",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "select"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__select_nv8_k128",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "select"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__cmp_select_nv1_k256",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "cmp_select"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__cmp_select_nv1_k1024",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "cmp_select"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__cmp_select_nv8_k128",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "cmp_select"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__cvt_f32_s32_nv1_k256",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "cvt_f32_s32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__cvt_f32_s32_nv1_k1024",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "cvt_f32_s32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__cvt_f32_s32_nv8_k128",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "cvt_f32_s32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__pack_bf16_nv1_k256",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "pack_bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__pack_bf16_nv1_k1024",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "pack_bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__pack_bf16_nv8_k128",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "pack_bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__div_f32_nv1_k256",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "div_f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__div_f32_nv1_k1024",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "div_f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain2__div_f32_nv8_k128",
+   "kernel": "vop_chain2",
+   "kernel_tag": "k_vop_chain2",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "div_f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  }
+ ]
+}

@@ -108,6 +108,10 @@ def check(kernel, params, program):
         if params["kind"] == "vmem":
             vst = sum(v for m, v in c.items() if m.startswith("vst"))
             expect(vst >= params["amount"] * 1024 // 1024, f"vst={vst}: VMEM copy eliminated?")
+    elif kernel == "kv_strided":
+        if params["step"] > 1:
+            expect(c["vld.sshfl"] >= 1 or any(m.startswith("vld.") for m in c), f"no strided loads: {sorted(m for m in c if m.startswith('vld'))}")
+        expect(c["sbr.rel"] >= 1, "no loop")
     elif kernel == "tgmm_tile":
         msk = sum(v for m, v in c.items() if m.startswith("vmatpush") and ".msk" in m)
         if params["masked"]:

@@ -246,6 +246,15 @@ def phase3n_configs():
     return cfgs
 
 
+def phase3o_configs():
+    """ragged paged attention's strided uint32 K/V load (vld.sshfl) at several strides."""
+    cfgs = []
+    for step in (1, 2, 8, 16):
+        for reps in (8, 32):
+            cfgs.append(device("kv_strided", {"step": step, "n": 16, "reps": reps}, f"kv_strided__s{step}_n16_x{reps}"))
+    return cfgs
+
+
 def phase3b_configs():
     cfgs = []
     for rows in (1, 8, 64, 512, 2048, 8192):
@@ -423,6 +432,7 @@ BATCHES = {
     "phase3l": {"flags": DUMP_FLAGS, "configs": phase3l_configs()},
     "phase3m": {"flags": DUMP_FLAGS, "configs": phase3m_configs()},
     "phase3n": {"flags": DUMP_FLAGS, "configs": phase3n_configs()},
+    "phase3o": {"flags": DUMP_FLAGS, "configs": phase3o_configs()},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},
     "phase0_aot": {

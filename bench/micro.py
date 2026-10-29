@@ -743,7 +743,42 @@ def tgmm_tile(params):
     return fn, specs, lambda seed: [np.array([tm // 4, 3 * tm // 4], np.int32), np.zeros((8, 128), np.float32)]
 
 
+def kv_strided(params):
+    """`reps` passes of ragged paged attention's K/V split: a bf16 (rows, 128) VMEM block is bitcast
+    to uint32 and read with a sublane stride `step` (vld.sshfl), then K = bitcast(b << 16) and
+    V = bitcast(b & 0xffff0000) as f32 -> bf16, written to the output block (kept live).
+
+    isolates: sublane-shuffle loads with large strides and the bitcast/shift unpacking.
+    """
+    step, n, reps = params["step"], params["n"], params["reps"]
+    rows = 2 * step * 8 * n  # bf16 rows; as uint32: step * 8 * n rows
+
+    def kernel(kv_ref, o_ref):
+        b_ref = kv_ref.bitcast(jnp.uint32)
+
+        def body(p, carry):
+            for i in range(n):
+                b = b_ref[pl.ds(i * 8 * step + (p % step), 8, stride=step), :]
+                k = pltpu.bitcast(b << 16, jnp.float32).astype(jnp.bfloat16)
+                v = pltpu.bitcast(b & jnp.uint32(0xFFFF0000), jnp.float32).astype(jnp.bfloat16)
+                o_ref[pl.ds(16 * i, 8), :] = k[:8]
+                o_ref[pl.ds(16 * i + 8, 8), :] = v[:8]
+            return carry
+
+        jax.lax.fori_loop(0, reps, body, 0)
+
+    def fn(kv):
+        return pl.pallas_call(
+            kernel, out_shape=jax.ShapeDtypeStruct((16 * n, 128), jnp.bfloat16), grid=(1,),
+            in_specs=[pl.BlockSpec((rows, 128), lambda i: (0, 0))],
+            out_specs=pl.BlockSpec((16 * n, 128), lambda i: (0, 0)), name="k_kv_strided",
+        )(kv)
+
+    return fn, [jax.ShapeDtypeStruct((rows, 128), jnp.bfloat16)]
+
+
 MICRO = {
+    "kv_strided": (kv_strided, "micro"),
     "tgmm_tile": (tgmm_tile, "micro"),
     "vmem_ops": (vmem_ops, "micro"),
     "vmem_access": (vmem_access, "micro"),

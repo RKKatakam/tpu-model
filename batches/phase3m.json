@@ -1,0 +1,134 @@
+{
+ "batch_id": "phase3m",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "vmem_ops__bf16_vld_n32_x8",
+   "kernel": "vmem_ops",
+   "kernel_tag": "k_vmem_ops",
+   "params": {
+    "n": 32,
+    "reps": 8,
+    "form": "vld",
+    "dtype": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_ops__bf16_vld_n32_x32",
+   "kernel": "vmem_ops",
+   "kernel_tag": "k_vmem_ops",
+   "params": {
+    "n": 32,
+    "reps": 32,
+    "form": "vld",
+    "dtype": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_ops__bf16_vst_msk_n32_x8",
+   "kernel": "vmem_ops",
+   "kernel_tag": "k_vmem_ops",
+   "params": {
+    "n": 32,
+    "reps": 8,
+    "form": "vst_msk",
+    "dtype": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_ops__bf16_vst_msk_n32_x32",
+   "kernel": "vmem_ops",
+   "kernel_tag": "k_vmem_ops",
+   "params": {
+    "n": 32,
+    "reps": 32,
+    "form": "vst_msk",
+    "dtype": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_ops__bf16_vld_sshfl_n32_x8",
+   "kernel": "vmem_ops",
+   "kernel_tag": "k_vmem_ops",
+   "params": {
+    "n": 32,
+    "reps": 8,
+    "form": "vld_sshfl",
+    "dtype": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_ops__bf16_vld_sshfl_n32_x32",
+   "kernel": "vmem_ops",
+   "kernel_tag": "k_vmem_ops",
+   "params": {
+    "n": 32,
+    "reps": 32,
+    "form": "vld_sshfl",
+    "dtype": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_ops__bf16_vst_sshfl_n32_x8",
+   "kernel": "vmem_ops",
+   "kernel_tag": "k_vmem_ops",
+   "params": {
+    "n": 32,
+    "reps": 8,
+    "form": "vst_sshfl",
+    "dtype": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_ops__bf16_vst_sshfl_n32_x32",
+   "kernel": "vmem_ops",
+   "kernel_tag": "k_vmem_ops",
+   "params": {
+    "n": 32,
+    "reps": 32,
+    "form": "vst_sshfl",
+    "dtype": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  }
+ ]
+}

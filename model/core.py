@@ -151,7 +151,9 @@ def slot_of(m):
     """Issue queue of a vector op; None for scalar-side ops (run by the front end)."""
     if m.startswith("vpop") and m != "vpop.sfrf":
         return "pop"
-    if m.startswith(("vmatmul", "vmatpush")):
+    if m.startswith("vmatpush"):
+        return "mxpush"
+    if m.startswith("vmatmul"):
         return "mxu"
     if re.search(r"\.xlu\d+$", m) or m.startswith("vxpose"):
         return "xlu"
@@ -176,7 +178,7 @@ class _Bundle:
 
 
 class Scoreboard:
-    """Vector ops wait in per-slot in-order queues (pop, mxu, xlu, vld, vst, eup, valu); a slot starts
+    """Vector ops wait in per-slot in-order queues (pop, mxpush, mxu, xlu, vld, vst, eup, valu); a slot starts
     one bundle's ops per cycle once their registers and units are ready. The scalar front end
     dispatches a bundle at most `issue_lead` cycles before its latest-starting vector op
     (issue_lead 0 = whole bundles issue in order) and stalls on scalar dependencies; a DMA start

@@ -70,6 +70,7 @@ class Machine:
         self.smem = dict(smem or {})
         self.flags = {}
         self.sfrf = []
+        self.drf = []
         self.alloc = {}
         self.operand_bases = dict(operand_bases or {})
         self.max_bundles = max_bundles
@@ -216,6 +217,8 @@ class Machine:
             return self.smem.get(self.mem_addr(a[0]), 0)
         if m == "vpop.sfrf":
             return self.sfrf.pop(0)
+        if m == "spop.drf":  # divide result FIFO: quotient, then remainder (sdivrem)
+            return self.drf.pop(0)
         if base == "inlined_call_operand":
             idx = int(re.search(r"index:\s*(\d+)", a[0]).group(1))
             return self.operand_bases.get(idx, (idx + 1) << self.OPERAND_SHIFT)
@@ -271,6 +274,14 @@ class Machine:
                     writes.append((("smem", self.mem_addr(op.args[0])), self.val(op.args[1])))
                 elif m == "vsyncpa":
                     writes.append((("flag", self.val(op.args[0])), self.val(op.args[1])))
+                elif m.startswith("sdivrem"):
+                    x, y = self.val(op.args[0]), self.val(op.args[1])
+                    if m.endswith(".s32"):
+                        x, y = s32(x), s32(y)
+                        q = int(x / y) if y else 0
+                        self.drf += [u32(q), u32(x - q * y)]
+                    else:
+                        self.drf += [u32(x // y) if y else 0, u32(x % y) if y else 0]
                 elif m == "vsyncmov":
                     self.sfrf.append(self.flags.get(self.val(op.args[0]), 0))
                 elif m == "vsyncadd":

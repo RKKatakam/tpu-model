@@ -226,6 +226,15 @@ def phase3l_configs():
     return cfgs
 
 
+def phase3m_configs():
+    """bf16 (packed) masked / sublane-shuffle VMEM accesses: the forms ragged paged attention emits."""
+    cfgs = []
+    for form in ("vld", "vst_msk", "vld_sshfl", "vst_sshfl"):
+        for reps in (8, 32):
+            cfgs.append(device("vmem_ops", {"n": 32, "reps": reps, "form": form, "dtype": "bf16"}, f"vmem_ops__bf16_{form}_n32_x{reps}"))
+    return cfgs
+
+
 def phase3b_configs():
     cfgs = []
     for rows in (1, 8, 64, 512, 2048, 8192):
@@ -401,6 +410,7 @@ BATCHES = {
     "phase3j": {"flags": DUMP_FLAGS, "configs": phase3j_configs()},
     "phase3k": {"flags": DUMP_FLAGS, "configs": phase3k_configs()},
     "phase3l": {"flags": DUMP_FLAGS, "configs": phase3l_configs()},
+    "phase3m": {"flags": DUMP_FLAGS, "configs": phase3m_configs()},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},
     "phase0_aot": {

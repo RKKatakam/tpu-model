@@ -268,6 +268,41 @@ def phase3p_configs():
     return cfgs
 
 
+MICRO_KERNELS = {"dma_compute", "dma_stream", "dma_inout"}
+DIAG_SYNC_IDS = [
+    # calibration-split kernels outside 5% (diagnosis never uses validation records)
+    "layernorm__r16384_c4096_b8", "softmax__r16384_c4096_b8", "matmul__n1024_256_256_256",
+    "matmul_tpu__2048_2048_2048_256_256_256", "matmul_tpu__4096_1024_4096_256_256_256", "matmul_tpu__4096_1024_4096_512_512_512",
+    "paged__b16_pps64_pg32_cb4", "paged__b32_pps32_pg16_cb8", "paged__b8_pps64_pg16_cb4",
+    "rope__t16384_h32_b128", "rope__t8192_h8_b256", "rmsnorm__r16384_c2048_b32", "prng__philox_b1024x1024",
+    "tgmm__m8192_k512_n2048_g16_t256_256_256",
+    # DMA microbenchmarks the DMA model still misses
+    "dma_compute__r0w1_b32_valu0", "dma_compute__r0w1_b32_valu128", "dma_stream__r1w2_b32", "dma_inout__r128_x5",
+]
+
+
+def diag_sync_configs():
+    """Copies of the configs above with hardware sync-flag tracing (TRACE_COMPUTE_AND_SYNC): every
+    dma.done.wait's stall, for scripts/sync_diff.py. Diagnostic records, never scored."""
+    import glob as _glob
+    by_id = {}
+    for f in sorted(_glob.glob(os.path.join(HERE, "batches", "*.json"))):
+        for c in json.load(open(f))["configs"]:
+            by_id.setdefault(c["record_id"], c)
+    import sys as _sys
+    _sys.path.insert(0, HERE)
+    from corpus.split import split_of
+    cfgs = []
+    for rid in DIAG_SYNC_IDS:
+        c = dict(by_id[rid])
+        assert c["kernel"] in MICRO_KERNELS or split_of(rid) == "calib", rid
+        c["record_id"] = "diag__" + rid
+        c["reps"] = min(c.get("reps", 50), 20)
+        c["profiler_options"] = {"advanced_configuration": {"tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"}}
+        cfgs.append(c)
+    return cfgs
+
+
 def trace_probe_configs():
     """Does an in-kernel named_scope produce trace events, and under which profiler option?"""
     cfgs = []
@@ -488,6 +523,7 @@ BATCHES = {
     "phase3o": {"flags": DUMP_FLAGS, "configs": phase3o_configs()},
     "trace_probe": {"flags": DUMP_FLAGS, "configs": trace_probe_configs()},
     "phase3p": {"flags": DUMP_FLAGS, "configs": phase3p_configs()},
+    "diag_sync": {"flags": DUMP_FLAGS, "configs": diag_sync_configs()},
     "phase3o2": {"flags": DUMP_FLAGS, "configs": [c for c in phase3o_configs() if c["params"]["step"] > 1]},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},

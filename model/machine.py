@@ -54,6 +54,7 @@ class Trace:
     dmas: list = field(default_factory=list)
     halts: list = field(default_factory=list)
     unmodeled_smem_dmas: int = 0
+    waits: list = field(default_factory=list)  # (bundle index, issue cycle, flag, stall cycles) per dma.done.wait
 
 
 class Machine:
@@ -247,6 +248,8 @@ class Machine:
                     ready = self._flag_ready_time(inflight, flag, need, t)
                     if ready > t:  # a core that actually blocks pays the semaphore wake-up
                         ready += getattr(dma_model, "wake_cycles", 0.0)
+                    trace.waits.append((pc, t, flag, max(0.0, ready - t)))
+                    if ready > t:
                         key = (pc, op.comment[:40])
                         trace.stalls[key] = trace.stalls.get(key, 0.0) + (ready - t)
                         trace.stall_cycles += ready - t

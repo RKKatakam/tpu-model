@@ -758,7 +758,7 @@ def kv_strided(params):
 
         def body(p, carry):
             for i in range(n):
-                b = b_ref[pl.ds(i * 8 * step + (p % step), 8, stride=step), :]
+                b = b_ref[pl.ds(i * 8 * step, 8, stride=step), :]  # static start, as in ragged
                 k = pltpu.bitcast(b << 16, jnp.float32).astype(jnp.bfloat16)
                 v = pltpu.bitcast(b & jnp.uint32(0xFFFF0000), jnp.float32).astype(jnp.bfloat16)
                 o_ref[pl.ds(16 * i, 8), :] = k[:8]

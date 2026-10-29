@@ -433,6 +433,7 @@ BATCHES = {
     "phase3m": {"flags": DUMP_FLAGS, "configs": phase3m_configs()},
     "phase3n": {"flags": DUMP_FLAGS, "configs": phase3n_configs()},
     "phase3o": {"flags": DUMP_FLAGS, "configs": phase3o_configs()},
+    "phase3o2": {"flags": DUMP_FLAGS, "configs": [c for c in phase3o_configs() if c["params"]["step"] > 1]},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},
     "phase0_aot": {

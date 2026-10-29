@@ -1,0 +1,100 @@
+{
+ "batch_id": "phase3o2",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "kv_strided__s2_n16_x8",
+   "kernel": "kv_strided",
+   "kernel_tag": "k_kv_strided",
+   "params": {
+    "step": 2,
+    "n": 16,
+    "reps": 8
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "kv_strided__s2_n16_x32",
+   "kernel": "kv_strided",
+   "kernel_tag": "k_kv_strided",
+   "params": {
+    "step": 2,
+    "n": 16,
+    "reps": 32
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "kv_strided__s8_n16_x8",
+   "kernel": "kv_strided",
+   "kernel_tag": "k_kv_strided",
+   "params": {
+    "step": 8,
+    "n": 16,
+    "reps": 8
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "kv_strided__s8_n16_x32",
+   "kernel": "kv_strided",
+   "kernel_tag": "k_kv_strided",
+   "params": {
+    "step": 8,
+    "n": 16,
+    "reps": 32
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "kv_strided__s16_n16_x8",
+   "kernel": "kv_strided",
+   "kernel_tag": "k_kv_strided",
+   "params": {
+    "step": 16,
+    "n": 16,
+    "reps": 8
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "kv_strided__s16_n16_x32",
+   "kernel": "kv_strided",
+   "kernel_tag": "k_kv_strided",
+   "params": {
+    "step": 16,
+    "n": 16,
+    "reps": 32
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  }
+ ]
+}

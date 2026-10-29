@@ -254,6 +254,13 @@ xprof 2.24.1, Python 3.12.3 (see `VERSIONS.lock`).
 - Confidence: high for the threshold, cadence, load time and wrap waits. Chunk size in bundles
   (rather than bytes), the slot count and the branch rule are inferred from these kernels.
 
+- Capacity (phase3y): kernels of 64,010 bundles never overlay, and 65,408 or more always do. The
+  launching module's TLP program is 341 bundles, so kernel + TLP fits exactly when it is at most
+  65,536, matching a third-party claim of a 65,536-bundle instruction memory. The kernel's share is
+  modeled as 65,195. (65,536 - 341) / 3 = 21,732, the fitted chunk size, which suggests three overlay
+  slots of a third each. Unmodeled: at 65.4-66k bundles the third chunk is not prefetched and waits a
+  full load (7.6 us); the model is -7% there.
+
 ### F26. Sync-flag tracing exposes every DMA wait and overlay load without changing kernel time
 - `ProfileOptions.advanced_configuration={"tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"}`: device times
   match untraced runs. The "Tensor Core Sync Flag" line has SyncWait (blocked, with duration) or

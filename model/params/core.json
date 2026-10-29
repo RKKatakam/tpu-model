@@ -143,7 +143,7 @@
   },
   "issue_lead": 8.0,
   "overlay": {
-   "capacity_bundles": 65536,
+   "capacity_bundles": 65195,
    "slots": 2,
    "chunk_bundles": 21700,
    "switch_cycles": 450,
@@ -416,7 +416,7 @@
   },
   "overlay_phase3st": {
    "source": "phase3s/phase3t valu_loop/valu_straight 8k-96k bundles with sync-flag traces (sequencer_overlay events)",
-   "capacity_bundles": "64011 bundles: no overlay events; 72011: overlays. 65536 assumed",
+   "capacity_bundles": "phase3y: kernels of 64010 bundles fit, 65408 overlay; with the launching module's 341-bundle TLP program both agree with a 65536-bundle instruction memory (third-party claim), so a kernel gets 65536 - 341 = 65195. Unmodeled: at 65.4-66k bundles (3 chunks) the third chunk is not prefetched (full 7.6 us wait); the model is -7% there.",
    "chunk_bundles": "switches every 14.67-14.70 us in straight-line code (1 bundle/cycle) = chunk + switch cost; grid-fitted 21600-21700",
    "load_cycles": "Set -> end of blocking Wait = 7.7-7.96 us in loops; fitted 11700-12000",
    "switch_cycles": "unexplained time per switch 270-300 ns; fitted 400-500",

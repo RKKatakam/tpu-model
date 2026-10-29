@@ -1,0 +1,179 @@
+{
+ "batch_id": "aot_check",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "aot__splash__s2048_causal_q512_kv512_c512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 2048,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 512,
+    "block_kv_compute": 512,
+    "window": 512
+   },
+   "mode": "aot",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600,
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "aot__paged__b8_pps64_pg16_cb4",
+   "kernel": "paged",
+   "kernel_tag": "paged_flash_attention_kernel",
+   "params": {
+    "batch": 8,
+    "q_heads": 32,
+    "kv_heads": 8,
+    "head_dim": 128,
+    "page_size": 16,
+    "pages_per_seq": 64,
+    "total_pages": 4096,
+    "pages_per_compute_block": 4
+   },
+   "mode": "aot",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600,
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "aot__matmul_tpu__4096_1024_4096_256_256_256",
+   "kernel": "matmul_tpu",
+   "kernel_tag": "matmul",
+   "params": {
+    "m": 4096,
+    "k": 1024,
+    "n": 4096,
+    "bm": 256,
+    "bn": 256,
+    "bk": 256
+   },
+   "mode": "aot",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600,
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "aot__tgmm__m8192_k512_n2048_g16_t256_256_256",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 512,
+    "n": 2048,
+    "groups": 16,
+    "tm": 256,
+    "tk": 256,
+    "tn": 256
+   },
+   "mode": "aot",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600,
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "aot__rope__t8192_h8_b256",
+   "kernel": "rope",
+   "kernel_tag": "k_rope",
+   "params": {
+    "tokens": 8192,
+    "heads": 8,
+    "head_dim": 128,
+    "block_tokens": 256
+   },
+   "mode": "aot",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600,
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "aot__layernorm__r16384_c4096_b8",
+   "kernel": "layernorm",
+   "kernel_tag": "k_layernorm",
+   "params": {
+    "rows": 16384,
+    "cols": 4096,
+    "block_rows": 8
+   },
+   "mode": "aot",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600,
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "aot__ragged__decode_kv16_q32",
+   "kernel": "ragged",
+   "kernel_tag": "ragged_paged_attention",
+   "params": {
+    "q_heads": 32,
+    "kv_heads": 8,
+    "head_dim": 128,
+    "page_size": 16,
+    "total_pages": 4096,
+    "n_decode": 32,
+    "n_prefill": 0,
+    "prefill_len": 0,
+    "kv_len": 2048,
+    "prefix": 0,
+    "kv_pages_per_block": 16,
+    "queries_per_block": 32
+   },
+   "mode": "aot",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600,
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "aot__prng__philox_b1024x1024",
+   "kernel": "prng",
+   "kernel_tag": "prng",
+   "params": {
+    "algo": "philox",
+    "rows": 4096,
+    "cols": 4096,
+    "block_rows": 1024,
+    "block_cols": 1024
+   },
+   "mode": "aot",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600,
+   "topology": "v5e:1x1"
+  }
+ ]
+}

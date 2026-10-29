@@ -993,7 +993,49 @@ def sld_unrolled(params):
     return fn, specs, make_inputs
 
 
+def dma_mxu(params):
+    """Pipelined stream of (bm, bn) bf16 tiles of `n_in` (rows, cols) inputs with per-tile work:
+    'none'; 'mxu' = `amount` matmuls of each tile by a resident (bn, 256) bf16 weight; 'valu' =
+    `amount` dependent vadds on one vreg. Output is a resident (8, 128) block (no write stream).
+
+    isolates: whether MXU work slows 2-D tile reads (tiled matmuls wait on reads longer than the
+    replay predicts) beyond what the same amount of VALU work does.
+    """
+    rows, cols, bm, bn = params["rows"], params["cols"], params["bm"], params["bn"]
+    n_in, work, amount = params["n_in"], params["work"], params["amount"]
+
+    def kernel(*refs):
+        ins, o_ref, w, acc, s1 = refs[:n_in], refs[n_in], refs[n_in + 1], refs[n_in + 2], refs[n_in + 3]
+        tiles = [r[...] for r in ins]
+        if work == "mxu":
+            for _ in range(amount):
+                for x in tiles:
+                    acc[...] += jnp.dot(x, w[...], preferred_element_type=jnp.float32)
+        elif work == "valu":
+            v = s1[...]
+            for _ in range(amount):
+                v = v + 1.0
+            s1[...] = v
+        live = sum(x[0:8, 0:128].astype(jnp.float32) for x in tiles)
+        o_ref[...] = live + acc[0:8, 0:128] + s1[...]
+
+    blk = pl.BlockSpec((bm, bn), lambda i, j: (i, j))
+
+    def fn(*xs):
+        return pl.pallas_call(
+            kernel, out_shape=jax.ShapeDtypeStruct((8, 128), jnp.float32),
+            grid=(rows // bm, cols // bn), in_specs=[blk] * n_in,
+            out_specs=pl.BlockSpec((8, 128), lambda i, j: (0, 0)),
+            scratch_shapes=[pltpu.VMEM((bn, 256), jnp.bfloat16), pltpu.VMEM((bm, 256), jnp.float32),
+                            pltpu.VMEM((8, 128), jnp.float32)],
+            name="k_dma_mxu",
+        )(*xs)
+
+    return fn, [jax.ShapeDtypeStruct((rows, cols), jnp.bfloat16)] * n_in
+
+
 MICRO = {
+    "dma_mxu": (dma_mxu, "micro"),
     "sld_unrolled": (sld_unrolled, "micro"),
     "pop_loop": (pop_loop, "micro"),
     "pop_scalar": (pop_scalar, "micro"),

@@ -1,5 +1,6 @@
 """Glue: record directory -> parsed program -> replay -> predicted device time."""
 
+import glob
 import json
 import math
 import os
@@ -39,8 +40,16 @@ class Record:
 
     @property
     def hlo_names(self):
-        """HLO names of the program's Pallas kernels (tpu_custom_call ops), sorted."""
-        return xplane.custom_call_names(self.raw["timing"]["profile_summary"])
+        """HLO names of the program's Pallas kernels (tpu_custom_call ops), sorted. Compile-only (AOT)
+        records have no profile: names come from the entry computation of the optimized HLO."""
+        if self.raw.get("timing"):
+            return xplane.custom_call_names(self.raw["timing"]["profile_summary"])
+        names = set()
+        for f in glob.glob(os.path.join(self.dump, "xla", "*after_optimizations.txt")):
+            txt = open(f).read()
+            entry = txt[txt.find("\nENTRY "):] if "\nENTRY " in txt else ""
+            names |= set(re.findall(r"%([\w.\-]+) = [^\n]*custom_call_target=\"tpu_custom_call\"", entry))
+        return sorted(names)
 
     @property
     def hlo_name(self):

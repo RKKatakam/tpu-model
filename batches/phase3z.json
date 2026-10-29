@@ -1,0 +1,260 @@
+{
+ "batch_id": "phase3z",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "dma_mxu__in1_none0",
+   "kernel": "dma_mxu",
+   "kernel_tag": "k_dma_mxu",
+   "params": {
+    "rows": 4096,
+    "cols": 4096,
+    "bm": 256,
+    "bn": 256,
+    "n_in": 1,
+    "work": "none",
+    "amount": 0
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_mxu__in1_mxu1",
+   "kernel": "dma_mxu",
+   "kernel_tag": "k_dma_mxu",
+   "params": {
+    "rows": 4096,
+    "cols": 4096,
+    "bm": 256,
+    "bn": 256,
+    "n_in": 1,
+    "work": "mxu",
+    "amount": 1
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_mxu__in1_mxu2",
+   "kernel": "dma_mxu",
+   "kernel_tag": "k_dma_mxu",
+   "params": {
+    "rows": 4096,
+    "cols": 4096,
+    "bm": 256,
+    "bn": 256,
+    "n_in": 1,
+    "work": "mxu",
+    "amount": 2
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_mxu__in1_mxu4",
+   "kernel": "dma_mxu",
+   "kernel_tag": "k_dma_mxu",
+   "params": {
+    "rows": 4096,
+    "cols": 4096,
+    "bm": 256,
+    "bn": 256,
+    "n_in": 1,
+    "work": "mxu",
+    "amount": 4
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_mxu__in1_valu256",
+   "kernel": "dma_mxu",
+   "kernel_tag": "k_dma_mxu",
+   "params": {
+    "rows": 4096,
+    "cols": 4096,
+    "bm": 256,
+    "bn": 256,
+    "n_in": 1,
+    "work": "valu",
+    "amount": 256
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_mxu__in1_valu512",
+   "kernel": "dma_mxu",
+   "kernel_tag": "k_dma_mxu",
+   "params": {
+    "rows": 4096,
+    "cols": 4096,
+    "bm": 256,
+    "bn": 256,
+    "n_in": 1,
+    "work": "valu",
+    "amount": 512
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_mxu__in1_valu1024",
+   "kernel": "dma_mxu",
+   "kernel_tag": "k_dma_mxu",
+   "params": {
+    "rows": 4096,
+    "cols": 4096,
+    "bm": 256,
+    "bn": 256,
+    "n_in": 1,
+    "work": "valu",
+    "amount": 1024
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_mxu__in2_none0",
+   "kernel": "dma_mxu",
+   "kernel_tag": "k_dma_mxu",
+   "params": {
+    "rows": 4096,
+    "cols": 4096,
+    "bm": 256,
+    "bn": 256,
+    "n_in": 2,
+    "work": "none",
+    "amount": 0
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_mxu__in2_mxu1",
+   "kernel": "dma_mxu",
+   "kernel_tag": "k_dma_mxu",
+   "params": {
+    "rows": 4096,
+    "cols": 4096,
+    "bm": 256,
+    "bn": 256,
+    "n_in": 2,
+    "work": "mxu",
+    "amount": 1
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_mxu__in2_mxu2",
+   "kernel": "dma_mxu",
+   "kernel_tag": "k_dma_mxu",
+   "params": {
+    "rows": 4096,
+    "cols": 4096,
+    "bm": 256,
+    "bn": 256,
+    "n_in": 2,
+    "work": "mxu",
+    "amount": 2
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_mxu__in2_mxu4",
+   "kernel": "dma_mxu",
+   "kernel_tag": "k_dma_mxu",
+   "params": {
+    "rows": 4096,
+    "cols": 4096,
+    "bm": 256,
+    "bn": 256,
+    "n_in": 2,
+    "work": "mxu",
+    "amount": 4
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_mxu__in2_valu256",
+   "kernel": "dma_mxu",
+   "kernel_tag": "k_dma_mxu",
+   "params": {
+    "rows": 4096,
+    "cols": 4096,
+    "bm": 256,
+    "bn": 256,
+    "n_in": 2,
+    "work": "valu",
+    "amount": 256
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_mxu__in2_valu512",
+   "kernel": "dma_mxu",
+   "kernel_tag": "k_dma_mxu",
+   "params": {
+    "rows": 4096,
+    "cols": 4096,
+    "bm": 256,
+    "bn": 256,
+    "n_in": 2,
+    "work": "valu",
+    "amount": 512
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_mxu__in2_valu1024",
+   "kernel": "dma_mxu",
+   "kernel_tag": "k_dma_mxu",
+   "params": {
+    "rows": 4096,
+    "cols": 4096,
+    "bm": 256,
+    "bn": 256,
+    "n_in": 2,
+    "work": "valu",
+    "amount": 1024
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 10
+  }
+ ]
+}

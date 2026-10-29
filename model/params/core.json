@@ -75,6 +75,36 @@
       "latency": 164.22696888446808,
       "interval": 0,
       "stream": true
+     },
+     "b32_short": {
+      "occupancy": 8.22,
+      "latency": 150,
+      "interval": 8.22
+     },
+     "b32_narrow": {
+      "occupancy": 4,
+      "latency": 50,
+      "interval": 8.22
+     },
+     "b16_short": {
+      "occupancy": 16.58,
+      "latency": 165,
+      "interval": 16.58
+     },
+     "b16_narrow": {
+      "occupancy": 4,
+      "latency": 55,
+      "interval": 16.58
+     },
+     "b16bin_short": {
+      "occupancy": 8.54,
+      "latency": 160,
+      "interval": 8.22
+     },
+     "b16bin_narrow": {
+      "occupancy": 8.54,
+      "latency": 40,
+      "interval": 8.22
      }
     }
    },
@@ -400,7 +430,8 @@
    "vcmp": "eq_select also 3.0 cycles/round: vcmp <= 2, kept at 1"
   },
   "vector_queue_phase3u": "12 (11-13): pop_loop hides an 8-trip scalar inner loop under a 178-cycle MXU pop chain (in-order issue: +37%); 8 queued vadds after the pop stay hidden, 16 stall the front end",
-  "sld_phase3wx": "sld load-to-use 6 cycles: phase3w loop variants (use 3/4/5 bundles after the load: +3/+2/+1 cycles) and phase3x unrolled pointer chases (6.0 cycles per load, straight-line and in loops; the compiler packs them 1-2 bundles apart). A 2-cycle address lag (H11) is refuted: +25-30% on the chases. sld_chain keeps 1 unexplained cycle per iteration."
+  "sld_phase3wx": "sld load-to-use 6 cycles: phase3w loop variants (use 3/4/5 bundles after the load: +3/+2/+1 cycles) and phase3x unrolled pointer chases (6.0 cycles per load, straight-line and in loops; the compiler packs them 1-2 bundles apart). A 2-cycle address lag (H11) is refuted: +25-30% on the chases. sld_chain keeps 1 unexplained cycle per iteration.",
+  "xpose_modes_phase3v": "short/narrow transposes (op text '(short)'/'(narrow)', width = last operand) queue all their results at .end: ceil(width/S) x ceil(rows/128) vregs (S 8 b32, 16 packed b16; rows = inputs x S; binary = two transposes), matching every Pallas kernel's vpop.trf count. result j at end + latency + j*interval. Fitted on phase3v xpose_chain r8 f32 / r16 bf16 (nv1 = latency sum; nv4 splits short vs narrow); narrow input occupancy <= 4 (f32 nv4: 2 and 4 give +0.3%, 8.22 gives +5.2%). Unannotated (full) transposes keep the phase3j per-input stream."
  },
  "provenance": {
   "sources": [

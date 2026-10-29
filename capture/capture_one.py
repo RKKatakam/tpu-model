@@ -166,6 +166,8 @@ def main(config_path, record_dir):
     if cfg["mode"] == "aot":
         compiled, devices, client = compile_aot(fn, specs, cfg["topology"])
         timing = None
+        if factory is not None:  # the replay needs integer inputs (SMEM tables); build them on the host
+            int_inputs = integer_inputs([np.asarray(a) for a in factory(cfg.get("seed", 0))])
     else:
         devices = jax.devices()
         client = devices[0].client

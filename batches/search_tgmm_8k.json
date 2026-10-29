@@ -1,0 +1,886 @@
+{
+ "batch_id": "search_tgmm_8k",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "tgmm_8k__tm128_tk128_tn128",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 128,
+    "tk": 128,
+    "tn": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm128_tk128_tn256",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 128,
+    "tk": 128,
+    "tn": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm128_tk128_tn512",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 128,
+    "tk": 128,
+    "tn": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm128_tk128_tn1024",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 128,
+    "tk": 128,
+    "tn": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm128_tk256_tn128",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 128,
+    "tk": 256,
+    "tn": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm128_tk256_tn256",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 128,
+    "tk": 256,
+    "tn": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm128_tk256_tn512",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 128,
+    "tk": 256,
+    "tn": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm128_tk256_tn1024",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 128,
+    "tk": 256,
+    "tn": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm128_tk512_tn128",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 128,
+    "tk": 512,
+    "tn": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm128_tk512_tn256",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 128,
+    "tk": 512,
+    "tn": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm128_tk512_tn512",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 128,
+    "tk": 512,
+    "tn": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm128_tk512_tn1024",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 128,
+    "tk": 512,
+    "tn": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm256_tk128_tn128",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 256,
+    "tk": 128,
+    "tn": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm256_tk128_tn256",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 256,
+    "tk": 128,
+    "tn": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm256_tk128_tn512",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 256,
+    "tk": 128,
+    "tn": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm256_tk128_tn1024",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 256,
+    "tk": 128,
+    "tn": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm256_tk256_tn128",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 256,
+    "tk": 256,
+    "tn": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm256_tk256_tn256",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 256,
+    "tk": 256,
+    "tn": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm256_tk256_tn512",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 256,
+    "tk": 256,
+    "tn": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm256_tk256_tn1024",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 256,
+    "tk": 256,
+    "tn": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm256_tk512_tn128",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 256,
+    "tk": 512,
+    "tn": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm256_tk512_tn256",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 256,
+    "tk": 512,
+    "tn": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm256_tk512_tn512",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 256,
+    "tk": 512,
+    "tn": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm256_tk512_tn1024",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 256,
+    "tk": 512,
+    "tn": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm512_tk128_tn128",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 512,
+    "tk": 128,
+    "tn": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm512_tk128_tn256",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 512,
+    "tk": 128,
+    "tn": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm512_tk128_tn512",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 512,
+    "tk": 128,
+    "tn": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm512_tk128_tn1024",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 512,
+    "tk": 128,
+    "tn": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm512_tk256_tn128",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 512,
+    "tk": 256,
+    "tn": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm512_tk256_tn256",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 512,
+    "tk": 256,
+    "tn": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm512_tk256_tn512",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 512,
+    "tk": 256,
+    "tn": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm512_tk256_tn1024",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 512,
+    "tk": 256,
+    "tn": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm512_tk512_tn128",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 512,
+    "tk": 512,
+    "tn": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm512_tk512_tn256",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 512,
+    "tk": 512,
+    "tn": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm512_tk512_tn512",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 512,
+    "tk": 512,
+    "tn": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm512_tk512_tn1024",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 512,
+    "tk": 512,
+    "tn": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm1024_tk128_tn128",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 1024,
+    "tk": 128,
+    "tn": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm1024_tk128_tn256",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 1024,
+    "tk": 128,
+    "tn": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm1024_tk128_tn512",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 1024,
+    "tk": 128,
+    "tn": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm1024_tk128_tn1024",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 1024,
+    "tk": 128,
+    "tn": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm1024_tk256_tn128",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 1024,
+    "tk": 256,
+    "tn": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm1024_tk256_tn256",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 1024,
+    "tk": 256,
+    "tn": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm1024_tk256_tn512",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 1024,
+    "tk": 256,
+    "tn": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm1024_tk256_tn1024",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 1024,
+    "tk": 256,
+    "tn": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm1024_tk512_tn128",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 1024,
+    "tk": 512,
+    "tn": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm1024_tk512_tn256",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 1024,
+    "tk": 512,
+    "tn": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm1024_tk512_tn512",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 1024,
+    "tk": 512,
+    "tn": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "tgmm_8k__tm1024_tk512_tn1024",
+   "kernel": "tgmm",
+   "kernel_tag": "tgmm",
+   "params": {
+    "m": 8192,
+    "k": 1024,
+    "n": 1024,
+    "groups": 8,
+    "tm": 1024,
+    "tk": 512,
+    "tn": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  }
+ ]
+}

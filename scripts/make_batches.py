@@ -1,5 +1,6 @@
 """Write the batch JSON files under batches/. Rerun after editing; batches are data."""
 
+import glob
 import json
 import os
 
@@ -416,6 +417,56 @@ def phase3x_configs():
     return cfgs
 
 
+def phase3y_configs():
+    """Instruction memory capacity (third-party claim: 65536 bundles): straight-line VALU programs of
+    2k + 9 bundles around 65536, traced for sequencer_overlay events."""
+    trace = {"advanced_configuration": {"tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"}}
+    cfgs = []
+    for k in (32700, 32755, 32760, 32763, 32764, 32770, 33000):
+        c = device("valu_straight", {"k": k, "nv": 8}, f"valu_straight__imem_k{k}", reps=20, warmup=3)
+        c["profiler_options"] = trace
+        c["timeout_s"] = 2400
+        cfgs.append(c)
+    return cfgs
+
+
+AOT_CHECK_IDS = [
+    "splash__s2048_causal_q512_kv512_c512", "paged__b8_pps64_pg16_cb4", "matmul_tpu__4096_1024_4096_256_256_256",
+    "tgmm__m8192_k512_n2048_g16_t256_256_256", "rope__t8192_h8_b256", "layernorm__r16384_c4096_b8",
+    "ragged__decode_kv16_q32", "prng__philox_b1024x1024",
+]
+
+
+def aot_check_configs():
+    """Deviceless compiles (topology v5e:1x1, CPU runtime) of measured calibration configs, to check
+    that they give the same bundles as compiling on the TPU."""
+    by_id = {}
+    for f in sorted(glob.glob(os.path.join(HERE, "batches", "*.json"))):
+        if os.path.basename(f).startswith("aot_check"):
+            continue
+        for c in json.load(open(f))["configs"]:
+            by_id.setdefault(c["record_id"], c)
+    out = []
+    for rid in AOT_CHECK_IDS:
+        c = dict(by_id[rid], mode="aot", topology="v5e:1x1", record_id="aot__" + rid)
+        c.pop("profiler_options", None)
+        out.append(c)
+    return out
+
+
+def phase3z_configs():
+    """Do 2-D bf16 tile reads slow down under MXU work (tiled matmul read waits)? Same stream with
+    no work, MXU matmuls, or VALU work of similar duration; one and two inputs."""
+    cfgs = []
+    base = {"rows": 4096, "cols": 4096, "bm": 256, "bn": 256}
+    for n_in in (1, 2):
+        runs = [("none", 0)] + [("mxu", a) for a in (1, 2, 4)] + [("valu", a) for a in (256, 512, 1024)]
+        for work, amount in runs:
+            p = base | {"n_in": n_in, "work": work, "amount": amount}
+            cfgs.append(device("dma_mxu", p, f"dma_mxu__in{n_in}_{work}{amount}", reps=50))
+    return cfgs
+
+
 def trace_probe_configs():
     """Does an in-kernel named_scope produce trace events, and under which profiler option?"""
     cfgs = []
@@ -645,6 +696,9 @@ BATCHES = {
     "phase3v": {"flags": DUMP_FLAGS, "configs": phase3v_configs()},
     "phase3w": {"flags": DUMP_FLAGS, "configs": phase3w_configs()},
     "phase3x": {"flags": DUMP_FLAGS, "configs": phase3x_configs()},
+    "phase3y": {"flags": DUMP_FLAGS, "configs": phase3y_configs()},
+    "phase3z": {"flags": DUMP_FLAGS, "configs": phase3z_configs()},
+    "aot_check": {"flags": DUMP_FLAGS, "configs": aot_check_configs()},
     "phase3o2": {"flags": DUMP_FLAGS, "configs": [c for c in phase3o_configs() if c["params"]["step"] > 1]},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},

@@ -1,0 +1,1030 @@
+{
+ "batch_id": "search_splash_s4096",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "splash_s4096__block_q128_block_kv128_block_kv_compute128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 128,
+    "block_kv": 128,
+    "block_kv_compute": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q128_block_kv256_block_kv_compute128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 128,
+    "block_kv": 256,
+    "block_kv_compute": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q128_block_kv256_block_kv_compute256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 128,
+    "block_kv": 256,
+    "block_kv_compute": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q128_block_kv512_block_kv_compute128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 128,
+    "block_kv": 512,
+    "block_kv_compute": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q128_block_kv512_block_kv_compute256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 128,
+    "block_kv": 512,
+    "block_kv_compute": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q128_block_kv512_block_kv_compute512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 128,
+    "block_kv": 512,
+    "block_kv_compute": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q128_block_kv1024_block_kv_compute128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 128,
+    "block_kv": 1024,
+    "block_kv_compute": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q128_block_kv1024_block_kv_compute256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 128,
+    "block_kv": 1024,
+    "block_kv_compute": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q128_block_kv1024_block_kv_compute512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 128,
+    "block_kv": 1024,
+    "block_kv_compute": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q128_block_kv1024_block_kv_compute1024",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 128,
+    "block_kv": 1024,
+    "block_kv_compute": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q128_block_kv2048_block_kv_compute128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 128,
+    "block_kv": 2048,
+    "block_kv_compute": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q128_block_kv2048_block_kv_compute256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 128,
+    "block_kv": 2048,
+    "block_kv_compute": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q128_block_kv2048_block_kv_compute512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 128,
+    "block_kv": 2048,
+    "block_kv_compute": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q128_block_kv2048_block_kv_compute1024",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 128,
+    "block_kv": 2048,
+    "block_kv_compute": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q256_block_kv128_block_kv_compute128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 256,
+    "block_kv": 128,
+    "block_kv_compute": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q256_block_kv256_block_kv_compute128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 256,
+    "block_kv": 256,
+    "block_kv_compute": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q256_block_kv256_block_kv_compute256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 256,
+    "block_kv": 256,
+    "block_kv_compute": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q256_block_kv512_block_kv_compute128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 256,
+    "block_kv": 512,
+    "block_kv_compute": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q256_block_kv512_block_kv_compute256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 256,
+    "block_kv": 512,
+    "block_kv_compute": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q256_block_kv512_block_kv_compute512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 256,
+    "block_kv": 512,
+    "block_kv_compute": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q256_block_kv1024_block_kv_compute128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 256,
+    "block_kv": 1024,
+    "block_kv_compute": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q256_block_kv1024_block_kv_compute256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 256,
+    "block_kv": 1024,
+    "block_kv_compute": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q256_block_kv1024_block_kv_compute512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 256,
+    "block_kv": 1024,
+    "block_kv_compute": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q256_block_kv1024_block_kv_compute1024",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 256,
+    "block_kv": 1024,
+    "block_kv_compute": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q256_block_kv2048_block_kv_compute128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 256,
+    "block_kv": 2048,
+    "block_kv_compute": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q256_block_kv2048_block_kv_compute256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 256,
+    "block_kv": 2048,
+    "block_kv_compute": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q256_block_kv2048_block_kv_compute512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 256,
+    "block_kv": 2048,
+    "block_kv_compute": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q256_block_kv2048_block_kv_compute1024",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 256,
+    "block_kv": 2048,
+    "block_kv_compute": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q512_block_kv128_block_kv_compute128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 128,
+    "block_kv_compute": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q512_block_kv256_block_kv_compute128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 256,
+    "block_kv_compute": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q512_block_kv256_block_kv_compute256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 256,
+    "block_kv_compute": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q512_block_kv512_block_kv_compute128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 512,
+    "block_kv_compute": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q512_block_kv512_block_kv_compute256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 512,
+    "block_kv_compute": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q512_block_kv512_block_kv_compute512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 512,
+    "block_kv_compute": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q512_block_kv1024_block_kv_compute128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 1024,
+    "block_kv_compute": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q512_block_kv1024_block_kv_compute256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 1024,
+    "block_kv_compute": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q512_block_kv1024_block_kv_compute512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 1024,
+    "block_kv_compute": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q512_block_kv1024_block_kv_compute1024",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 1024,
+    "block_kv_compute": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q512_block_kv2048_block_kv_compute128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 2048,
+    "block_kv_compute": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q512_block_kv2048_block_kv_compute256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 2048,
+    "block_kv_compute": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q512_block_kv2048_block_kv_compute512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 2048,
+    "block_kv_compute": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q512_block_kv2048_block_kv_compute1024",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 2048,
+    "block_kv_compute": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q1024_block_kv128_block_kv_compute128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 1024,
+    "block_kv": 128,
+    "block_kv_compute": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q1024_block_kv256_block_kv_compute128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 1024,
+    "block_kv": 256,
+    "block_kv_compute": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q1024_block_kv256_block_kv_compute256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 1024,
+    "block_kv": 256,
+    "block_kv_compute": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q1024_block_kv512_block_kv_compute128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 1024,
+    "block_kv": 512,
+    "block_kv_compute": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q1024_block_kv512_block_kv_compute256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 1024,
+    "block_kv": 512,
+    "block_kv_compute": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q1024_block_kv512_block_kv_compute512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 1024,
+    "block_kv": 512,
+    "block_kv_compute": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q1024_block_kv1024_block_kv_compute128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 1024,
+    "block_kv": 1024,
+    "block_kv_compute": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q1024_block_kv1024_block_kv_compute256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 1024,
+    "block_kv": 1024,
+    "block_kv_compute": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q1024_block_kv1024_block_kv_compute512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 1024,
+    "block_kv": 1024,
+    "block_kv_compute": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q1024_block_kv1024_block_kv_compute1024",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 1024,
+    "block_kv": 1024,
+    "block_kv_compute": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q1024_block_kv2048_block_kv_compute128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 1024,
+    "block_kv": 2048,
+    "block_kv_compute": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q1024_block_kv2048_block_kv_compute256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 1024,
+    "block_kv": 2048,
+    "block_kv_compute": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q1024_block_kv2048_block_kv_compute512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 1024,
+    "block_kv": 2048,
+    "block_kv_compute": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash_s4096__block_q1024_block_kv2048_block_kv_compute1024",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 1024,
+    "block_kv": 2048,
+    "block_kv_compute": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  }
+ ]
+}

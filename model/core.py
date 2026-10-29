@@ -128,11 +128,26 @@ class Units:
             xps = self.p[cls].get("xpose")
             if not xps:  # uncalibrated: transposes cost only their issue slots
                 return None
-            xp = xps["b16bin" if ".binary" in mnemonic else "b16" if ".b16" in mnemonic else "b32"]
+            form = "b16bin" if ".binary" in mnemonic else "b16" if ".b16" in mnemonic else "b32"
             n = 2 if ".binary" in mnemonic else 1
             tk = (cls, uid, "trf")
-            self.busy[tk] = t + xp["occupancy"] * n
             self.xcount[tk] = (0 if ".start" in mnemonic else self.xcount.get(tk, 0)) + n
+            mode = re.search(r"\.(short|narrow)\.w(\d+)$", mnemonic)
+            xm = xps.get(f"{form}_{mode.group(1)}") if mode else None
+            if xm:
+                # A short/narrow transpose of R rows x w columns yields ceil(w / S) x ceil(R / 128)
+                # result vregs (S = 8 sublanes, 16 for packed b16; binary = two transposes), all
+                # queued at its end (phase3v xpose_chain; matches every kernel's vpop.trf count).
+                self.busy[tk] = t + xm["occupancy"] * n
+                if ".end" in mnemonic:
+                    sub = 16 if ".b16" in mnemonic else 8
+                    rows = self.xcount[tk] // n * sub
+                    outs = n * -(-int(mode.group(2)) // sub) * -(-rows // 128)
+                    q = self.fifo.setdefault(tk, [])
+                    q.extend(t + xm["latency"] + j * xm["interval"] for j in range(outs))
+                return None
+            xp = xps[form]
+            self.busy[tk] = t + xp["occupancy"] * n
             if xp.get("stream"):  # result j is ready `latency` after input j is accepted
                 q = self.fifo.setdefault(tk, [])
                 q.extend(t + xp["latency"] + i * xp["occupancy"] for i in range(n))
@@ -251,7 +266,13 @@ class Scoreboard:
                 for a in op.args:
                     srcs.update(VREG.findall(a))
                 c = classify(m)
-                unit = (*c, m) if c and c[0] in self.p.units else None
+                um = m
+                if c and c[2] == "xpose":  # transpose mode (short/narrow) and width, e.g. ".short.w128"
+                    mode = re.search(r"\((short|narrow)\)", op.text)
+                    width = re.search(r"(?:width=\*/\s*)?(\d+)\s*$", op.text.split("/*loc")[0].strip())
+                    if mode:
+                        um = f"{m}.{mode.group(1)}.w{width.group(1) if width else 128}"
+                unit = (*c, um) if c and c[0] in self.p.units else None
                 dest = None
                 if op.dest_reg and op.dest_reg[0] == "v":
                     if unit and unit[2] == "pop":

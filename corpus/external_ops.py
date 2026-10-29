@@ -45,6 +45,7 @@ def vllm_rpa(params):
             q, k, v, kv_cache, kv_lens_a, page_indices, cu_q_lens, distribution,
             update_kv_cache=False, sm_scale=d ** -0.5, m_block_sizes=tuple(params["m_blocks"]),
             d_block_sizes=tuple(params["d_blocks"]) if params.get("d_blocks") else None,
+            vmem_limit_bytes=params.get("vmem_limit_bytes"),
         )
         return out
 

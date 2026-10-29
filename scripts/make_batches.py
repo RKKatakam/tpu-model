@@ -423,7 +423,8 @@ def external_vllm_configs():
               "prefill": {"n_decode": 0, "n_prefill": 4, "prefill_len": 512, "kv_len": 0, "prefix": 0}}
     for name, shp in shapes.items():
         for mb in ((32, 128, 32, 128), (64, 256, 32, 128), (128, 512, 64, 256)):
-            p = base | shp | {"m_blocks": list(mb), "d_blocks": None}
+            # vLLM's default decode block (bkv 2048) needs 147 MB of VMEM on v5e; use the size its tests use
+            p = base | shp | {"m_blocks": list(mb), "d_blocks": [1, 512, 1, 512], "vmem_limit_bytes": 100 * 2**20}
             cfgs.append(corpus("vllm_rpa", p, f"vllm_rpa__{name}_m{mb[0]}_{mb[1]}"))
     for mode in ("w8a8", "w8a16"):
         for m in (16, 128, 512, 2048):
@@ -485,6 +486,7 @@ BATCHES["corpus1_rerun"] = {"flags": DUMP_FLAGS,
 BATCHES["corpus2_splash"] = {"flags": DUMP_FLAGS, "configs": corpus2_configs()}
 for i, part in enumerate(split(external_vllm_configs(), 2)):
     BATCHES[f"external_vllm_part{i}"] = {"flags": DUMP_FLAGS, "configs": part}
+BATCHES["external_vllm_rpa"] = {"flags": DUMP_FLAGS, "configs": [c for c in external_vllm_configs() if c["kernel"] == "vllm_rpa"]}
 for i, part in enumerate(split(corpus3_configs(), 2)):
     BATCHES[f"corpus3_part{i}"] = {"flags": DUMP_FLAGS, "configs": part}
 

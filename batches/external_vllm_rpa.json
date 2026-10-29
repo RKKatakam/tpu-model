@@ -1,0 +1,337 @@
+{
+ "batch_id": "external_vllm_rpa",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "vllm_rpa__decode_m32_128",
+   "kernel": "vllm_rpa",
+   "kernel_tag": "rpa",
+   "params": {
+    "q_heads": 32,
+    "kv_heads": 8,
+    "head_dim": 128,
+    "page_size": 16,
+    "num_pages": 4096,
+    "n_decode": 32,
+    "n_prefill": 0,
+    "prefill_len": 0,
+    "kv_len": 2048,
+    "prefix": 0,
+    "m_blocks": [
+     32,
+     128,
+     32,
+     128
+    ],
+    "d_blocks": [
+     1,
+     512,
+     1,
+     512
+    ],
+    "vmem_limit_bytes": 104857600
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "vllm_rpa__decode_m64_256",
+   "kernel": "vllm_rpa",
+   "kernel_tag": "rpa",
+   "params": {
+    "q_heads": 32,
+    "kv_heads": 8,
+    "head_dim": 128,
+    "page_size": 16,
+    "num_pages": 4096,
+    "n_decode": 32,
+    "n_prefill": 0,
+    "prefill_len": 0,
+    "kv_len": 2048,
+    "prefix": 0,
+    "m_blocks": [
+     64,
+     256,
+     32,
+     128
+    ],
+    "d_blocks": [
+     1,
+     512,
+     1,
+     512
+    ],
+    "vmem_limit_bytes": 104857600
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "vllm_rpa__decode_m128_512",
+   "kernel": "vllm_rpa",
+   "kernel_tag": "rpa",
+   "params": {
+    "q_heads": 32,
+    "kv_heads": 8,
+    "head_dim": 128,
+    "page_size": 16,
+    "num_pages": 4096,
+    "n_decode": 32,
+    "n_prefill": 0,
+    "prefill_len": 0,
+    "kv_len": 2048,
+    "prefix": 0,
+    "m_blocks": [
+     128,
+     512,
+     64,
+     256
+    ],
+    "d_blocks": [
+     1,
+     512,
+     1,
+     512
+    ],
+    "vmem_limit_bytes": 104857600
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "vllm_rpa__mixed_m32_128",
+   "kernel": "vllm_rpa",
+   "kernel_tag": "rpa",
+   "params": {
+    "q_heads": 32,
+    "kv_heads": 8,
+    "head_dim": 128,
+    "page_size": 16,
+    "num_pages": 4096,
+    "n_decode": 16,
+    "n_prefill": 2,
+    "prefill_len": 256,
+    "kv_len": 1024,
+    "prefix": 512,
+    "m_blocks": [
+     32,
+     128,
+     32,
+     128
+    ],
+    "d_blocks": [
+     1,
+     512,
+     1,
+     512
+    ],
+    "vmem_limit_bytes": 104857600
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "vllm_rpa__mixed_m64_256",
+   "kernel": "vllm_rpa",
+   "kernel_tag": "rpa",
+   "params": {
+    "q_heads": 32,
+    "kv_heads": 8,
+    "head_dim": 128,
+    "page_size": 16,
+    "num_pages": 4096,
+    "n_decode": 16,
+    "n_prefill": 2,
+    "prefill_len": 256,
+    "kv_len": 1024,
+    "prefix": 512,
+    "m_blocks": [
+     64,
+     256,
+     32,
+     128
+    ],
+    "d_blocks": [
+     1,
+     512,
+     1,
+     512
+    ],
+    "vmem_limit_bytes": 104857600
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "vllm_rpa__mixed_m128_512",
+   "kernel": "vllm_rpa",
+   "kernel_tag": "rpa",
+   "params": {
+    "q_heads": 32,
+    "kv_heads": 8,
+    "head_dim": 128,
+    "page_size": 16,
+    "num_pages": 4096,
+    "n_decode": 16,
+    "n_prefill": 2,
+    "prefill_len": 256,
+    "kv_len": 1024,
+    "prefix": 512,
+    "m_blocks": [
+     128,
+     512,
+     64,
+     256
+    ],
+    "d_blocks": [
+     1,
+     512,
+     1,
+     512
+    ],
+    "vmem_limit_bytes": 104857600
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "vllm_rpa__prefill_m32_128",
+   "kernel": "vllm_rpa",
+   "kernel_tag": "rpa",
+   "params": {
+    "q_heads": 32,
+    "kv_heads": 8,
+    "head_dim": 128,
+    "page_size": 16,
+    "num_pages": 4096,
+    "n_decode": 0,
+    "n_prefill": 4,
+    "prefill_len": 512,
+    "kv_len": 0,
+    "prefix": 0,
+    "m_blocks": [
+     32,
+     128,
+     32,
+     128
+    ],
+    "d_blocks": [
+     1,
+     512,
+     1,
+     512
+    ],
+    "vmem_limit_bytes": 104857600
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "vllm_rpa__prefill_m64_256",
+   "kernel": "vllm_rpa",
+   "kernel_tag": "rpa",
+   "params": {
+    "q_heads": 32,
+    "kv_heads": 8,
+    "head_dim": 128,
+    "page_size": 16,
+    "num_pages": 4096,
+    "n_decode": 0,
+    "n_prefill": 4,
+    "prefill_len": 512,
+    "kv_len": 0,
+    "prefix": 0,
+    "m_blocks": [
+     64,
+     256,
+     32,
+     128
+    ],
+    "d_blocks": [
+     1,
+     512,
+     1,
+     512
+    ],
+    "vmem_limit_bytes": 104857600
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "vllm_rpa__prefill_m128_512",
+   "kernel": "vllm_rpa",
+   "kernel_tag": "rpa",
+   "params": {
+    "q_heads": 32,
+    "kv_heads": 8,
+    "head_dim": 128,
+    "page_size": 16,
+    "num_pages": 4096,
+    "n_decode": 0,
+    "n_prefill": 4,
+    "prefill_len": 512,
+    "kv_len": 0,
+    "prefix": 0,
+    "m_blocks": [
+     128,
+     512,
+     64,
+     256
+    ],
+    "d_blocks": [
+     1,
+     512,
+     1,
+     512
+    ],
+    "vmem_limit_bytes": 104857600
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  }
+ ]
+}

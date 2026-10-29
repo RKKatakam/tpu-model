@@ -255,6 +255,20 @@ def phase3o_configs():
     return cfgs
 
 
+def trace_probe_configs():
+    """Does an in-kernel named_scope produce trace events, and under which profiler option?"""
+    cfgs = []
+    modes = [None, "TRACE_ONLY_XLA", "TRACE_COMPUTE", "TRACE_COMPUTE_AND_SYNC"]
+    for mode in modes:
+        cfg = device("scoped_stream", {"block_rows": 32, "amount": 256}, f"scoped_stream__{(mode or 'default').lower()}", reps=20)
+        if mode:
+            cfg["profiler_options"] = {"advanced_configuration": {"tpu_trace_mode": mode}}
+        cfgs.append(cfg)
+    cfgs.append(device("dma_compute", {"block_rows": 32, "kind": "valu", "amount": 256, "reads": 1, "writes": 1},
+                       "dma_compute__r1w1_b32_valu256_unscoped", reps=20))
+    return cfgs
+
+
 def phase3b_configs():
     cfgs = []
     for rows in (1, 8, 64, 512, 2048, 8192):
@@ -459,6 +473,7 @@ BATCHES = {
     "phase3m": {"flags": DUMP_FLAGS, "configs": phase3m_configs()},
     "phase3n": {"flags": DUMP_FLAGS, "configs": phase3n_configs()},
     "phase3o": {"flags": DUMP_FLAGS, "configs": phase3o_configs()},
+    "trace_probe": {"flags": DUMP_FLAGS, "configs": trace_probe_configs()},
     "phase3o2": {"flags": DUMP_FLAGS, "configs": [c for c in phase3o_configs() if c["params"]["step"] > 1]},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},

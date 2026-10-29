@@ -777,7 +777,35 @@ def kv_strided(params):
     return fn, [jax.ShapeDtypeStruct((rows, 128), jnp.bfloat16)]
 
 
+def scoped_stream(params):
+    """dma_compute's 1-read 1-write stream (32-row blocks, `amount` vadds per step) with each phase of
+    the kernel body in a jax.named_scope, which Mosaic lowers to trace_start / trace_stop.
+
+    isolates: whether in-kernel trace events reach the profile, and at what cost (diagnostic only).
+    """
+    rows, cols, br, amount = 16384, 1024, params["block_rows"], params["amount"]
+    blk = pl.BlockSpec((br, cols), lambda i: (i, 0))
+
+    def kernel(x_ref, o_ref, s1):
+        with jax.named_scope("copy"):
+            o_ref[...] = x_ref[...]
+        with jax.named_scope("compute"):
+            v = s1[...]
+            for _ in range(amount):
+                v = v + 1.0
+            s1[...] = v
+
+    def fn(x):
+        return pl.pallas_call(
+            kernel, out_shape=jax.ShapeDtypeStruct((rows, cols), jnp.float32), grid=(rows // br,),
+            in_specs=[blk], out_specs=blk, scratch_shapes=[pltpu.VMEM((8, 128), jnp.float32)], name="k_scoped_stream",
+        )(x)
+
+    return fn, [jax.ShapeDtypeStruct((rows, cols), jnp.float32)]
+
+
 MICRO = {
+    "scoped_stream": (scoped_stream, "micro"),
     "kv_strided": (kv_strided, "micro"),
     "tgmm_tile": (tgmm_tile, "micro"),
     "vmem_ops": (vmem_ops, "micro"),

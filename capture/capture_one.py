@@ -125,7 +125,15 @@ def integer_inputs(args):
 def time_on_device(compiled, args, cfg, logdir):
     for _ in range(cfg["warmup"]):
         jax.block_until_ready(compiled(*args))
-    with jax.profiler.trace(logdir):
+    opts = None
+    if cfg.get("profiler_options"):  # diagnostic captures (e.g. in-kernel trace events)
+        opts = jax.profiler.ProfileOptions()
+        for k, v in cfg["profiler_options"].items():
+            if k == "advanced_configuration":
+                opts.advanced_configuration = v
+            else:
+                setattr(opts, k, v)
+    with jax.profiler.trace(logdir, profiler_options=opts):
         for _ in range(cfg["reps"]):
             jax.block_until_ready(compiled(*args))
     path = xplane.find_xplane(logdir)

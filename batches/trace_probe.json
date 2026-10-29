@@ -1,0 +1,100 @@
+{
+ "batch_id": "trace_probe",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "scoped_stream__default",
+   "kernel": "scoped_stream",
+   "kernel_tag": "k_scoped_stream",
+   "params": {
+    "block_rows": 32,
+    "amount": 256
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 10
+  },
+  {
+   "record_id": "scoped_stream__trace_only_xla",
+   "kernel": "scoped_stream",
+   "kernel_tag": "k_scoped_stream",
+   "params": {
+    "block_rows": 32,
+    "amount": 256
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 10,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_ONLY_XLA"
+    }
+   }
+  },
+  {
+   "record_id": "scoped_stream__trace_compute",
+   "kernel": "scoped_stream",
+   "kernel_tag": "k_scoped_stream",
+   "params": {
+    "block_rows": 32,
+    "amount": 256
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 10,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE"
+    }
+   }
+  },
+  {
+   "record_id": "scoped_stream__trace_compute_and_sync",
+   "kernel": "scoped_stream",
+   "kernel_tag": "k_scoped_stream",
+   "params": {
+    "block_rows": 32,
+    "amount": 256
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 10,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   }
+  },
+  {
+   "record_id": "dma_compute__r1w1_b32_valu256_unscoped",
+   "kernel": "dma_compute",
+   "kernel_tag": "k_dma_compute",
+   "params": {
+    "block_rows": 32,
+    "kind": "valu",
+    "amount": 256,
+    "reads": 1,
+    "writes": 1
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 10
+  }
+ ]
+}

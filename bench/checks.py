@@ -82,6 +82,27 @@ def check(kernel, params, program):
         expect(mm and all(m.startswith(f"vmatmul.{lhs}.") for m in mm), f"matmul ops {sorted(mm)} want vmatmul.{lhs}.*")
         expect(not dma_ops(c), f"unexpected DMA ops {dma_ops(c)}")
         expect(not has_spill(program), "spills")
+    elif kernel == "unit_chain":
+        mm = sum(v for m, v in c.items() if m.startswith("vmatmul."))
+        xl = sum(v for m, v in c.items() if m.startswith("vmax.xlane") or ".xlane" in m and not m.startswith("vpop"))
+        ex = sum(v for m, v in c.items() if m.startswith("vexp"))
+        if "mxu" in params["kind"]:
+            expect(mm >= params["k"], f"vmatmul={mm} want >= {params['k']}")
+        if "xlu" in params["kind"]:
+            expect(xl >= params["k"], f"xlane ops={xl} want >= {params['k']}")
+        if "eup" in params["kind"]:
+            expect(ex >= params["k"], f"vexp={ex} want >= {params['k']}")
+        expect(not dma_ops(c), f"unexpected DMA ops {dma_ops(c)}")
+        expect(not has_spill(program), "spills")
+    elif kernel == "dma_compute":
+        g = params["block_rows"] * 1024 * 4 // 32
+        starts = {(op.mnemonic, op.labels.get("size_in_granules")) for b in program.bundles for op in b.ops
+                  if op.mnemonic.startswith("dma.") and op.mnemonic != "dma.done.wait"}
+        expect(starts == {("dma.hbm_to_vmem", str(g)), ("dma.vmem_to_hbm", str(g))}, f"dma starts {sorted(starts)}")
+        if params["kind"] == "valu":
+            expect(c["vadd.f32"] >= params["amount"], f"vadd.f32={c['vadd.f32']}")
+    elif kernel == "sld_use":
+        expect(c["sld"] >= 1 and c["sbr.rel"] >= 1, f"sld={c['sld']} branches={c['sbr.rel']}")
     elif kernel == "sld_chain":
         expect(not {m for m in dma_ops(c) if not m.endswith("_to_smem")} - {"dma.vmem_to_hbm", "dma.done.wait"},
                f"dma ops {dma_ops(c)}")

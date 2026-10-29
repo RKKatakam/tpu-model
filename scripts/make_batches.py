@@ -150,6 +150,24 @@ def phase3f_configs():
     return cfgs
 
 
+def phase3g_configs():
+    """Unit hand-off chains (paged/splash), DMA+compute overlap (small-block streaming), and sld
+    load-to-use without an address dependence (H11)."""
+    cfgs = []
+    for dtype in ("f32", "bf16"):
+        for kind in ("mxu", "mxu_xlu", "mxu_xlu_eup"):
+            cfgs.append(device("unit_chain", {"k": 64, "kind": kind, "dtype": dtype}, f"unit_chain__{kind}_{dtype}_k64"))
+    cfgs.append(device("unit_chain", {"k": 64, "kind": "xlu_eup", "dtype": "f32"}, "unit_chain__xlu_eup_f32_k64"))
+    cfgs.append(device("unit_chain", {"k": 16, "kind": "mxu_xlu_eup", "dtype": "f32"}, "unit_chain__mxu_xlu_eup_f32_k16"))
+    for br in (32, 128):
+        for kind, amount in (("none", 0), ("valu", 256), ("valu", 1024), ("vmem", 32), ("vmem", 128)):
+            cfgs.append(device("dma_compute", {"block_rows": br, "kind": kind, "amount": amount},
+                               f"dma_compute__b{br}_{kind}{amount}"))
+    for n in (256, 4096):
+        cfgs.append(device("sld_use", {"n": n, "size": 1024}, f"sld_use__n{n}"))
+    return cfgs
+
+
 def phase3b_configs():
     cfgs = []
     for rows in (1, 8, 64, 512, 2048, 8192):
@@ -179,6 +197,8 @@ CORPUS_TAGS = {
     "layernorm": "k_layernorm",
     "softmax": "k_softmax",
     "matmul": "k_matmul",
+    "ragged": "ragged_paged_attention", "matmul_tpu": "matmul", "tgmm": "tgmm", "prng": "prng",
+    "rmsnorm": "k_rmsnorm", "rope": "k_rope",
     "add": "k_add",
     "col_sum": "k_col_sum",
 }
@@ -272,6 +292,40 @@ def corpus2_configs():
     return cfgs
 
 
+def corpus3_configs():
+    """Kernels from other sources: ragged paged attention (vLLM), Pallas tiled matmul, megablox tgmm,
+    threefry/philox PRNG, and hand-written RMSNorm and RoPE; each line is an autotune sweep."""
+    cfgs = []
+    base = {"q_heads": 32, "kv_heads": 8, "head_dim": 128, "page_size": 16, "total_pages": 4096}
+    shapes = {"decode": {"n_decode": 32, "n_prefill": 0, "prefill_len": 0, "kv_len": 2048, "prefix": 0},
+              "mixed": {"n_decode": 16, "n_prefill": 2, "prefill_len": 256, "kv_len": 1024, "prefix": 512},
+              "prefill": {"n_decode": 0, "n_prefill": 4, "prefill_len": 512, "kv_len": 0, "prefix": 0}}
+    for name, shp in shapes.items():
+        for kvb, qb in ((8, 16), (16, 32), (32, 64), (16, 128)):
+            cfgs.append(corpus("ragged", base | shp | {"kv_pages_per_block": kvb, "queries_per_block": qb},
+                               f"ragged__{name}_kv{kvb}_q{qb}"))
+    for m, k, n in ((2048, 2048, 2048), (4096, 1024, 4096)):
+        for bm, bn, bk in ((256, 256, 256), (512, 512, 512), (1024, 1024, 256), (512, 1024, 512), (256, 512, 1024)):
+            cfgs.append(corpus("matmul_tpu", {"m": m, "k": k, "n": n, "bm": bm, "bn": bn, "bk": bk},
+                               f"matmul_tpu__{m}_{k}_{n}_{bm}_{bn}_{bk}"))
+    for m, k, n, g in ((4096, 1024, 1024, 8), (8192, 512, 2048, 16)):
+        for tm, tk, tn in ((128, 128, 128), (256, 256, 256), (512, 512, 512), (512, 512, 1024)):
+            cfgs.append(corpus("tgmm", {"m": m, "k": k, "n": n, "groups": g, "tm": tm, "tk": tk, "tn": tn},
+                               f"tgmm__m{m}_k{k}_n{n}_g{g}_t{tm}_{tk}_{tn}"))
+    for algo in ("threefry", "philox"):
+        for bm, bn in ((256, 256), (512, 512), (256, 1024), (1024, 1024)):
+            cfgs.append(corpus("prng", {"algo": algo, "rows": 4096, "cols": 4096, "block_rows": bm, "block_cols": bn},
+                               f"prng__{algo}_b{bm}x{bn}"))
+    for rows, cols, brs in ((8192, 4096, (16, 64)), (16384, 2048, (32, 128, 256))):
+        for br in brs:
+            cfgs.append(corpus("rmsnorm", {"rows": rows, "cols": cols, "block_rows": br}, f"rmsnorm__r{rows}_c{cols}_b{br}"))
+    for tokens, heads, bts in ((8192, 8, (64, 256, 1024)), (16384, 32, (128, 512))):
+        for bt in bts:
+            cfgs.append(corpus("rope", {"tokens": tokens, "heads": heads, "head_dim": 128, "block_tokens": bt},
+                               f"rope__t{tokens}_h{heads}_b{bt}"))
+    return cfgs
+
+
 def split(cfgs, parts):
     return [cfgs[i::parts] for i in range(parts)]
 
@@ -283,6 +337,7 @@ BATCHES = {
     "phase3d": {"flags": DUMP_FLAGS, "configs": phase3d_configs()},
     "phase3e": {"flags": DUMP_FLAGS, "configs": phase3e_configs()},
     "phase3f": {"flags": DUMP_FLAGS, "configs": phase3f_configs()},
+    "phase3g": {"flags": DUMP_FLAGS, "configs": phase3g_configs()},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},
     "phase0_aot": {
@@ -307,6 +362,8 @@ BATCHES["corpus1_rerun"] = {"flags": DUMP_FLAGS,
                             "configs": [c for c in corpus_configs() if c["kernel"] in ("splash", "paged", "gmm")]}
 
 BATCHES["corpus2_splash"] = {"flags": DUMP_FLAGS, "configs": corpus2_configs()}
+for i, part in enumerate(split(corpus3_configs(), 2)):
+    BATCHES[f"corpus3_part{i}"] = {"flags": DUMP_FLAGS, "configs": part}
 
 for batch_id, batch in BATCHES.items():
     with open(os.path.join(HERE, "batches", f"{batch_id}.json"), "w") as f:

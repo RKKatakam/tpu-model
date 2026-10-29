@@ -428,7 +428,96 @@ def dma_overhead(params):
     return _dma_call(kernel, (8192, 128), scratch, "k_dma_overhead")
 
 
+def unit_chain(params):
+    """k rounds of a dependent chain through functional units on one (8, 128) block:
+    'mxu' v = v @ W; 'mxu_xlu' adds v -= max(v, lanes); 'mxu_xlu_eup' adds v = exp(...);
+    'xlu_eup' drops the matmul. dtype is the matmul LHS/weight dtype (f32 or bf16).
+
+    isolates: result hand-off latency between MXU, XLU and EUP (the chain in decode attention).
+    """
+    k, kind = params["k"], params["kind"]
+    dt = {"bf16": jnp.bfloat16, "f32": jnp.float32}[params.get("dtype", "f32")]
+
+    def kernel(x_hbm, o_hbm, vbuf, wbuf):
+        v = vbuf[...]
+        w = wbuf[...]
+        for _ in range(k):
+            if "mxu" in kind:
+                v = jnp.dot(v.astype(dt), w, preferred_element_type=jnp.float32)
+            if "xlu" in kind:
+                m = jnp.max(v, axis=-1, keepdims=True)
+                v = jnp.exp(v - m) if "eup" in kind else v - m
+        vbuf[...] = v
+
+    scratch = [pltpu.VMEM((8, 128), jnp.float32), pltpu.VMEM((128, 128), dt)]
+    return _no_dma_call(kernel, scratch, "k_unit_chain")
+
+
+def dma_compute(params):
+    """Pipelined 1-read + 1-write stream over a (16384, 1024) f32 array in `block_rows` blocks, with
+    per-step compute: 'none'; 'valu' = `amount` dependent vadds on one vreg (no VMEM traffic);
+    'vmem' = copy an (`amount`, 1024) f32 VMEM scratch block (vld/vst traffic, no HBM).
+
+    isolates: whether core work, and VMEM traffic in particular, slows the DMA stream.
+    """
+    rows, cols, br, kind, amount = 16384, 1024, params["block_rows"], params["kind"], params["amount"]
+    blk = pl.BlockSpec((br, cols), lambda i: (i, 0))
+
+    def kernel(x_ref, o_ref, s1, s2):
+        o_ref[...] = x_ref[...]
+        if kind == "valu":
+            v = s1[pl.ds(0, 8), pl.ds(0, 128)]
+            for _ in range(amount):
+                v = v + 1.0
+            s1[pl.ds(0, 8), pl.ds(0, 128)] = v
+        elif kind == "vmem":
+            s2[...] = s1[...] + 1.0
+
+    n = max(amount, 8) if kind == "vmem" else 8
+
+    def fn(x):
+        return pl.pallas_call(
+            kernel, out_shape=jax.ShapeDtypeStruct((rows, cols), jnp.float32), grid=(rows // br,),
+            in_specs=[blk], out_specs=blk,
+            scratch_shapes=[pltpu.VMEM((n, cols), jnp.float32), pltpu.VMEM((n, cols), jnp.float32)],
+            name="k_dma_compute",
+        )(x)
+
+    return fn, [jax.ShapeDtypeStruct((rows, cols), jnp.float32)]
+
+
+def sld_use(params):
+    """`n` scalar loads table[i] at loop-counter addresses, summed into one scalar.
+
+    isolates: scalar load-to-use latency without an address dependence (contrast sld_chain).
+    """
+    n, size = params["n"], params["size"]
+
+    def kernel(tbl_ref, x_hbm, o_ref):
+        acc = jax.lax.fori_loop(0, n, lambda i, a: a + tbl_ref[i % size], 0)
+        o_ref[...] = jnp.zeros((8, 128), jnp.float32) + acc.astype(jnp.float32)
+
+    grid_spec = pltpu.PrefetchScalarGridSpec(
+        num_scalar_prefetch=1, grid=(1,), in_specs=[HBM],
+        out_specs=pl.BlockSpec((8, 128), lambda i, tbl: (0, 0)),
+    )
+
+    def fn(tbl, x):
+        return pl.pallas_call(kernel, out_shape=jax.ShapeDtypeStruct((8, 128), jnp.float32),
+                              grid_spec=grid_spec, name="k_sld_use")(tbl, x)
+
+    specs = [jax.ShapeDtypeStruct((size,), jnp.int32), jax.ShapeDtypeStruct((8, 128), jnp.float32)]
+
+    def make_inputs(seed):
+        return [np.arange(size, dtype=np.int32), np.zeros((8, 128), np.float32)]
+
+    return fn, specs, make_inputs
+
+
 MICRO = {
+    "unit_chain": (unit_chain, "micro"),
+    "dma_compute": (dma_compute, "micro"),
+    "sld_use": (sld_use, "micro"),
     "sld_chain": (sld_chain, "micro"),
     "dma_overhead": (dma_overhead, "micro"),
     "dma_gather": (dma_gather, "micro"),

@@ -1,0 +1,280 @@
+{
+ "batch_id": "phase3g",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "unit_chain__mxu_f32_k64",
+   "kernel": "unit_chain",
+   "kernel_tag": "k_unit_chain",
+   "params": {
+    "k": 64,
+    "kind": "mxu",
+    "dtype": "f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "unit_chain__mxu_xlu_f32_k64",
+   "kernel": "unit_chain",
+   "kernel_tag": "k_unit_chain",
+   "params": {
+    "k": 64,
+    "kind": "mxu_xlu",
+    "dtype": "f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "unit_chain__mxu_xlu_eup_f32_k64",
+   "kernel": "unit_chain",
+   "kernel_tag": "k_unit_chain",
+   "params": {
+    "k": 64,
+    "kind": "mxu_xlu_eup",
+    "dtype": "f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "unit_chain__mxu_bf16_k64",
+   "kernel": "unit_chain",
+   "kernel_tag": "k_unit_chain",
+   "params": {
+    "k": 64,
+    "kind": "mxu",
+    "dtype": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "unit_chain__mxu_xlu_bf16_k64",
+   "kernel": "unit_chain",
+   "kernel_tag": "k_unit_chain",
+   "params": {
+    "k": 64,
+    "kind": "mxu_xlu",
+    "dtype": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "unit_chain__mxu_xlu_eup_bf16_k64",
+   "kernel": "unit_chain",
+   "kernel_tag": "k_unit_chain",
+   "params": {
+    "k": 64,
+    "kind": "mxu_xlu_eup",
+    "dtype": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "unit_chain__xlu_eup_f32_k64",
+   "kernel": "unit_chain",
+   "kernel_tag": "k_unit_chain",
+   "params": {
+    "k": 64,
+    "kind": "xlu_eup",
+    "dtype": "f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "unit_chain__mxu_xlu_eup_f32_k16",
+   "kernel": "unit_chain",
+   "kernel_tag": "k_unit_chain",
+   "params": {
+    "k": 16,
+    "kind": "mxu_xlu_eup",
+    "dtype": "f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_compute__b32_none0",
+   "kernel": "dma_compute",
+   "kernel_tag": "k_dma_compute",
+   "params": {
+    "block_rows": 32,
+    "kind": "none",
+    "amount": 0
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_compute__b32_valu256",
+   "kernel": "dma_compute",
+   "kernel_tag": "k_dma_compute",
+   "params": {
+    "block_rows": 32,
+    "kind": "valu",
+    "amount": 256
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_compute__b32_valu1024",
+   "kernel": "dma_compute",
+   "kernel_tag": "k_dma_compute",
+   "params": {
+    "block_rows": 32,
+    "kind": "valu",
+    "amount": 1024
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_compute__b32_vmem32",
+   "kernel": "dma_compute",
+   "kernel_tag": "k_dma_compute",
+   "params": {
+    "block_rows": 32,
+    "kind": "vmem",
+    "amount": 32
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_compute__b32_vmem128",
+   "kernel": "dma_compute",
+   "kernel_tag": "k_dma_compute",
+   "params": {
+    "block_rows": 32,
+    "kind": "vmem",
+    "amount": 128
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_compute__b128_none0",
+   "kernel": "dma_compute",
+   "kernel_tag": "k_dma_compute",
+   "params": {
+    "block_rows": 128,
+    "kind": "none",
+    "amount": 0
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_compute__b128_valu256",
+   "kernel": "dma_compute",
+   "kernel_tag": "k_dma_compute",
+   "params": {
+    "block_rows": 128,
+    "kind": "valu",
+    "amount": 256
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_compute__b128_valu1024",
+   "kernel": "dma_compute",
+   "kernel_tag": "k_dma_compute",
+   "params": {
+    "block_rows": 128,
+    "kind": "valu",
+    "amount": 1024
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_compute__b128_vmem32",
+   "kernel": "dma_compute",
+   "kernel_tag": "k_dma_compute",
+   "params": {
+    "block_rows": 128,
+    "kind": "vmem",
+    "amount": 32
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_compute__b128_vmem128",
+   "kernel": "dma_compute",
+   "kernel_tag": "k_dma_compute",
+   "params": {
+    "block_rows": 128,
+    "kind": "vmem",
+    "amount": 128
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "sld_use__n256",
+   "kernel": "sld_use",
+   "kernel_tag": "k_sld_use",
+   "params": {
+    "n": 256,
+    "size": 1024
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "sld_use__n4096",
+   "kernel": "sld_use",
+   "kernel_tag": "k_sld_use",
+   "params": {
+    "n": 4096,
+    "size": 1024
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  }
+ ]
+}

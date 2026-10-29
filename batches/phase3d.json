@@ -1,0 +1,470 @@
+{
+ "batch_id": "phase3d",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "mxu_dot__f32xbf16_8_128_128_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 8,
+    "k": 128,
+    "n": 128,
+    "reps": 4,
+    "lhs": "f32",
+    "rhs": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xbf16_8_128_128_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 8,
+    "k": 128,
+    "n": 128,
+    "reps": 16,
+    "lhs": "f32",
+    "rhs": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xbf16_64_128_128_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 64,
+    "k": 128,
+    "n": 128,
+    "reps": 4,
+    "lhs": "f32",
+    "rhs": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xbf16_64_128_128_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 64,
+    "k": 128,
+    "n": 128,
+    "reps": 16,
+    "lhs": "f32",
+    "rhs": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xbf16_256_128_128_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 256,
+    "k": 128,
+    "n": 128,
+    "reps": 4,
+    "lhs": "f32",
+    "rhs": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xbf16_256_128_128_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 256,
+    "k": 128,
+    "n": 128,
+    "reps": 16,
+    "lhs": "f32",
+    "rhs": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xbf16_1024_128_128_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 1024,
+    "k": 128,
+    "n": 128,
+    "reps": 4,
+    "lhs": "f32",
+    "rhs": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xbf16_1024_128_128_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 1024,
+    "k": 128,
+    "n": 128,
+    "reps": 16,
+    "lhs": "f32",
+    "rhs": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xbf16_4096_128_128_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 4096,
+    "k": 128,
+    "n": 128,
+    "reps": 4,
+    "lhs": "f32",
+    "rhs": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xbf16_4096_128_128_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 4096,
+    "k": 128,
+    "n": 128,
+    "reps": 16,
+    "lhs": "f32",
+    "rhs": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xbf16_256_256_256_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 256,
+    "k": 256,
+    "n": 256,
+    "reps": 4,
+    "lhs": "f32",
+    "rhs": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xbf16_256_256_256_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 256,
+    "k": 256,
+    "n": 256,
+    "reps": 16,
+    "lhs": "f32",
+    "rhs": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xbf16_1024_256_256_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 1024,
+    "k": 256,
+    "n": 256,
+    "reps": 4,
+    "lhs": "f32",
+    "rhs": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xbf16_1024_256_256_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 1024,
+    "k": 256,
+    "n": 256,
+    "reps": 16,
+    "lhs": "f32",
+    "rhs": "bf16"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xf32_8_128_128_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 8,
+    "k": 128,
+    "n": 128,
+    "reps": 4,
+    "lhs": "f32",
+    "rhs": "f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xf32_8_128_128_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 8,
+    "k": 128,
+    "n": 128,
+    "reps": 16,
+    "lhs": "f32",
+    "rhs": "f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xf32_64_128_128_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 64,
+    "k": 128,
+    "n": 128,
+    "reps": 4,
+    "lhs": "f32",
+    "rhs": "f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xf32_64_128_128_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 64,
+    "k": 128,
+    "n": 128,
+    "reps": 16,
+    "lhs": "f32",
+    "rhs": "f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xf32_256_128_128_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 256,
+    "k": 128,
+    "n": 128,
+    "reps": 4,
+    "lhs": "f32",
+    "rhs": "f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xf32_256_128_128_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 256,
+    "k": 128,
+    "n": 128,
+    "reps": 16,
+    "lhs": "f32",
+    "rhs": "f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xf32_1024_128_128_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 1024,
+    "k": 128,
+    "n": 128,
+    "reps": 4,
+    "lhs": "f32",
+    "rhs": "f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xf32_1024_128_128_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 1024,
+    "k": 128,
+    "n": 128,
+    "reps": 16,
+    "lhs": "f32",
+    "rhs": "f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xf32_4096_128_128_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 4096,
+    "k": 128,
+    "n": 128,
+    "reps": 4,
+    "lhs": "f32",
+    "rhs": "f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xf32_4096_128_128_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 4096,
+    "k": 128,
+    "n": 128,
+    "reps": 16,
+    "lhs": "f32",
+    "rhs": "f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xf32_256_256_256_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 256,
+    "k": 256,
+    "n": 256,
+    "reps": 4,
+    "lhs": "f32",
+    "rhs": "f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xf32_256_256_256_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 256,
+    "k": 256,
+    "n": 256,
+    "reps": 16,
+    "lhs": "f32",
+    "rhs": "f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xf32_1024_256_256_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 1024,
+    "k": 256,
+    "n": 256,
+    "reps": 4,
+    "lhs": "f32",
+    "rhs": "f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__f32xf32_1024_256_256_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 1024,
+    "k": 256,
+    "n": 256,
+    "reps": 16,
+    "lhs": "f32",
+    "rhs": "f32"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  }
+ ]
+}

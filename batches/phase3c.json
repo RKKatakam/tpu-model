@@ -19,13 +19,13 @@
  },
  "configs": [
   {
-   "record_id": "dma_stream__r1w0_b64",
+   "record_id": "dma_stream__r1w0_b32",
    "kernel": "dma_stream",
    "kernel_tag": "k_dma_stream",
    "params": {
     "rows": 16384,
     "cols": 1024,
-    "block_rows": 64,
+    "block_rows": 32,
     "reads": 1,
     "writes": 0
    },
@@ -34,13 +34,13 @@
    "warmup": 10
   },
   {
-   "record_id": "dma_stream__r1w0_b256",
+   "record_id": "dma_stream__r1w0_b128",
    "kernel": "dma_stream",
    "kernel_tag": "k_dma_stream",
    "params": {
     "rows": 16384,
     "cols": 1024,
-    "block_rows": 256,
+    "block_rows": 128,
     "reads": 1,
     "writes": 0
    },
@@ -49,13 +49,13 @@
    "warmup": 10
   },
   {
-   "record_id": "dma_stream__r1w0_b1024",
+   "record_id": "dma_stream__r1w0_b512",
    "kernel": "dma_stream",
    "kernel_tag": "k_dma_stream",
    "params": {
     "rows": 16384,
     "cols": 1024,
-    "block_rows": 1024,
+    "block_rows": 512,
     "reads": 1,
     "writes": 0
    },
@@ -64,13 +64,13 @@
    "warmup": 10
   },
   {
-   "record_id": "dma_stream__r0w1_b64",
+   "record_id": "dma_stream__r0w1_b32",
    "kernel": "dma_stream",
    "kernel_tag": "k_dma_stream",
    "params": {
     "rows": 16384,
     "cols": 1024,
-    "block_rows": 64,
+    "block_rows": 32,
     "reads": 0,
     "writes": 1
    },
@@ -79,13 +79,13 @@
    "warmup": 10
   },
   {
-   "record_id": "dma_stream__r0w1_b256",
+   "record_id": "dma_stream__r0w1_b128",
    "kernel": "dma_stream",
    "kernel_tag": "k_dma_stream",
    "params": {
     "rows": 16384,
     "cols": 1024,
-    "block_rows": 256,
+    "block_rows": 128,
     "reads": 0,
     "writes": 1
    },
@@ -94,13 +94,13 @@
    "warmup": 10
   },
   {
-   "record_id": "dma_stream__r0w1_b1024",
+   "record_id": "dma_stream__r0w1_b512",
    "kernel": "dma_stream",
    "kernel_tag": "k_dma_stream",
    "params": {
     "rows": 16384,
     "cols": 1024,
-    "block_rows": 1024,
+    "block_rows": 512,
     "reads": 0,
     "writes": 1
    },
@@ -109,13 +109,13 @@
    "warmup": 10
   },
   {
-   "record_id": "dma_stream__r1w1_b64",
+   "record_id": "dma_stream__r1w1_b32",
    "kernel": "dma_stream",
    "kernel_tag": "k_dma_stream",
    "params": {
     "rows": 16384,
     "cols": 1024,
-    "block_rows": 64,
+    "block_rows": 32,
     "reads": 1,
     "writes": 1
    },
@@ -124,13 +124,13 @@
    "warmup": 10
   },
   {
-   "record_id": "dma_stream__r1w1_b256",
+   "record_id": "dma_stream__r1w1_b128",
    "kernel": "dma_stream",
    "kernel_tag": "k_dma_stream",
    "params": {
     "rows": 16384,
     "cols": 1024,
-    "block_rows": 256,
+    "block_rows": 128,
     "reads": 1,
     "writes": 1
    },
@@ -139,13 +139,13 @@
    "warmup": 10
   },
   {
-   "record_id": "dma_stream__r1w1_b1024",
+   "record_id": "dma_stream__r1w1_b512",
    "kernel": "dma_stream",
    "kernel_tag": "k_dma_stream",
    "params": {
     "rows": 16384,
     "cols": 1024,
-    "block_rows": 1024,
+    "block_rows": 512,
     "reads": 1,
     "writes": 1
    },
@@ -154,13 +154,13 @@
    "warmup": 10
   },
   {
-   "record_id": "dma_stream__r2w1_b64",
+   "record_id": "dma_stream__r2w1_b32",
    "kernel": "dma_stream",
    "kernel_tag": "k_dma_stream",
    "params": {
     "rows": 16384,
     "cols": 1024,
-    "block_rows": 64,
+    "block_rows": 32,
     "reads": 2,
     "writes": 1
    },
@@ -169,13 +169,13 @@
    "warmup": 10
   },
   {
-   "record_id": "dma_stream__r2w1_b256",
+   "record_id": "dma_stream__r2w1_b128",
    "kernel": "dma_stream",
    "kernel_tag": "k_dma_stream",
    "params": {
     "rows": 16384,
     "cols": 1024,
-    "block_rows": 256,
+    "block_rows": 128,
     "reads": 2,
     "writes": 1
    },
@@ -184,13 +184,13 @@
    "warmup": 10
   },
   {
-   "record_id": "dma_stream__r2w1_b1024",
+   "record_id": "dma_stream__r2w1_b512",
    "kernel": "dma_stream",
    "kernel_tag": "k_dma_stream",
    "params": {
     "rows": 16384,
     "cols": 1024,
-    "block_rows": 1024,
+    "block_rows": 512,
     "reads": 2,
     "writes": 1
    },
@@ -199,13 +199,13 @@
    "warmup": 10
   },
   {
-   "record_id": "dma_stream__r1w2_b64",
+   "record_id": "dma_stream__r1w2_b32",
    "kernel": "dma_stream",
    "kernel_tag": "k_dma_stream",
    "params": {
     "rows": 16384,
     "cols": 1024,
-    "block_rows": 64,
+    "block_rows": 32,
     "reads": 1,
     "writes": 2
    },
@@ -214,13 +214,13 @@
    "warmup": 10
   },
   {
-   "record_id": "dma_stream__r1w2_b256",
+   "record_id": "dma_stream__r1w2_b128",
    "kernel": "dma_stream",
    "kernel_tag": "k_dma_stream",
    "params": {
     "rows": 16384,
     "cols": 1024,
-    "block_rows": 256,
+    "block_rows": 128,
     "reads": 1,
     "writes": 2
    },
@@ -229,13 +229,13 @@
    "warmup": 10
   },
   {
-   "record_id": "dma_stream__r1w2_b1024",
+   "record_id": "dma_stream__r1w2_b512",
    "kernel": "dma_stream",
    "kernel_tag": "k_dma_stream",
    "params": {
     "rows": 16384,
     "cols": 1024,
-    "block_rows": 1024,
+    "block_rows": 512,
     "reads": 1,
     "writes": 2
    },

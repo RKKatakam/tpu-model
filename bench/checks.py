@@ -76,6 +76,26 @@ def check(kernel, params, program):
         expect(dict(starts) == want, f"dma starts {dict(starts)} want {want}")
         vec = {m: n for m, n in c.items() if m.startswith("v") and not m.startswith("vsync") and m != "vpop.sfrf"}
         expect(not vec, f"vector ops {vec}")
+    elif kernel == "mxu_dot":
+        lhs = params.get("lhs", "bf16")
+        mm = {m for m in c if m.startswith("vmatmul.")}
+        expect(mm and all(m.startswith(f"vmatmul.{lhs}.") for m in mm), f"matmul ops {sorted(mm)} want vmatmul.{lhs}.*")
+        expect(not dma_ops(c), f"unexpected DMA ops {dma_ops(c)}")
+        expect(not has_spill(program), "spills")
+    elif kernel == "dma_stream":
+        g = params["block_rows"] * params["cols"] * 4 // 32
+        starts = {(op.mnemonic, op.labels.get("size_in_granules")) for b in program.bundles for op in b.ops
+                  if op.mnemonic.startswith("dma.") and op.mnemonic != "dma.done.wait"}
+        want = set()
+        if params["reads"]:
+            want.add(("dma.hbm_to_vmem", str(g)))
+        if params["writes"]:
+            want.add(("dma.vmem_to_hbm", str(g)))
+        else:
+            want.add(("dma.vmem_to_hbm", str(8 * params["cols"] * 4 // 32)))  # resident (8, cols) output
+        expect(starts == want, f"dma starts {sorted(starts)} want {sorted(want)}")
+        vec = {m for m in c if m.startswith("v") and not m.startswith(("vsync", "vld", "vst", "vadd", "vpop.sfrf", "vmov", "vnop"))}
+        expect(not vec, f"vector ops beyond vld/vst/vadd: {sorted(vec)}")
     return fails, c
 
 

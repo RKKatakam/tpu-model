@@ -136,7 +136,18 @@ def main():
     if batch.get("probe"):
         with open(os.path.join(out_dir, "probe.txt"), "w") as f:
             subprocess.run([PY, os.path.join(ROOT, "capture", "probe_env.py")], stdout=f, stderr=subprocess.STDOUT)
-    results = [run_one(batch, cfg, out_dir) for cfg in batch["configs"]]
+    # One archive per finished config, so the driver can download results while the batch runs.
+    parts = os.path.join(ROOT, "results", f"{batch['batch_id']}__{session}")
+    os.makedirs(parts, exist_ok=True)
+    results = []
+    for cfg in batch["configs"]:
+        results.append(run_one(batch, cfg, out_dir))
+        part = os.path.join(parts, f"{cfg['record_id']}.tgz")
+        if not os.path.exists(part) and os.path.isdir(os.path.join(out_dir, cfg["record_id"])):
+            with tarfile.open(part + ".tmp", "w:gz") as tar:
+                tar.add(os.path.join(out_dir, cfg["record_id"]),
+                        arcname=os.path.join(batch["batch_id"], session, cfg["record_id"]))
+            os.rename(part + ".tmp", part)
     archive = os.path.join(ROOT, "results", f"{batch['batch_id']}__{session}.tgz")
     with tarfile.open(archive, "w:gz") as tar:
         tar.add(out_dir, arcname=os.path.join(batch["batch_id"], session))

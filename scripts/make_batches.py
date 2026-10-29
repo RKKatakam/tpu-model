@@ -106,6 +106,20 @@ def phase3a_configs():
     return cfgs
 
 
+def phase3d_configs():
+    """f32 matmuls (splash's p@v, paged): same method as the bf16 sweep in phase3a."""
+    cfgs = []
+    # k, n <= 256: the bf16 512-wide shapes spilled vregs (bench.checks), f32 doubles the pressure.
+    shapes = [(8, 128, 128), (64, 128, 128), (256, 128, 128), (1024, 128, 128), (4096, 128, 128),
+              (256, 256, 256), (1024, 256, 256)]
+    for lhs, rhs in (("f32", "bf16"), ("f32", "f32")):
+        for m, k, n in shapes:
+            for reps in (4, 16):
+                p = {"m": m, "k": k, "n": n, "reps": reps, "lhs": lhs, "rhs": rhs}
+                cfgs.append(device("mxu_dot", p, f"mxu_dot__{lhs}x{rhs}_{m}_{k}_{n}_x{reps}"))
+    return cfgs
+
+
 def phase3b_configs():
     cfgs = []
     for rows in (1, 8, 64, 512, 2048, 8192):
@@ -143,7 +157,8 @@ CORPUS_TAGS = {
 def phase3c_configs():
     cfgs = []
     for nr, nw in ((1, 0), (0, 1), (1, 1), (2, 1), (1, 2)):
-        for br in (64, 256, 1024):
+        # 1024-row f32 blocks exceed the 16 MiB scoped VMEM once a read and a write are double-buffered.
+        for br in (32, 128, 512):
             p = {"rows": 16384, "cols": 1024, "block_rows": br, "reads": nr, "writes": nw}
             cfgs.append(device("dma_stream", p, f"dma_stream__r{nr}w{nw}_b{br}", reps=50))
     return cfgs
@@ -235,6 +250,7 @@ BATCHES = {
     "phase3a": {"flags": DUMP_FLAGS, "configs": phase3a_configs()},
     "phase3b": {"flags": DUMP_FLAGS, "configs": phase3b_configs()},
     "phase3c": {"flags": DUMP_FLAGS, "configs": phase3c_configs()},
+    "phase3d": {"flags": DUMP_FLAGS, "configs": phase3d_configs()},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},
     "phase0_aot": {

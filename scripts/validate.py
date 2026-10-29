@@ -15,6 +15,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from corpus.split import split_of  # noqa: E402
+from model.operands import integer_operands  # noqa: E402
 from model.predict import Params, load_core, load_dma, load_records, predict_ns, simulate  # noqa: E402
 
 TILE_KEYS = {"block_q", "block_k_major", "block_k", "block_kv", "block_kv_compute", "pages_per_compute_block",
@@ -57,7 +58,11 @@ def main(out_md, dirs):
             if r.raw["kernel_class"] not in CLASSES:
                 continue
             try:
-                tr = simulate(r.program(), P, core, dma)
+                prog = r.program()
+                tr = simulate(prog, P, core, dma, integer_operands(r, prog))
+                if tr.unmodeled_smem_dmas or tr.halts:
+                    print(f"warning {r.raw['record_id']}: {tr.unmodeled_smem_dmas} unmodeled SMEM DMAs, "
+                          f"halts at {tr.halts[:3]}", file=sys.stderr)
                 ours = predict_ns(tr, P)
             except Exception as e:  # report, never hide, a replay failure
                 print(f"replay failed {r.raw['record_id']}: {e!r}", file=sys.stderr)

@@ -41,8 +41,41 @@ echo 'import os, tarfile; os.makedirs("/content/tpum", exist_ok=True); tarfile.o
 retry 3 300 colab upload -s "$session" "$payload" /content/payload.tgz
 retry 3 180 colab exec -s "$session" -f "$unpack" --timeout 120
 
-# run_batch.py skips configs that already have a record, so a retry resumes.
+# run_batch.py skips configs that already have a record, so a retry resumes. It runs in the
+# background; meanwhile every 2 min: download finished configs (run_batch writes one archive per
+# config), stop if the session is gone, and kill a stalled exec once the final archive exists.
+final="/content/tpum/results/${batch_id}__${session}.tgz"
+parts="/content/tpum/results/${batch_id}__${session}/"
+mkdir -p "$out/parts"
 retry 3 4000 colab exec -s "$session" -f "$repo/capture/run_batch.py" --timeout 3600 \
-  --env "TPUM_BATCH=batches/$(basename "$batch")" --env "TPUM_SESSION=$session" 2>&1 | tee -a "$out/run_batch.log"
-retry 3 900 colab download -s "$session" "/content/tpum/results/${batch_id}__${session}.tgz" "$out/results.tgz"
-tar xzf "$out/results.tgz" -C "$repo/data/raw"
+  --env "TPUM_BATCH=batches/$(basename "$batch")" --env "TPUM_SESSION=$session" >>"$out/run_batch.log" 2>&1 &
+runner=$!
+fetch_parts() {
+  for f in $(limit 60 colab ls -s "$session" "$parts" 2>/dev/null | grep -E '[.]tgz$' || true); do
+    [ -f "$out/parts/$f" ] && continue
+    limit 300 colab download -s "$session" "$parts$f" "$out/parts/$f" >/dev/null 2>&1 \
+      && tar xzf "$out/parts/$f" -C "$repo/data/raw" || rm -f "$out/parts/$f"
+  done
+}
+lost=0 final_seen=0
+while kill -0 "$runner" 2>/dev/null; do
+  sleep 120
+  if ! limit 60 colab sessions 2>/dev/null | grep -q "^\[$session\]"; then
+    lost=$((lost + 1))
+    if [ "$lost" -ge 2 ]; then echo "[colab_batch] session $session is gone; stopping" >&2; kill "$runner"; break; fi
+    continue
+  fi
+  lost=0
+  fetch_parts
+  if limit 60 colab ls -s "$session" /content/tpum/results/ 2>/dev/null | grep -q "${batch_id}__${session}[.]tgz"; then
+    final_seen=$((final_seen + 1))
+    [ "$final_seen" -ge 2 ] && pkill -f "colab exec -s $session -f .*run_batch" || true
+  fi
+  echo "[colab_batch] $(date +%T) configs downloaded: $(ls "$out/parts" | wc -l | tr -d ' ')/$(python3 -c 'import json,sys; print(len(json.load(open(sys.argv[1]))["configs"]))' "$batch")"
+done
+wait "$runner" || true
+grep -E '^(ok|FAIL|retry|done)' "$out/run_batch.log" | tail -3 || true
+if [ "$lost" -lt 2 ]; then
+  fetch_parts
+  retry 3 900 colab download -s "$session" "$final" "$out/results.tgz" && tar xzf "$out/results.tgz" -C "$repo/data/raw"
+fi

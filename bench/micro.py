@@ -143,11 +143,14 @@ def mem_chain(params):
 
 
 def mxu_dot(params):
-    """reps x (acc += x @ w) with x (m,k) bf16, w (k,n) bf16, acc f32, all in VMEM scratch.
+    """reps x (acc += x @ w) with x (m,k), w (k,n) in VMEM scratch (dtypes `lhs`, `rhs`, default
+    bf16), acc f32.
 
     isolates: MXU weight push, LHS streaming, result pop; no DMA.
     """
     m, kk, n, reps = params["m"], params["k"], params["n"], params["reps"]
+    dt = {"bf16": jnp.bfloat16, "f32": jnp.float32}
+    lhs, rhs = dt[params.get("lhs", "bf16")], dt[params.get("rhs", "bf16")]
 
     def kernel(x_hbm, o_hbm, xs, ws, acc):
         def body(_, carry):
@@ -157,8 +160,8 @@ def mxu_dot(params):
         jax.lax.fori_loop(0, reps, body, 0)
 
     scratch = [
-        pltpu.VMEM((m, kk), jnp.bfloat16),
-        pltpu.VMEM((kk, n), jnp.bfloat16),
+        pltpu.VMEM((m, kk), lhs),
+        pltpu.VMEM((kk, n), rhs),
         pltpu.VMEM((m, n), jnp.float32),
     ]
     return _no_dma_call(kernel, scratch, "k_mxu_dot")

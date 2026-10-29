@@ -124,10 +124,10 @@ def integer_inputs(args):
 
 def time_on_device(compiled, args, cfg, logdir):
     for _ in range(cfg["warmup"]):
-        compiled(*args).block_until_ready()
+        jax.block_until_ready(compiled(*args))
     with jax.profiler.trace(logdir):
         for _ in range(cfg["reps"]):
-            compiled(*args).block_until_ready()
+            jax.block_until_ready(compiled(*args))
     path = xplane.find_xplane(logdir)
     profile = xplane.load(path)
     summary = xplane.summarize(profile)

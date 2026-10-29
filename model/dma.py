@@ -150,6 +150,28 @@ class SharedHbm:
         self.now = t
 
 
+class DirFifoHbm(SharedHbm):
+    """One FIFO queue per direction. Start-up latency L(s) = T_single(s) - s / bw_dir overlaps
+    freely; bytes move in issue order within a direction. The two queue heads interleave: alone, a
+    head moves at its direction's bandwidth; together each moves at 1 / (1/bw_read + 1/bw_write +
+    turnaround) bytes per cycle (bench dma_stream: reads cost 1/bw_read, writes 1/bw_write, and
+    overlapped bytes pay `turnaround` cycles per byte pair)."""
+
+    def __init__(self, read_cycles, write_cycles, bw_read, bw_write, turnaround, issue_cycles):
+        super().__init__(read_cycles, write_cycles, bw_read, bw_write, None, issue_cycles, 0.0)
+        self.pair_rate = 1.0 / (1.0 / bw_read + 1.0 / bw_write + turnaround)
+
+    def _rates(self, xs, now):
+        heads = {}
+        for x in xs:  # xs is in issue order
+            if x.left > 0 and x.write not in heads:
+                heads[x.write] = x
+        moving = [x for x in heads.values() if x.ready <= now]
+        if len(moving) == 2:
+            return moving, {id(x): self.pair_rate for x in moving}
+        return moving, {id(x): self.bw[x.write] for x in moving}
+
+
 class NoDma:
     """For microbenchmarks that must not DMA."""
 

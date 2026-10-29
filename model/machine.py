@@ -52,10 +52,17 @@ class Trace:
     stalls: dict = field(default_factory=dict)
     dmas: list = field(default_factory=list)
     halts: list = field(default_factory=list)
+    unmodeled_smem_dmas: int = 0
 
 
 class Machine:
-    def __init__(self, program, operand_bases=None, smem=None, max_bundles=50_000_000, core=None):
+    # Operand registers hold addresses in 512 B units (gmm's bounds check: an 8 MiB operand spans
+    # 16384); kernels shift them left by 4 to get 32 B-granule DMA pointers and check them as
+    # signed. Operand i sits at (i + 1) << 20 units: 512 MiB apart, shifted pointers stay positive.
+    OPERAND_SHIFT = 20
+    WORDS_PER_GRANULE = {"dma.hbm_to_smem": 1, "dma.vmem_to_smem": 8}  # 4 B and 32 B granules
+
+    def __init__(self, program, operand_bases=None, smem=None, max_bundles=50_000_000, core=None, operands=None):
         self.p = program
         self.core = core
         self.regs = {}
@@ -63,8 +70,32 @@ class Machine:
         self.flags = {}
         self.sfrf = []
         self.alloc = {}
-        self.operand_bases = operand_bases or {}
+        self.operand_bases = dict(operand_bases or {})
         self.max_bundles = max_bundles
+        # integer operands (model/operands.py): scalars sit in their register, arrays in memory
+        self.data = {}
+        for idx, (space, v) in (operands or {}).items():
+            if space == "scalar":
+                self.operand_bases[idx] = v
+            else:
+                self.data[idx + 1] = v
+
+    def data_words(self, ptr):
+        """Words of the integer operand a 32 B-granule DMA pointer points into."""
+        key = ptr >> (self.OPERAND_SHIFT + 4)
+        if key in self.data:
+            return self.data[key][(ptr & ((1 << (self.OPERAND_SHIFT + 4)) - 1)) * 8:]
+        return None
+
+    def copy_to_smem(self, op, granules, trace):
+        src = self.val(op.labels.get("hbm") or op.labels["vmem"])
+        src_words = self.data_words(src)
+        if src_words is None:
+            trace.unmodeled_smem_dmas += 1
+            return
+        dst = self.val(op.labels["smem"])
+        for j, w in enumerate(src_words[: granules * self.WORDS_PER_GRANULE[op.mnemonic]]):
+            self.smem[dst + j] = w
 
     def addr_of(self, name):
         if name not in self.alloc:
@@ -72,7 +103,8 @@ class Machine:
         return self.alloc[name]
 
     def val(self, tok):
-        tok = tok.strip()
+        # `scalar_lea.vmem %s, 16 [#allocation3]`: trailing [#allocation] names the region; not an operand
+        tok = re.sub(r"\s+\[#[\w.]+\]$", "", tok.strip())
         if tok.startswith("%"):
             reg = re.search(r"_((?:s|p)\d+)$", tok)
             if not reg:
@@ -137,6 +169,11 @@ class Machine:
                     "sshra": lambda: s32(x) >> (y & 31),
                 }[base]()
             )
+        if base in ("smin", "smax"):
+            x, y = v(a[0]), v(a[1])
+            if m.split(".")[1].startswith("s"):
+                x, y = s32(x), s32(y)
+            return u32(min(x, y) if base == "smin" else max(x, y))
         if base == "scmp":
             cond, ty = m.split(".")[1], m.split(".")[2]
             x, y = v(a[0]), v(a[1])
@@ -162,7 +199,7 @@ class Machine:
             return self.sfrf.pop(0)
         if base == "inlined_call_operand":
             idx = int(re.search(r"index:\s*(\d+)", a[0]).group(1))
-            return self.operand_bases.get(idx, (idx + 1) << 24)
+            return self.operand_bases.get(idx, (idx + 1) << self.OPERAND_SHIFT)
         raise NotImplementedError(f"scalar op {m}: {op.text}")
 
     def bind_operands(self):
@@ -220,6 +257,8 @@ class Machine:
                 elif m.startswith("dma.") and m != "dma.done.wait":
                     d = Dma((pc, j), m, self.val(op.labels["size_in_granules"]),
                             self.val(op.labels["dst_syncflagno"]), t, descriptor=op.comment)
+                    if m.endswith("_to_smem"):
+                        self.copy_to_smem(op, d.granules, trace)
                     dma_model.issue(d, t)
                     inflight.append(d)
                     trace.dmas.append(d)

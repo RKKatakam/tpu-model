@@ -1,0 +1,240 @@
+{
+ "batch_id": "phase3f",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "sld_chain__n256",
+   "kernel": "sld_chain",
+   "kernel_tag": "k_sld_chain",
+   "params": {
+    "n": 256,
+    "size": 1024
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "sld_chain__n4096",
+   "kernel": "sld_chain",
+   "kernel_tag": "k_sld_chain",
+   "params": {
+    "n": 4096,
+    "size": 1024
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_overhead__n64_dma",
+   "kernel": "dma_overhead",
+   "kernel_tag": "k_dma_overhead",
+   "params": {
+    "n": 64,
+    "k": 512,
+    "dma": true
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_overhead__n64_nodma",
+   "kernel": "dma_overhead",
+   "kernel_tag": "k_dma_overhead",
+   "params": {
+    "n": 64,
+    "k": 512,
+    "dma": false
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_overhead__n256_dma",
+   "kernel": "dma_overhead",
+   "kernel_tag": "k_dma_overhead",
+   "params": {
+    "n": 256,
+    "k": 512,
+    "dma": true
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_overhead__n256_nodma",
+   "kernel": "dma_overhead",
+   "kernel_tag": "k_dma_overhead",
+   "params": {
+    "n": 256,
+    "k": 512,
+    "dma": false
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__roll_lane_nv16_k64",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 64,
+    "nv": 16,
+    "op": "roll_lane"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__roll_lane_nv32_k32",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 32,
+    "nv": 32,
+    "op": "roll_lane"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__sum_lane_nv16_k64",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 64,
+    "nv": 16,
+    "op": "sum_lane"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__sum_lane_nv32_k32",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 32,
+    "nv": 32,
+    "op": "sum_lane"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__bf16xbf16T_256_128_128_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 256,
+    "k": 128,
+    "n": 128,
+    "reps": 4,
+    "rhs_t": true
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__bf16xbf16T_256_128_128_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 256,
+    "k": 128,
+    "n": 128,
+    "reps": 16,
+    "rhs_t": true
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__bf16xbf16T_1024_128_128_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 1024,
+    "k": 128,
+    "n": 128,
+    "reps": 4,
+    "rhs_t": true
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__bf16xbf16T_1024_128_128_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 1024,
+    "k": 128,
+    "n": 128,
+    "reps": 16,
+    "rhs_t": true
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__bf16xbf16T_1024_256_256_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 1024,
+    "k": 256,
+    "n": 256,
+    "reps": 4,
+    "rhs_t": true
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__bf16xbf16T_1024_256_256_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 1024,
+    "k": 256,
+    "n": 256,
+    "reps": 16,
+    "rhs_t": true
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  }
+ ]
+}

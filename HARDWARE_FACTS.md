@@ -154,8 +154,9 @@ xprof 2.24.1, Python 3.12.3 (see `VERSIONS.lock`).
 
 - Experiment: bundle dumps of paged, gmm and splash (`data/raw/corpus1_rerun`), replayed by
   `model/machine.py` with operand values rebuilt by `model/operands.py`.
-- Result: integer tables are copied by `dma.hbm_to_smem` (4-byte granules) or `dma.vmem_to_smem`
-  (32-byte granules, VMEM arrays padded to 512 B) before the first `dma.done.wait`; `sld` reads
+- Result: integer tables are copied by `dma.hbm_to_smem` or `dma.vmem_to_smem` in 32-byte granules
+  (arrays padded to 512 B: s32[8], s32[16] and s32[32] all move 16 granules) before the first
+  `dma.done.wait`; `sld` reads
   them word-addressed. Scalar operands arrive by value in their register. Operand registers hold
   HBM addresses in 512-byte units (an 8 MiB operand's bounds check is base + 16384); DMA pointers
   are that << 4 (32-byte granules) and are bounds-checked as signed values.

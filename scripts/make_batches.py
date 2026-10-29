@@ -131,6 +131,25 @@ def phase3e_configs():
     return cfgs
 
 
+def phase3f_configs():
+    """Core-side costs the replay misses (sld latency, DMA start+wait), XLU occupancy (H8) and
+    transposed weight pushes (H9)."""
+    cfgs = []
+    for n in (256, 4096):
+        cfgs.append(device("sld_chain", {"n": n, "size": 1024}, f"sld_chain__n{n}"))
+    for n in (64, 256):
+        for dma in (True, False):
+            cfgs.append(device("dma_overhead", {"n": n, "k": 512, "dma": dma}, f"dma_overhead__n{n}_{'dma' if dma else 'nodma'}"))
+    for op in ("roll_lane", "sum_lane"):
+        for nv, k in ((16, 64), (32, 32)):
+            cfgs.append(device("vop_chain", {"k": k, "nv": nv, "op": op}, f"vop_chain__{op}_nv{nv}_k{k}"))
+    for m, k, n in ((256, 128, 128), (1024, 128, 128), (1024, 256, 256)):
+        for reps in (4, 16):
+            p = {"m": m, "k": k, "n": n, "reps": reps, "rhs_t": True}
+            cfgs.append(device("mxu_dot", p, f"mxu_dot__bf16xbf16T_{m}_{k}_{n}_x{reps}"))
+    return cfgs
+
+
 def phase3b_configs():
     cfgs = []
     for rows in (1, 8, 64, 512, 2048, 8192):
@@ -263,6 +282,7 @@ BATCHES = {
     "phase3c": {"flags": DUMP_FLAGS, "configs": phase3c_configs()},
     "phase3d": {"flags": DUMP_FLAGS, "configs": phase3d_configs()},
     "phase3e": {"flags": DUMP_FLAGS, "configs": phase3e_configs()},
+    "phase3f": {"flags": DUMP_FLAGS, "configs": phase3f_configs()},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},
     "phase0_aot": {

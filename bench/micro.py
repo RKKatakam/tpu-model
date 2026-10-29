@@ -146,7 +146,7 @@ def mem_chain(params):
 
 def mxu_dot(params):
     """reps x (acc += x @ w) with x (m,k), w (k,n) in VMEM scratch (dtypes `lhs`, `rhs`, default
-    bf16), acc f32.
+    bf16; `rhs_t` stores w as (n,k), as splash does for K), acc f32.
 
     isolates: MXU weight push, LHS streaming, result pop; no DMA.
     """
@@ -154,16 +154,19 @@ def mxu_dot(params):
     dt = {"bf16": jnp.bfloat16, "f32": jnp.float32}
     lhs, rhs = dt[params.get("lhs", "bf16")], dt[params.get("rhs", "bf16")]
 
+    rhs_t = params.get("rhs_t", False)  # weights stored (n, k) and contracted on their last dim
+    dims = (((1,), (1,)), ((), ())) if rhs_t else (((1,), (0,)), ((), ()))
+
     def kernel(x_hbm, o_hbm, xs, ws, acc):
         def body(_, carry):
-            acc[...] += jnp.dot(xs[...], ws[...], preferred_element_type=jnp.float32)
+            acc[...] += jax.lax.dot_general(xs[...], ws[...], dims, preferred_element_type=jnp.float32)
             return carry
 
         jax.lax.fori_loop(0, reps, body, 0)
 
     scratch = [
         pltpu.VMEM((m, kk), lhs),
-        pltpu.VMEM((kk, n), rhs),
+        pltpu.VMEM((n, kk) if rhs_t else (kk, n), rhs),
         pltpu.VMEM((m, n), jnp.float32),
     ]
     return _no_dma_call(kernel, scratch, "k_mxu_dot")
@@ -367,7 +370,67 @@ def dma_gather(params):
     return fn, specs, make_inputs
 
 
+def sld_chain(params):
+    """`n` dependent SMEM loads j = table[j] over a scalar-prefetched cyclic permutation.
+
+    isolates: scalar load-to-use latency.
+    """
+    n, size = params["n"], params["size"]
+
+    def kernel(tbl_ref, x_hbm, o_ref):
+        j = jax.lax.fori_loop(0, n, lambda i, j: tbl_ref[j], 0)
+        o_ref[...] = jnp.zeros((8, 128), jnp.float32) + j.astype(jnp.float32)
+
+    grid_spec = pltpu.PrefetchScalarGridSpec(
+        num_scalar_prefetch=1, grid=(1,), in_specs=[HBM],
+        out_specs=pl.BlockSpec((8, 128), lambda i, tbl: (0, 0)),
+    )
+
+    def fn(tbl, x):
+        return pl.pallas_call(kernel, out_shape=jax.ShapeDtypeStruct((8, 128), jnp.float32),
+                              grid_spec=grid_spec, name="k_sld_chain")(tbl, x)
+
+    specs = [jax.ShapeDtypeStruct((size,), jnp.int32), jax.ShapeDtypeStruct((8, 128), jnp.float32)]
+
+    def make_inputs(seed):
+        order = np.random.default_rng(seed).permutation(size)
+        tbl = np.empty(size, np.int32)
+        tbl[order] = np.roll(order, -1)  # one cycle through every entry
+        return [tbl, np.zeros((8, 128), np.float32)]
+
+    return fn, specs, make_inputs
+
+
+def dma_overhead(params):
+    """`n` rounds of: start one (8,128) f32 HBM->VMEM copy, run a dependent chain of `k` vadds
+    (longer than the copy), wait for the copy. dma=False drops the copy and its wait.
+
+    isolates: core-side cost of a DMA start plus a wait that finds the copy already done.
+    """
+    n, k, with_dma = params["n"], params["k"], params["dma"]
+
+    def kernel(x_hbm, o_hbm, buf, acc, sem):
+        def body(i, carry):
+            cp = pltpu.make_async_copy(x_hbm.at[pl.ds(0, 8), :], buf, sem) if with_dma else None
+            if with_dma:
+                cp.start()
+            v = acc[...]
+            for _ in range(k):
+                v = v + 1.0
+            acc[...] = v
+            if with_dma:
+                cp.wait()
+            return carry
+
+        jax.lax.fori_loop(0, n, body, 0)
+
+    scratch = [pltpu.VMEM((8, 128), jnp.float32), pltpu.VMEM((8, 128), jnp.float32), pltpu.SemaphoreType.DMA(())]
+    return _dma_call(kernel, (8192, 128), scratch, "k_dma_overhead")
+
+
 MICRO = {
+    "sld_chain": (sld_chain, "micro"),
+    "dma_overhead": (dma_overhead, "micro"),
     "dma_gather": (dma_gather, "micro"),
     "dma_stream": (dma_stream, "micro"),
     "vop_chain": (vop_chain, "micro"),

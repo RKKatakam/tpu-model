@@ -82,6 +82,20 @@ def check(kernel, params, program):
         expect(mm and all(m.startswith(f"vmatmul.{lhs}.") for m in mm), f"matmul ops {sorted(mm)} want vmatmul.{lhs}.*")
         expect(not dma_ops(c), f"unexpected DMA ops {dma_ops(c)}")
         expect(not has_spill(program), "spills")
+    elif kernel == "sld_chain":
+        expect(not {m for m in dma_ops(c) if not m.endswith("_to_smem")} - {"dma.vmem_to_hbm", "dma.done.wait"},
+               f"dma ops {dma_ops(c)}")
+        expect(c["sld"] >= 1 and c["sbr.rel"] >= 1, f"sld={c['sld']} branches={c['sbr.rel']}")
+    elif kernel == "dma_overhead":
+        starts = {m for m in dma_ops(c) if m != "dma.done.wait"}
+        expect(starts == ({"dma.hbm_to_vmem"} if params["dma"] else set()), f"dma starts {starts}")
+        expect(c["vadd.f32"] == params["k"], f"vadd.f32={c['vadd.f32']} want {params['k']}")
+        expect(not has_spill(program), "spills")
+    elif kernel == "vop_chain" and params["nv"] >= 16:
+        want = {"roll_lane": "vrot.lane", "sum_lane": "vadd.xlane"}[params["op"]]
+        n = sum(v for m, v in c.items() if m.startswith(want))
+        expect(n == params["k"] * params["nv"], f"{want} count {n} want {params['k'] * params['nv']}")
+        expect(not has_spill(program), "spills")
     elif kernel == "dma_gather":
         g = params["rows"] * 128 * 4 // 32
         starts = {(op.mnemonic, op.labels.get("size_in_granules")) for b in program.bundles for op in b.ops

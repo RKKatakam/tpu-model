@@ -60,7 +60,7 @@ class Machine:
     # 16384); kernels shift them left by 4 to get 32 B-granule DMA pointers and check them as
     # signed. Operand i sits at (i + 1) << 20 units: 512 MiB apart, shifted pointers stay positive.
     OPERAND_SHIFT = 20
-    WORDS_PER_GRANULE = {"dma.hbm_to_smem": 1, "dma.vmem_to_smem": 8}  # 4 B and 32 B granules
+    WORDS_PER_GRANULE = 8  # 32 B DMA granules (hbm_to_smem moves 16 for s32[8], s32[16] and s32[32])
 
     def __init__(self, program, operand_bases=None, smem=None, max_bundles=50_000_000, core=None, operands=None):
         self.p = program
@@ -94,7 +94,7 @@ class Machine:
             trace.unmodeled_smem_dmas += 1
             return
         dst = self.val(op.labels["smem"])
-        for j, w in enumerate(src_words[: granules * self.WORDS_PER_GRANULE[op.mnemonic]]):
+        for j, w in enumerate(src_words[: granules * self.WORDS_PER_GRANULE]):
             self.smem[dst + j] = w
 
     def addr_of(self, name):

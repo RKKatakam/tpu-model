@@ -168,7 +168,8 @@ def slot_of(m):
 
 @dataclass
 class _Bundle:
-    groups: dict  # slot -> [(vreg srcs, unit op or None, (dest, latency, producer) or None, dest reg)]
+    groups: dict  # slot -> [(vreg srcs, unit op or None, (dest, latency, producer) or None, dest reg,
+    #                    ("ld"|"st", op index) for VMEM accesses or None)]
     scalar_srcs: tuple  # (sreg, extra lag)
     scalar_dests: tuple  # (sreg, latency, producer)
     dma_start: bool
@@ -197,12 +198,16 @@ class Scoreboard:
         self.sld_latency = params.latency.get("sld", 1)
         self.saddr = params.latency.get("saddr", 0)
         self.scalar = "sld" in params.latency or "saddr" in params.latency
+        # VMEM read-after-write: a vld of an address stored within `vmem_raw` cycles waits (phase3k)
+        self.vmem_raw = params.latency.get("vmem_raw", 0)
+        self.last_store = {}
+        self.mem_addrs = {}  # op index in the current bundle -> VMEM address (set by the Machine)
 
     def info(self, b):
         inf = self.cache.get(b.index)
         if inf is None:
             groups, ssrcs, sdests = {}, set(), []
-            for op in b.ops:
+            for j, op in enumerate(b.ops):
                 m = op.mnemonic
                 slot = slot_of(m)
                 if self.scalar:
@@ -229,7 +234,8 @@ class Scoreboard:
                     else:
                         lat = _longest_prefix(m, self.p.latency, self.p.default_latency)
                     dest = (op.dest_reg, lat, _mclass(m))
-                groups.setdefault(slot, []).append((tuple(srcs), unit, dest, op.dest_reg))
+                mem = ("ld", j) if slot == "vld" else ("st", j) if slot == "vst" else None
+                groups.setdefault(slot, []).append((tuple(srcs), unit, dest, op.dest_reg, mem))
             dma = any(op.mnemonic.startswith("dma.") and op.mnemonic != "dma.done.wait" for op in b.ops)
             inf = self.cache[b.index] = _Bundle(groups, tuple(ssrcs), tuple(sdests), dma)
         return inf
@@ -246,11 +252,16 @@ class Scoreboard:
         floor, latest, latest_cause = {}, t, None
         for slot, ops in inf.groups.items():
             g, c = max(t, self.slot_free.get(slot, 0.0)), None
-            for srcs, unit, dest, _ in ops:
+            for srcs, unit, dest, _, mem in ops:
                 for r in srcs:
                     tr = self.ready_at.get(r, 0.0)
                     if tr > g:
                         g, c = tr, "wait " + self.producer.get(r, "?")
+                if mem and mem[0] == "ld" and self.vmem_raw:
+                    addr = self.mem_addrs.get(mem[1])
+                    tr = self.last_store.get(addr, -1e18) + self.vmem_raw
+                    if tr > g:
+                        g, c = tr, "vmem store->load"
                 if unit:
                     tu = self.units.ready(*unit, g)
                     if tu > g:
@@ -275,7 +286,11 @@ class Scoreboard:
             g = self.pending[slot]
             self.slot_free[slot] = g + 1
             self.done_max = max(self.done_max, g + 1)
-            for srcs, unit, dest, dreg in ops:
+            for srcs, unit, dest, dreg, mem in ops:
+                if mem and mem[0] == "st" and self.vmem_raw:
+                    addr = self.mem_addrs.get(mem[1])
+                    if addr is not None:
+                        self.last_store[addr] = g
                 if dest:
                     self.ready_at[dest[0]] = g + dest[1]
                     self.producer[dest[0]] = dest[2]

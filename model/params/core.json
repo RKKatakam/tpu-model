@@ -3,7 +3,8 @@
   "latency": {
    "vadd.f32": 2,
    "vmul.f32": 2,
-   "vmax.f32": 2
+   "vmax.f32": 2,
+   "vmem_raw": 10
   },
   "units": {
    "eup": {

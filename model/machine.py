@@ -135,6 +135,17 @@ class Machine:
                 total += self.val(part)
         return total
 
+    def vmem_addrs(self, b):
+        """Addresses of this bundle's vector loads/stores (op index -> address); skipped if unparsable."""
+        out = {}
+        for j, op in enumerate(b.ops):
+            if op.mnemonic.startswith(("vld", "vst")) and not op.mnemonic.startswith("vstv") and op.args and self.pred_ok(op):
+                try:
+                    out[j] = self.mem_addr(op.args[0])
+                except (KeyError, ValueError):
+                    pass
+        return out
+
     def pred_ok(self, op):
         if op.pred is None:
             return True
@@ -238,6 +249,8 @@ class Machine:
                         t = ready
                     self._retire(inflight, t)
             if self.core is not None:
+                if self.core.vmem_raw:
+                    self.core.mem_addrs = self.vmem_addrs(b)
                 t_issue = self.core.issue_time(b, t)
                 trace.core_stall_cycles += t_issue - t
                 t = t_issue

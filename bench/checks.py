@@ -108,6 +108,11 @@ def check(kernel, params, program):
         if params["kind"] == "vmem":
             vst = sum(v for m, v in c.items() if m.startswith("vst"))
             expect(vst >= params["amount"] * 1024 // 1024, f"vst={vst}: VMEM copy eliminated?")
+    elif kernel == "vmem_ops":
+        want = {"vst_msk": "vst.msk", "vld_sshfl": "vld.sshfl", "vst_sshfl": "vst.sshfl", "vrot_slane": "vrot.slane"}.get(params["form"])
+        if want:
+            expect(c[want] >= params["n"], f"{want}={c[want]} want >= {params['n']}: {sorted(m for m in c if m.startswith(('vld', 'vst', 'vrot')))}")
+        expect(c["sbr.rel"] >= 1, "no loop")
     elif kernel == "vmem_access":
         want = {"stride2": "vld.sshfl", "stride4": "vld.sshfl", "stride2_store": "vst.sshfl", "masked": "vst.msk"}.get(params["form"])
         if want:

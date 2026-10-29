@@ -217,6 +217,15 @@ def phase3k_configs():
     return cfgs
 
 
+def phase3l_configs():
+    """Live (output-bound) masked / sublane-shuffle / sublane-rotate VMEM accesses (ragged)."""
+    cfgs = []
+    for form in ("vld", "vst_msk", "vld_sshfl", "vst_sshfl", "vrot_slane"):
+        for reps in (8, 32):
+            cfgs.append(device("vmem_ops", {"n": 32, "reps": reps, "form": form}, f"vmem_ops__{form}_n32_x{reps}"))
+    return cfgs
+
+
 def phase3b_configs():
     cfgs = []
     for rows in (1, 8, 64, 512, 2048, 8192):
@@ -391,6 +400,7 @@ BATCHES = {
     "phase3i": {"flags": DUMP_FLAGS, "configs": phase3i_configs()},
     "phase3j": {"flags": DUMP_FLAGS, "configs": phase3j_configs()},
     "phase3k": {"flags": DUMP_FLAGS, "configs": phase3k_configs()},
+    "phase3l": {"flags": DUMP_FLAGS, "configs": phase3l_configs()},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},
     "phase0_aot": {

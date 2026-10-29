@@ -663,7 +663,45 @@ def vmem_access(params):
     return _no_dma_call(kernel, scratch, "k_vmem_access")
 
 
+def vmem_ops(params):
+    """`reps` passes, each issuing `n` independent copies of one access form from a (16n, 128) f32
+    input block into the (8n, 128) f32 output block (both pipelined, so every store stays live):
+    'vld' plain copy; 'vst_msk' 5-row partial stores; 'vld_sshfl' sublane-strided loads (every 2nd
+    row); 'vst_sshfl' sublane-strided stores; 'vrot_slane' sublane rotate then store.
+
+    isolates: throughput of the access forms ragged paged attention uses, against plain vld/vst.
+    """
+    n, reps, form = params["n"], params["reps"], params["form"]
+
+    def kernel(a_ref, o_ref):
+        def body(p, carry):
+            for i in range(n):
+                if form == "vld":
+                    o_ref[pl.ds(8 * i, 8), :] = a_ref[pl.ds(8 * i, 8), :]
+                elif form == "vst_msk":
+                    o_ref[pl.ds(8 * i, 5), :] = a_ref[pl.ds(8 * i, 5), :]
+                elif form == "vld_sshfl":
+                    o_ref[pl.ds(8 * i, 8), :] = a_ref[pl.ds(16 * i, 8, stride=2), :]
+                elif form == "vst_sshfl":
+                    o_ref[pl.ds(16 * (i // 2) + i % 2, 4, stride=2), :] = a_ref[pl.ds(8 * i, 4), :]
+                elif form == "vrot_slane":
+                    o_ref[pl.ds(8 * i, 8), :] = pltpu.roll(a_ref[pl.ds(8 * i, 8), :], 1 + (p % 7), 0)
+            return carry
+
+        jax.lax.fori_loop(0, reps, body, 0)
+
+    def fn(a):
+        return pl.pallas_call(
+            kernel, out_shape=jax.ShapeDtypeStruct((16 * n, 128), jnp.float32), grid=(1,),
+            in_specs=[pl.BlockSpec((16 * n, 128), lambda i: (0, 0))],
+            out_specs=pl.BlockSpec((16 * n, 128), lambda i: (0, 0)), name="k_vmem_ops",
+        )(a)
+
+    return fn, [jax.ShapeDtypeStruct((16 * n, 128), jnp.float32)]
+
+
 MICRO = {
+    "vmem_ops": (vmem_ops, "micro"),
     "vmem_access": (vmem_access, "micro"),
     "xpose_chain": (xpose_chain, "micro"),
     "mxu_masked": (mxu_masked, "micro"),

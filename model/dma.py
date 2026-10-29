@@ -90,7 +90,13 @@ class SharedHbm:
                       - self.tail[write])
         if any(x.write != write and x.left > 0 for x in self.active):
             latency += self.mix_cycles
-        x = _Xfer(d, start + latency, nbytes, math.inf, write)
+        # each contiguous piece of a strided copy whose HBM pieces are 8+ pieces apart costs
+        # `stride_piece_bytes` of extra transfer (bench dma_strided, dma_mxu: ~0.65 ns per piece at
+        # stride ratios 8-32; none at 2; ratio 4 unmeasured, calibration add says none)
+        moved = nbytes
+        if getattr(d, "stride_ratio", 1.0) >= 8 and getattr(d, "piece_granules", 0) > 0:
+            moved += d.granules / d.piece_granules * getattr(self, "stride_piece_bytes", 0.0)
+        x = _Xfer(d, start + latency, moved, math.inf, write)
         if write and getattr(self, "bw_post", None):
             x.post = x.ready + nbytes / self.bw_post
         self.active.append(x)

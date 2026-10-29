@@ -137,7 +137,7 @@ def dma_model(dma, clock_ghz):
     cyc = lambda tbl: [(b, ns * clock_ghz) for b, ns in tbl]  # noqa: E731
     engine = dma.get("engine", "SharedHbm")
     if engine == "DirFifoHbm":
-        return DirFifoHbm(
+        e = DirFifoHbm(
             cyc(dma["read_table_ns"]), cyc(dma["write_table_ns"]),
             dma["bw_read_GBps"] / clock_ghz, dma["bw_write_GBps"] / clock_ghz,
             dma["turnaround_ns_per_byte"] * clock_ghz, dma["issue_ns"] * clock_ghz,
@@ -148,6 +148,8 @@ def dma_model(dma, clock_ghz):
             dma.get("read_tail_ns", 0.0) * clock_ghz, dma.get("write_tail_ns", 0.0) * clock_ghz,
             dma.get("pause_cap_ns", math.inf) * clock_ghz,
         )
+        e.stride_piece_bytes = dma.get("stride_piece_bytes", 0.0)
+        return e
     return {"SharedHbm": SharedHbm, "FifoHbm": FifoHbm}[engine](
         cyc(dma["read_table_ns"]), cyc(dma["write_table_ns"]),
         dma["bw_read_GBps"] / clock_ghz, dma["bw_write_GBps"] / clock_ghz, dma["bw_mixed_GBps"] / clock_ghz,

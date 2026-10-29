@@ -285,6 +285,22 @@ xprof 2.24.1, Python 3.12.3 (see `VERSIONS.lock`).
   - The model (`vector_queue` 12, range 11-13) fits within 0.5% except m=16 (+6%).
 - Replaces H17. Calibration paged attention goes from +5.5% to +2%.
 
+### F29. Strided DMAs lose ~0.65 ns per contiguous piece when pieces are far apart in HBM
+- Experiments: `dma_strided` (phase3b: (8,128) f32 tiles of 4 KiB at stride ratios 2, 8 and 32) and
+  `dma_mxu` (phase3z: 256x256 bf16 tiles, 4 KiB pieces at ratio 16, with and without MXU or VALU
+  work). The descriptor's src/dst_stride give the piece size and the ratio.
+- Results:
+  - With pieces 8-32 apart, copies take ~0.5-0.8 ns more per piece than the same bytes contiguous.
+  - With pieces 2 apart, there is no extra cost.
+  - MXU work does not slow tile reads: with no compute, the stream is already 7-10% slower than the
+    contiguous model.
+- Model: 450 bytes of extra transfer per piece at ratio >= 8. Ratio 4 is unmeasured; calibration
+  `add` (ratio 4, 16 KiB pieces) says it is free.
+- Calibration matmul_tpu goes from -6% to -2.5% (worst -10.6% -> -8.3%). Pipelined two-input tile
+  streams are still about -5% with no compute (open).
+- Separately, the VMEM address parser now strips `ss:` stride fields. Strided vld/vst were missing
+  their store->load wait (F20); vmem_access went from -35..-42% to within 0.2%.
+
 ## Hypotheses (not yet tested; the model must not depend on these)
 
 - H2. MXU is 128x128.

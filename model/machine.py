@@ -44,6 +44,8 @@ class Dma:
     issue: float
     done: float = 0.0
     descriptor: str = ""
+    stride_ratio: float = 1.0  # HBM-side stride / contiguous piece (strided 2-D copies), 1 if contiguous
+    piece_granules: int = 0  # contiguous piece of a strided copy (granules)
 
 
 @dataclass
@@ -128,7 +130,7 @@ class Machine:
         while inner.startswith("["):
             inner = inner[1:-1] if inner.endswith("]") else inner[1:]
             inner = re.sub(r"^\w+:", "", inner).strip()
-            inner = re.sub(r"\s+sm:\S+$", "", inner).strip()
+            inner = re.sub(r"(\s+[a-z]+:\S+)+$", "", inner).strip()  # trailing fields: sm (mask), ss (stride)
         inner = inner.strip("[]")
         total = 0
         for part in inner.split("+"):
@@ -301,6 +303,11 @@ class Machine:
                 elif m.startswith("dma.") and m != "dma.done.wait":
                     d = Dma((pc, j), m, self.val(op.labels["size_in_granules"]),
                             self.val(op.labels["dst_syncflagno"]), t, descriptor=op.comment)
+                    if "src_stride" in op.labels and "dst_stride" in op.labels:
+                        src, dst = self.val(op.labels["src_stride"]), self.val(op.labels["dst_stride"])
+                        hbm, piece = (src, dst) if m.startswith("dma.hbm_to") else (dst, src)
+                        d.stride_ratio = hbm / piece if piece > 0 and hbm > piece else 1.0
+                        d.piece_granules = piece
                     if m.endswith("_to_smem"):
                         self.copy_to_smem(op, d.granules, trace)
                     dma_model.issue(d, t)

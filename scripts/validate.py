@@ -16,8 +16,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from corpus.split import split_of  # noqa: E402
-from model.operands import integer_operands  # noqa: E402
-from model.predict import Params, load_core, load_dma, load_records, predict_ns, simulate  # noqa: E402
+from model.predict import Params, load_core, load_dma, load_records, predict_record_ns  # noqa: E402
 
 TILE_KEYS = {"block_q", "block_k_major", "block_k", "block_kv", "block_kv_compute", "pages_per_compute_block",
              "tm", "tk", "tn", "block_rows", "block_cols", "bm", "bn", "bk"}
@@ -54,12 +53,11 @@ def row_for(r):
     """Replay one record; a replay failure is reported (stderr) and scored NaN, never hidden."""
     P = Params.load("model/params/phase1.json")
     try:
-        prog = r.program()
-        tr = simulate(prog, P, load_core(), load_dma(), integer_operands(r, prog))
-        if tr.unmodeled_smem_dmas or tr.halts:
-            print(f"warning {r.raw['record_id']}: {tr.unmodeled_smem_dmas} unmodeled SMEM DMAs, "
-                  f"halts at {tr.halts[:3]}", file=sys.stderr)
-        ours = predict_ns(tr, P)
+        ours, traces = predict_record_ns(r, P, load_core(), load_dma())
+        for tr in traces:
+            if tr.unmodeled_smem_dmas or tr.halts:
+                print(f"warning {r.raw['record_id']}: {tr.unmodeled_smem_dmas} unmodeled SMEM DMAs, "
+                      f"halts at {tr.halts[:3]}", file=sys.stderr)
     except Exception as e:
         print(f"replay failed {r.raw['record_id']}: {e!r}", file=sys.stderr)
         ours = float("nan")

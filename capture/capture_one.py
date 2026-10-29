@@ -131,14 +131,16 @@ def time_on_device(compiled, args, cfg, logdir):
     path = xplane.find_xplane(logdir)
     profile = xplane.load(path)
     summary = xplane.summarize(profile)
-    tag = f"%{xplane.custom_call_name(summary)} = "
-    by_line = xplane.kernel_durations(profile, tag)
+    names = xplane.custom_call_names(summary)
+    total, per_kernel = xplane.summed_kernel_samples(profile, names)
+    # "XLA Ops" = per-rep sum over the program's Pallas kernels (one kernel: just its time)
     return {
         "xplane_path": path,
-        "kernel_tag": tag,
+        "kernels": names,
+        "kernel_samples_ns": per_kernel,
         "reps": cfg["reps"],
         "warmup": cfg["warmup"],
-        "by_line": {line: {"stats": xplane.stats(d), "samples_ns": d} for line, d in by_line.items()},
+        "by_line": {"XLA Ops": {"stats": xplane.stats(total), "samples_ns": total}},
         "profile_summary": summary,
     }
 

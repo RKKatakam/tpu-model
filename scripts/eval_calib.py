@@ -15,8 +15,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from corpus.split import split_of  # noqa: E402
-from model.operands import integer_operands  # noqa: E402
-from model.predict import Params, load_core, load_dma, load_records, predict_ns, simulate  # noqa: E402
+from model.predict import Params, load_core, load_dma, load_records, predict_record_ns  # noqa: E402
 
 CLASSES = ("compute", "streaming", "latency")
 
@@ -24,9 +23,8 @@ CLASSES = ("compute", "streaming", "latency")
 def err(args):
     r, core_json, dma_json = args
     P = Params.load("model/params/phase1.json")
-    prog = r.program()
-    tr = simulate(prog, P, load_core(core_json), load_dma(dma_json), integer_operands(r, prog))
-    return r.raw["record_id"], r.raw["kernel"], predict_ns(tr, P) / r.measured_ns() - 1
+    ns, _ = predict_record_ns(r, P, load_core(core_json), load_dma(dma_json))
+    return r.raw["record_id"], r.raw["kernel"], ns / r.measured_ns() - 1
 
 
 def main(core_json, dma_json, dirs):

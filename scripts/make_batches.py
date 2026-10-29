@@ -286,6 +286,7 @@ CORPUS_TAGS = {
     "matmul": "k_matmul",
     "ragged": "ragged_paged_attention", "matmul_tpu": "matmul", "tgmm": "tgmm", "prng": "prng",
     "rmsnorm": "k_rmsnorm", "rope": "k_rope",
+    "vllm_rpa": "rpa", "vllm_qmm": "qmm", "vllm_flash": "flash", "vllm_gmm": "gmm",
     "add": "k_add",
     "col_sum": "k_col_sum",
 }
@@ -413,6 +414,30 @@ def corpus3_configs():
     return cfgs
 
 
+def external_vllm_configs():
+    """vllm-project/tpu-inference kernels (vendored; external test set, never used for calibration)."""
+    cfgs = []
+    base = {"q_heads": 32, "kv_heads": 8, "head_dim": 128, "page_size": 16, "num_pages": 4096}
+    shapes = {"decode": {"n_decode": 32, "n_prefill": 0, "prefill_len": 0, "kv_len": 2048, "prefix": 0},
+              "mixed": {"n_decode": 16, "n_prefill": 2, "prefill_len": 256, "kv_len": 1024, "prefix": 512},
+              "prefill": {"n_decode": 0, "n_prefill": 4, "prefill_len": 512, "kv_len": 0, "prefix": 0}}
+    for name, shp in shapes.items():
+        for mb in ((32, 128, 32, 128), (64, 256, 32, 128), (128, 512, 64, 256)):
+            p = base | shp | {"m_blocks": list(mb), "d_blocks": None}
+            cfgs.append(corpus("vllm_rpa", p, f"vllm_rpa__{name}_m{mb[0]}_{mb[1]}"))
+    for mode in ("w8a8", "w8a16"):
+        for m in (16, 128, 512, 2048):
+            cfgs.append(corpus("vllm_qmm", {"m": m, "k": 4096, "n": 4096, "mode": mode}, f"vllm_qmm__{mode}_m{m}_k4096_n4096"))
+    for s_len, causal in ((2048, True), (4096, False)):
+        for bq, bk in ((256, 256), (512, 512), (512, 1024)):
+            p = {"b": 1, "h": 8, "s": s_len, "d": 128, "causal": causal, "block_q": bq, "block_k_major": bk, "block_k": min(bk, 512)}
+            cfgs.append(corpus("vllm_flash", p, f"vllm_flash__s{s_len}_c{int(causal)}_q{bq}_k{bk}"))
+    for tm, tk, tn in ((128, 128, 128), (256, 512, 512), (512, 1024, 512)):
+        p = {"m": 4096, "k": 2048, "n": 1024, "groups": 8, "tm": tm, "tk": tk, "tn": tn}
+        cfgs.append(corpus("vllm_gmm", p, f"vllm_gmm__m4096_k2048_n1024_g8_t{tm}_{tk}_{tn}"))
+    return cfgs
+
+
 def split(cfgs, parts):
     return [cfgs[i::parts] for i in range(parts)]
 
@@ -458,6 +483,8 @@ BATCHES["corpus1_rerun"] = {"flags": DUMP_FLAGS,
                             "configs": [c for c in corpus_configs() if c["kernel"] in ("splash", "paged", "gmm")]}
 
 BATCHES["corpus2_splash"] = {"flags": DUMP_FLAGS, "configs": corpus2_configs()}
+for i, part in enumerate(split(external_vllm_configs(), 2)):
+    BATCHES[f"external_vllm_part{i}"] = {"flags": DUMP_FLAGS, "configs": part}
 for i, part in enumerate(split(corpus3_configs(), 2)):
     BATCHES[f"corpus3_part{i}"] = {"flags": DUMP_FLAGS, "configs": part}
 

@@ -63,14 +63,29 @@ def kernel_durations(profile, kernel_tag):
     return {line: [dur for _, dur in sorted(h)] for line, h in hits.items()}
 
 
-def custom_call_name(summary):
-    """HLO name (e.g. 'flash_attention.1') of the one tpu_custom_call op in a summarize() result.
-    Dump files and profiler events are named by it, not by the Pallas kernel function."""
+def custom_call_names(summary):
+    """HLO names (e.g. 'flash_attention.1') of the tpu_custom_call ops in a summarize() result, sorted.
+    Dump files and profiler events are named by them, not by the Pallas kernel function."""
     names = {e["name"].split(" = ")[0].lstrip("%") for e in summary["device_events"]
              if e["line"] == "XLA Ops" and 'custom_call_target="tpu_custom_call"' in e["name"]}
+    if not names:
+        raise ValueError("no tpu_custom_call op in the profile")
+    return sorted(names)
+
+
+def custom_call_name(summary):
+    """The single tpu_custom_call op (records of one-kernel programs)."""
+    names = custom_call_names(summary)
     if len(names) != 1:
-        raise ValueError(f"expected one tpu_custom_call op, found {sorted(names)}")
-    return names.pop()
+        raise ValueError(f"expected one tpu_custom_call op, found {names}")
+    return names[0]
+
+
+def summed_kernel_samples(profile, names, line="XLA Ops"):
+    """Per-rep device time summed over the given kernels (one event of each per rep)."""
+    per = [kernel_durations(profile, f"%{n} = ").get(line, []) for n in names]
+    n = min(len(p) for p in per)
+    return [sum(p[i] for p in per) for i in range(n)], {nm: p for nm, p in zip(names, per)}
 
 
 def stats(samples):

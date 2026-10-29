@@ -133,6 +133,10 @@ from corpus.ops import OPS  # noqa: E402
 KERNELS.update(MICRO)
 KERNELS.update(OPS)
 
+from corpus.external_ops import EXTERNAL  # noqa: E402
+
+KERNELS.update(EXTERNAL)
+
 
 def build(name, params):
     """(fn, arg_specs, kernel_class, make_inputs or None)."""

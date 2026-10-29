@@ -37,12 +37,18 @@ class Record:
     raw: dict
 
     @property
+    def hlo_names(self):
+        """HLO names of the program's Pallas kernels (tpu_custom_call ops), sorted."""
+        return xplane.custom_call_names(self.raw["timing"]["profile_summary"])
+
+    @property
     def hlo_name(self):
+        """The single kernel of a one-kernel program."""
         return xplane.custom_call_name(self.raw["timing"]["profile_summary"])
 
     @property
     def tag(self):
-        """Dump-file stem: the HLO name without its '.N' suffix."""
+        """Dump-file stem of a one-kernel program: the HLO name without its '.N' suffix."""
         return re.sub(r"\.\d+$", "", self.hlo_name)
 
     @property
@@ -50,6 +56,7 @@ class Record:
         return os.path.join(self.dir, "dump")
 
     def samples_ns(self):
+        """Per-rep device time of the program's Pallas kernels, summed over kernels."""
         by_line = self.raw["timing"]["by_line"]
         if LINE in by_line:
             return by_line[LINE]["samples_ns"]
@@ -57,7 +64,7 @@ class Record:
         cache = os.path.join(self.dir, "samples_offline.json")
         if not os.path.exists(cache):
             profile = xplane.load(xplane.find_xplane(os.path.join(self.dir, "profile")))
-            samples = xplane.kernel_durations(profile, f"%{self.hlo_name} = ")[LINE]
+            samples, _ = xplane.summed_kernel_samples(profile, self.hlo_names, LINE)
             with open(cache, "w") as f:
                 json.dump(samples, f)
         with open(cache) as f:
@@ -66,11 +73,27 @@ class Record:
     def measured_ns(self):
         return statistics.median(self.samples_ns())
 
+    def programs(self):
+        """(hlo name, parsed final bundles) for each kernel."""
+        return [(n, bundles.parse_file(dumps.final_bundles_path(self.dump, n, exact=True))) for n in self.hlo_names]
+
     def program(self):
         return bundles.parse_file(dumps.final_bundles_path(self.dump, self.tag))
 
     def xla_estimated_cycles(self):
-        return dumps.static_estimated_cycles(self.dump, self.tag)
+        ests = [dumps.static_estimated_cycles(self.dump, n, exact=True) for n in self.hlo_names]
+        return None if any(e is None for e in ests) else sum(ests)
+
+
+def predict_record_ns(record, params, core, dma):
+    """Predicted device time of a record: each Pallas kernel replayed with its own integer operands,
+    summed. Returns (ns, traces)."""
+    from model.operands import integer_operands
+
+    traces = []
+    for name, prog in record.programs():
+        traces.append(simulate(prog, params, core, dma, integer_operands(record, prog, name)))
+    return sum(predict_ns(t, params) for t in traces), traces
 
 
 def load_records(batch_dir):

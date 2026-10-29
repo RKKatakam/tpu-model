@@ -36,7 +36,10 @@ def _has_pallas(jaxpr):
     return False
 
 
-def _eval_to_pallas(jaxpr, consts, args):
+def _eval_collect(jaxpr, consts, args, found):
+    """Evaluate `jaxpr`, recording each pallas_call's operand values in `found`; pallas_calls are not
+    run (CPU cannot), their outputs are zeros. Returns the outputs."""
+    import jax.numpy as jnp
     from jax.extend.core import Literal
 
     env = {}
@@ -51,18 +54,22 @@ def _eval_to_pallas(jaxpr, consts, args):
     for e in jaxpr.eqns:
         vals = [read(v) for v in e.invars]
         if e.primitive.name == "pallas_call":
-            return vals
-        inner, inner_consts = _inner(e)
-        if inner is not None and _has_pallas(inner):
-            return _eval_to_pallas(inner, inner_consts, vals)
-        out = e.primitive.bind(*vals, **e.params)
-        for v, x in zip(e.outvars, out if e.primitive.multiple_results else [out]):
+            found.append([np.asarray(v) for v in vals])
+            out = [jnp.zeros(v.aval.shape, v.aval.dtype) for v in e.outvars]
+        else:
+            inner, inner_consts = _inner(e)
+            if inner is not None and _has_pallas(inner):
+                out = _eval_collect(inner, inner_consts, vals, found)
+            else:
+                out = e.primitive.bind(*vals, **e.params)
+                out = out if e.primitive.multiple_results else [out]
+        for v, x in zip(e.outvars, out):
             env[v] = x
-    raise ValueError("no pallas_call in jaxpr")
+    return [read(v) for v in jaxpr.outvars]
 
 
-def pallas_operands(record):
-    """Values of the pallas_call operands (integer ones concrete, float ones zeros)."""
+def all_pallas_operands(record):
+    """Operand values of every pallas_call in the program, in jaxpr order."""
     import jax
     import jax.numpy as jnp
 
@@ -74,14 +81,18 @@ def pallas_operands(record):
         args = [jnp.asarray(np.array(ints[str(i)], dtype=s.dtype)) if str(i) in ints else jnp.zeros(s.shape, s.dtype)
                 for i, s in enumerate(specs)]
         closed = jax.make_jaxpr(fn)(*specs)
-        return [np.asarray(v) for v in _eval_to_pallas(closed.jaxpr, closed.consts, args)]
+        found = []
+        _eval_collect(closed.jaxpr, closed.consts, args, found)
+        return found
 
 
-def hlo_operand_layouts(record):
-    """Layout strings ('{0:T(128)S(1)}') of the tpu_custom_call operands, in operand order."""
+def hlo_operand_layouts(record, name=None):
+    """Layout strings ('{0:T(128)S(1)}') of a tpu_custom_call's operands (the one named `name`, else
+    the first), in operand order."""
+    head = re.escape(f"%{name} = ") + r"[^\n]*?" if name else ""
     for f in glob.glob(os.path.join(record.dump, "xla", "*after_optimizations.txt")):
         txt = open(f).read()
-        m = re.search(r"custom-call\(([^)]*)\), custom_call_target=\"tpu_custom_call\"", txt)
+        m = re.search(head + r"custom-call\(([^)]*)\), custom_call_target=\"tpu_custom_call\"", txt)
         if not m:
             continue
         out = []
@@ -125,10 +136,15 @@ def words(array, layout):
     return out
 
 
-def integer_operands(record, program):
-    """{operand index: (memory space, value or word list)} for the kernel's integer operands,
-    cached in the record directory."""
-    cache = os.path.join(record.dir, "operands_offline.json")
+def integer_operands(record, program, name=None):
+    """{operand index: (memory space, value or word list)} for one kernel's integer operands,
+    cached in the record directory. `name`: the kernel's HLO name in multi-kernel programs; its
+    pallas_call is the first whose operand shapes match the kernel's inlined_call_operands."""
+    cache = os.path.join(record.dir, f"operands_offline{'_' + name if name else ''}.json")
+    if not os.path.exists(cache) and name is not None and len(record.hlo_names) == 1:
+        legacy = os.path.join(record.dir, "operands_offline.json")
+        if os.path.exists(legacy):
+            cache = legacy
     if os.path.exists(cache):
         with open(cache) as f:
             return {int(k): tuple(v) for k, v in json.load(f).items()}
@@ -139,8 +155,12 @@ def integer_operands(record, program):
                 m = re.search(r"shape: (\w+)\[([^\]]*)\], index: (\d+), kind: (\w+)", op.text)
                 space = op.mnemonic.split(".")[1] if "." in op.mnemonic else ""
                 decl[int(m.group(3))] = (space, m.group(1), m.group(2), m.group(4))
-    vals = pallas_operands(record)
-    layouts = hlo_operand_layouts(record)
+    want = [tuple(int(x) for x in decl[i][2].split(",")) if decl[i][2] else () for i in sorted(decl) if decl[i][3] == "input"]
+    calls = all_pallas_operands(record)
+    vals = next((c for c in calls if [np.asarray(v).shape for v in c] == want), None)
+    if vals is None:
+        raise ValueError(f"no pallas_call with operand shapes {want} ({len(calls)} calls)")
+    layouts = hlo_operand_layouts(record, name)
     out = {}
     for i, v in enumerate(vals):
         space, dtype, dims, kind = decl[i]

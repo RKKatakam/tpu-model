@@ -86,7 +86,50 @@ def phase1_configs(mode):
     return cfgs
 
 
+def device(kernel, params, rid, reps=100, warmup=10):
+    return {"record_id": rid, "kernel": kernel, "kernel_tag": tag(kernel), "params": params,
+            "mode": "device", "reps": reps, "warmup": warmup}
+
+
+def phase3a_configs():
+    cfgs = []
+    for op in ("add", "mul", "max", "exp", "roll_lane", "roll_sublane", "sum_lane", "cast"):
+        for nv, k in ((1, 256), (1, 1024), (8, 128)):
+            cfgs.append(device("vop_chain", {"k": k, "nv": nv, "op": op}, f"vop_chain__{op}_nv{nv}_k{k}"))
+    for k in (64, 256):
+        cfgs.append(device("mem_chain", {"k": k}, f"mem_chain__k{k}"))
+    shapes = [(8, 128, 128), (16, 128, 128), (64, 128, 128), (256, 128, 128), (1024, 128, 128),
+              (4096, 128, 128), (256, 256, 256), (256, 512, 512), (1024, 512, 512), (512, 1024, 1024)]
+    for m, k, n in shapes:
+        for reps in (4, 16):
+            cfgs.append(device("mxu_dot", {"m": m, "k": k, "n": n, "reps": reps}, f"mxu_dot__{m}_{k}_{n}_x{reps}"))
+    return cfgs
+
+
+def phase3b_configs():
+    cfgs = []
+    for rows in (1, 8, 64, 512, 2048, 8192):
+        for reps in (1, 8):
+            cfgs.append(device("dma_out", {"rows": rows, "reps": reps}, f"dma_out__r{rows}_x{reps}"))
+    for rows in (8, 128, 1024, 2048):
+        for streams in (2, 4, 8):
+            for reps in (1, 5):
+                cfgs.append(device("dma_conc", {"rows": rows, "streams": streams, "reps": reps},
+                                   f"dma_conc__r{rows}_s{streams}_x{reps}"))
+    for rows in (8, 128, 1024, 4096):
+        for reps in (1, 5):
+            cfgs.append(device("dma_inout", {"rows": rows, "reps": reps}, f"dma_inout__r{rows}_x{reps}"))
+    for rows in (8, 256, 2048):
+        for width in (256, 1024, 4096):
+            for reps in (1, 8):
+                cfgs.append(device("dma_strided", {"rows": rows, "width": width, "reps": reps},
+                                   f"dma_strided__r{rows}_w{width}_x{reps}"))
+    return cfgs
+
+
 BATCHES = {
+    "phase3a": {"flags": DUMP_FLAGS, "configs": phase3a_configs()},
+    "phase3b": {"flags": DUMP_FLAGS, "configs": phase3b_configs()},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},
     "phase0_aot": {

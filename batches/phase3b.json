@@ -1,0 +1,808 @@
+{
+ "batch_id": "phase3b",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "dma_out__r1_x1",
+   "kernel": "dma_out",
+   "kernel_tag": "k_dma_out",
+   "params": {
+    "rows": 1,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_out__r1_x8",
+   "kernel": "dma_out",
+   "kernel_tag": "k_dma_out",
+   "params": {
+    "rows": 1,
+    "reps": 8
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_out__r8_x1",
+   "kernel": "dma_out",
+   "kernel_tag": "k_dma_out",
+   "params": {
+    "rows": 8,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_out__r8_x8",
+   "kernel": "dma_out",
+   "kernel_tag": "k_dma_out",
+   "params": {
+    "rows": 8,
+    "reps": 8
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_out__r64_x1",
+   "kernel": "dma_out",
+   "kernel_tag": "k_dma_out",
+   "params": {
+    "rows": 64,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_out__r64_x8",
+   "kernel": "dma_out",
+   "kernel_tag": "k_dma_out",
+   "params": {
+    "rows": 64,
+    "reps": 8
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_out__r512_x1",
+   "kernel": "dma_out",
+   "kernel_tag": "k_dma_out",
+   "params": {
+    "rows": 512,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_out__r512_x8",
+   "kernel": "dma_out",
+   "kernel_tag": "k_dma_out",
+   "params": {
+    "rows": 512,
+    "reps": 8
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_out__r2048_x1",
+   "kernel": "dma_out",
+   "kernel_tag": "k_dma_out",
+   "params": {
+    "rows": 2048,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_out__r2048_x8",
+   "kernel": "dma_out",
+   "kernel_tag": "k_dma_out",
+   "params": {
+    "rows": 2048,
+    "reps": 8
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_out__r8192_x1",
+   "kernel": "dma_out",
+   "kernel_tag": "k_dma_out",
+   "params": {
+    "rows": 8192,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_out__r8192_x8",
+   "kernel": "dma_out",
+   "kernel_tag": "k_dma_out",
+   "params": {
+    "rows": 8192,
+    "reps": 8
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r8_s2_x1",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 8,
+    "streams": 2,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r8_s2_x5",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 8,
+    "streams": 2,
+    "reps": 5
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r8_s4_x1",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 8,
+    "streams": 4,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r8_s4_x5",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 8,
+    "streams": 4,
+    "reps": 5
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r8_s8_x1",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 8,
+    "streams": 8,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r8_s8_x5",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 8,
+    "streams": 8,
+    "reps": 5
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r128_s2_x1",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 128,
+    "streams": 2,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r128_s2_x5",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 128,
+    "streams": 2,
+    "reps": 5
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r128_s4_x1",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 128,
+    "streams": 4,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r128_s4_x5",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 128,
+    "streams": 4,
+    "reps": 5
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r128_s8_x1",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 128,
+    "streams": 8,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r128_s8_x5",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 128,
+    "streams": 8,
+    "reps": 5
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r1024_s2_x1",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 1024,
+    "streams": 2,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r1024_s2_x5",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 1024,
+    "streams": 2,
+    "reps": 5
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r1024_s4_x1",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 1024,
+    "streams": 4,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r1024_s4_x5",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 1024,
+    "streams": 4,
+    "reps": 5
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r1024_s8_x1",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 1024,
+    "streams": 8,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r1024_s8_x5",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 1024,
+    "streams": 8,
+    "reps": 5
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r2048_s2_x1",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 2048,
+    "streams": 2,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r2048_s2_x5",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 2048,
+    "streams": 2,
+    "reps": 5
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r2048_s4_x1",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 2048,
+    "streams": 4,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r2048_s4_x5",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 2048,
+    "streams": 4,
+    "reps": 5
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r2048_s8_x1",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 2048,
+    "streams": 8,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_conc__r2048_s8_x5",
+   "kernel": "dma_conc",
+   "kernel_tag": "k_dma_conc",
+   "params": {
+    "rows": 2048,
+    "streams": 8,
+    "reps": 5
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_inout__r8_x1",
+   "kernel": "dma_inout",
+   "kernel_tag": "k_dma_inout",
+   "params": {
+    "rows": 8,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_inout__r8_x5",
+   "kernel": "dma_inout",
+   "kernel_tag": "k_dma_inout",
+   "params": {
+    "rows": 8,
+    "reps": 5
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_inout__r128_x1",
+   "kernel": "dma_inout",
+   "kernel_tag": "k_dma_inout",
+   "params": {
+    "rows": 128,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_inout__r128_x5",
+   "kernel": "dma_inout",
+   "kernel_tag": "k_dma_inout",
+   "params": {
+    "rows": 128,
+    "reps": 5
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_inout__r1024_x1",
+   "kernel": "dma_inout",
+   "kernel_tag": "k_dma_inout",
+   "params": {
+    "rows": 1024,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_inout__r1024_x5",
+   "kernel": "dma_inout",
+   "kernel_tag": "k_dma_inout",
+   "params": {
+    "rows": 1024,
+    "reps": 5
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_inout__r4096_x1",
+   "kernel": "dma_inout",
+   "kernel_tag": "k_dma_inout",
+   "params": {
+    "rows": 4096,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_inout__r4096_x5",
+   "kernel": "dma_inout",
+   "kernel_tag": "k_dma_inout",
+   "params": {
+    "rows": 4096,
+    "reps": 5
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_strided__r8_w256_x1",
+   "kernel": "dma_strided",
+   "kernel_tag": "k_dma_strided",
+   "params": {
+    "rows": 8,
+    "width": 256,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_strided__r8_w256_x8",
+   "kernel": "dma_strided",
+   "kernel_tag": "k_dma_strided",
+   "params": {
+    "rows": 8,
+    "width": 256,
+    "reps": 8
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_strided__r8_w1024_x1",
+   "kernel": "dma_strided",
+   "kernel_tag": "k_dma_strided",
+   "params": {
+    "rows": 8,
+    "width": 1024,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_strided__r8_w1024_x8",
+   "kernel": "dma_strided",
+   "kernel_tag": "k_dma_strided",
+   "params": {
+    "rows": 8,
+    "width": 1024,
+    "reps": 8
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_strided__r8_w4096_x1",
+   "kernel": "dma_strided",
+   "kernel_tag": "k_dma_strided",
+   "params": {
+    "rows": 8,
+    "width": 4096,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_strided__r8_w4096_x8",
+   "kernel": "dma_strided",
+   "kernel_tag": "k_dma_strided",
+   "params": {
+    "rows": 8,
+    "width": 4096,
+    "reps": 8
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_strided__r256_w256_x1",
+   "kernel": "dma_strided",
+   "kernel_tag": "k_dma_strided",
+   "params": {
+    "rows": 256,
+    "width": 256,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_strided__r256_w256_x8",
+   "kernel": "dma_strided",
+   "kernel_tag": "k_dma_strided",
+   "params": {
+    "rows": 256,
+    "width": 256,
+    "reps": 8
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_strided__r256_w1024_x1",
+   "kernel": "dma_strided",
+   "kernel_tag": "k_dma_strided",
+   "params": {
+    "rows": 256,
+    "width": 1024,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_strided__r256_w1024_x8",
+   "kernel": "dma_strided",
+   "kernel_tag": "k_dma_strided",
+   "params": {
+    "rows": 256,
+    "width": 1024,
+    "reps": 8
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_strided__r256_w4096_x1",
+   "kernel": "dma_strided",
+   "kernel_tag": "k_dma_strided",
+   "params": {
+    "rows": 256,
+    "width": 4096,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_strided__r256_w4096_x8",
+   "kernel": "dma_strided",
+   "kernel_tag": "k_dma_strided",
+   "params": {
+    "rows": 256,
+    "width": 4096,
+    "reps": 8
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_strided__r2048_w256_x1",
+   "kernel": "dma_strided",
+   "kernel_tag": "k_dma_strided",
+   "params": {
+    "rows": 2048,
+    "width": 256,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_strided__r2048_w256_x8",
+   "kernel": "dma_strided",
+   "kernel_tag": "k_dma_strided",
+   "params": {
+    "rows": 2048,
+    "width": 256,
+    "reps": 8
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_strided__r2048_w1024_x1",
+   "kernel": "dma_strided",
+   "kernel_tag": "k_dma_strided",
+   "params": {
+    "rows": 2048,
+    "width": 1024,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_strided__r2048_w1024_x8",
+   "kernel": "dma_strided",
+   "kernel_tag": "k_dma_strided",
+   "params": {
+    "rows": 2048,
+    "width": 1024,
+    "reps": 8
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_strided__r2048_w4096_x1",
+   "kernel": "dma_strided",
+   "kernel_tag": "k_dma_strided",
+   "params": {
+    "rows": 2048,
+    "width": 4096,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "dma_strided__r2048_w4096_x8",
+   "kernel": "dma_strided",
+   "kernel_tag": "k_dma_strided",
+   "params": {
+    "rows": 2048,
+    "width": 4096,
+    "reps": 8
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  }
+ ]
+}

@@ -1,0 +1,636 @@
+{
+ "batch_id": "phase3a",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "vop_chain__add_nv1_k256",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "add"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__add_nv1_k1024",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "add"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__add_nv8_k128",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "add"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__mul_nv1_k256",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "mul"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__mul_nv1_k1024",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "mul"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__mul_nv8_k128",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "mul"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__max_nv1_k256",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "max"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__max_nv1_k1024",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "max"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__max_nv8_k128",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "max"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__exp_nv1_k256",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "exp"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__exp_nv1_k1024",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "exp"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__exp_nv8_k128",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "exp"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__roll_lane_nv1_k256",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "roll_lane"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__roll_lane_nv1_k1024",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "roll_lane"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__roll_lane_nv8_k128",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "roll_lane"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__roll_sublane_nv1_k256",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "roll_sublane"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__roll_sublane_nv1_k1024",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "roll_sublane"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__roll_sublane_nv8_k128",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "roll_sublane"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__sum_lane_nv1_k256",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "sum_lane"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__sum_lane_nv1_k1024",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "sum_lane"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__sum_lane_nv8_k128",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "sum_lane"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__cast_nv1_k256",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 256,
+    "nv": 1,
+    "op": "cast"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__cast_nv1_k1024",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 1024,
+    "nv": 1,
+    "op": "cast"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vop_chain__cast_nv8_k128",
+   "kernel": "vop_chain",
+   "kernel_tag": "k_vop_chain",
+   "params": {
+    "k": 128,
+    "nv": 8,
+    "op": "cast"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mem_chain__k64",
+   "kernel": "mem_chain",
+   "kernel_tag": "k_mem_chain",
+   "params": {
+    "k": 64
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mem_chain__k256",
+   "kernel": "mem_chain",
+   "kernel_tag": "k_mem_chain",
+   "params": {
+    "k": 256
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__8_128_128_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 8,
+    "k": 128,
+    "n": 128,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__8_128_128_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 8,
+    "k": 128,
+    "n": 128,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__16_128_128_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 16,
+    "k": 128,
+    "n": 128,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__16_128_128_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 16,
+    "k": 128,
+    "n": 128,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__64_128_128_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 64,
+    "k": 128,
+    "n": 128,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__64_128_128_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 64,
+    "k": 128,
+    "n": 128,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__256_128_128_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 256,
+    "k": 128,
+    "n": 128,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__256_128_128_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 256,
+    "k": 128,
+    "n": 128,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__1024_128_128_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 1024,
+    "k": 128,
+    "n": 128,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__1024_128_128_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 1024,
+    "k": 128,
+    "n": 128,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__4096_128_128_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 4096,
+    "k": 128,
+    "n": 128,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__4096_128_128_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 4096,
+    "k": 128,
+    "n": 128,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__256_256_256_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 256,
+    "k": 256,
+    "n": 256,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__256_256_256_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 256,
+    "k": 256,
+    "n": 256,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__256_512_512_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 256,
+    "k": 512,
+    "n": 512,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__256_512_512_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 256,
+    "k": 512,
+    "n": 512,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__1024_512_512_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 1024,
+    "k": 512,
+    "n": 512,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__1024_512_512_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 1024,
+    "k": 512,
+    "n": 512,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__512_1024_1024_x4",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 512,
+    "k": 1024,
+    "n": 1024,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "mxu_dot__512_1024_1024_x16",
+   "kernel": "mxu_dot",
+   "kernel_tag": "k_mxu_dot",
+   "params": {
+    "m": 512,
+    "k": 1024,
+    "n": 1024,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  }
+ ]
+}

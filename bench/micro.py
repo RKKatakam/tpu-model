@@ -95,7 +95,183 @@ def dma_seq(params):
     return fn, [jax.ShapeDtypeStruct((total_rows, 128), jnp.float32)]
 
 
+VOPS = {
+    "add": lambda v, c: v + c,
+    "mul": lambda v, c: v * c,
+    "max": lambda v, c: jnp.maximum(v, c),
+    "exp": lambda v, c: jnp.exp(v),
+    "roll_lane": lambda v, c: pltpu.roll(v, 1, 1),
+    "roll_sublane": lambda v, c: pltpu.roll(v, 1, 0),
+    "sum_lane": lambda v, c: v + jnp.sum(v, axis=1, keepdims=True),
+    "cast": lambda v, c: v.astype(jnp.bfloat16).astype(jnp.float32),
+}
+
+
+def vop_chain(params):
+    """k rounds of one vector op on nv vregs, straight-line, no DMA.
+
+    nv=1 is a dependent chain (exposes result latency); nv=8 exposes issue throughput.
+    isolates: latency/throughput of one VPU/EUP/XLU op class.
+    """
+    k, nv, opname = params["k"], params["nv"], params["op"]
+    op = VOPS[opname]
+
+    def kernel(x_hbm, o_hbm, buf):
+        vs = [buf[pl.ds(8 * i, 8), :] for i in range(nv)]
+        c = buf[pl.ds(8 * nv, 8), :]
+        for _ in range(k):
+            vs = [op(v, c) for v in vs]
+        for i, v in enumerate(vs):
+            buf[pl.ds(8 * i, 8), :] = v
+
+    return _no_dma_call(kernel, [pltpu.VMEM((8 * (nv + 1), 128), jnp.float32)], "k_vop_chain")
+
+
+def mem_chain(params):
+    """k rounds of buf = buf + c through VMEM (vld -> vadd -> vst -> next vld of the same address).
+
+    isolates: store-to-load round trip through VMEM.
+    """
+    k = params["k"]
+
+    def kernel(x_hbm, o_hbm, buf):
+        c = buf[pl.ds(8, 8), :]
+        for _ in range(k):
+            buf[pl.ds(0, 8), :] = buf[pl.ds(0, 8), :] + c
+
+    return _no_dma_call(kernel, [pltpu.VMEM((16, 128), jnp.float32)], "k_mem_chain")
+
+
+def mxu_dot(params):
+    """reps x (acc += x @ w) with x (m,k) bf16, w (k,n) bf16, acc f32, all in VMEM scratch.
+
+    isolates: MXU weight push, LHS streaming, result pop; no DMA.
+    """
+    m, kk, n, reps = params["m"], params["k"], params["n"], params["reps"]
+
+    def kernel(x_hbm, o_hbm, xs, ws, acc):
+        def body(_, carry):
+            acc[...] += jnp.dot(xs[...], ws[...], preferred_element_type=jnp.float32)
+            return carry
+
+        jax.lax.fori_loop(0, reps, body, 0)
+
+    scratch = [
+        pltpu.VMEM((m, kk), jnp.bfloat16),
+        pltpu.VMEM((kk, n), jnp.bfloat16),
+        pltpu.VMEM((m, n), jnp.float32),
+    ]
+    return _no_dma_call(kernel, scratch, "k_mxu_dot")
+
+
+def _dma_call(kernel, src_shape, scratch, name):
+    def fn(x):
+        return pl.pallas_call(
+            kernel,
+            out_shape=jax.ShapeDtypeStruct(src_shape, jnp.float32),
+            in_specs=[HBM],
+            out_specs=HBM,
+            scratch_shapes=scratch,
+            name=name,
+        )(x)
+
+    return fn, [jax.ShapeDtypeStruct(src_shape, jnp.float32)]
+
+
+def dma_out(params):
+    """`reps` sequential VMEM->HBM copies of (rows,128) f32, each started then waited.
+
+    isolates: single-stream write DMA vs size.
+    """
+    rows, reps = params["rows"], params["reps"]
+
+    def kernel(x_hbm, o_hbm, buf, sem):
+        for _ in range(reps):
+            cp = pltpu.make_async_copy(buf, o_hbm.at[pl.ds(0, rows), :], sem)
+            cp.start()
+            cp.wait()
+
+    return _dma_call(kernel, (8192, 128), [pltpu.VMEM((rows, 128), jnp.float32), pltpu.SemaphoreType.DMA], "k_dma_out")
+
+
+def dma_conc(params):
+    """`reps` rounds of: start `streams` HBM->VMEM copies of (rows,128) f32 from disjoint HBM
+    regions into disjoint buffers with their own semaphores, then wait for all.
+
+    isolates: concurrent read DMAs (latency overlap, bandwidth sharing).
+    """
+    rows, streams, reps = params["rows"], params["streams"], params["reps"]
+
+    def kernel(x_hbm, o_hbm, buf, sems):
+        for _ in range(reps):
+            cps = [
+                pltpu.make_async_copy(x_hbm.at[pl.ds(i * rows, rows), :], buf.at[i], sems.at[i])
+                for i in range(streams)
+            ]
+            for cp in cps:
+                cp.start()
+            for cp in cps:
+                cp.wait()
+
+    scratch = [pltpu.VMEM((streams, rows, 128), jnp.float32), pltpu.SemaphoreType.DMA((streams,))]
+    return _dma_call(kernel, (max(8192, streams * rows), 128), scratch, "k_dma_conc")
+
+
+def dma_inout(params):
+    """`reps` rounds of one HBM->VMEM and one VMEM->HBM copy in flight together.
+
+    isolates: read/write DMA interaction.
+    """
+    rows, reps = params["rows"], params["reps"]
+
+    def kernel(x_hbm, o_hbm, buf, sems):
+        for _ in range(reps):
+            rd = pltpu.make_async_copy(x_hbm.at[pl.ds(0, rows), :], buf.at[0], sems.at[0])
+            wr = pltpu.make_async_copy(buf.at[1], o_hbm.at[pl.ds(rows, rows), :], sems.at[1])
+            rd.start()
+            wr.start()
+            rd.wait()
+            wr.wait()
+
+    scratch = [pltpu.VMEM((2, rows, 128), jnp.float32), pltpu.SemaphoreType.DMA((2,))]
+    return _dma_call(kernel, (max(8192, 2 * rows), 128), scratch, "k_dma_inout")
+
+
+def dma_strided(params):
+    """`reps` sequential copies of x[0:rows, 0:128] from a (rows, width) f32 array: each row is a
+    512 B contiguous piece at a stride of width*4 bytes.
+
+    isolates: strided read DMA cost vs row count and stride.
+    """
+    rows, width, reps = params["rows"], params["width"], params["reps"]
+
+    def kernel(x_hbm, o_hbm, buf, sem):
+        for _ in range(reps):
+            cp = pltpu.make_async_copy(x_hbm.at[:, pl.ds(0, 128)], buf, sem)
+            cp.start()
+            cp.wait()
+
+    def fn(x):
+        return pl.pallas_call(
+            kernel,
+            out_shape=jax.ShapeDtypeStruct((8, 128), jnp.float32),
+            in_specs=[HBM],
+            out_specs=HBM,
+            scratch_shapes=[pltpu.VMEM((rows, 128), jnp.float32), pltpu.SemaphoreType.DMA],
+            name="k_dma_strided",
+        )(x)
+
+    return fn, [jax.ShapeDtypeStruct((rows, width), jnp.float32)]
+
+
 MICRO = {
+    "vop_chain": (vop_chain, "micro"),
+    "mem_chain": (mem_chain, "micro"),
+    "mxu_dot": (mxu_dot, "micro"),
+    "dma_out": (dma_out, "micro"),
+    "dma_conc": (dma_conc, "micro"),
+    "dma_inout": (dma_inout, "micro"),
+    "dma_strided": (dma_strided, "micro"),
     "valu_straight": (valu_straight, "micro"),
     "valu_loop": (valu_loop, "micro"),
     "dma_seq": (dma_seq, "micro"),

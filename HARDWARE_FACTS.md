@@ -186,6 +186,30 @@ xprof 2.24.1, Python 3.12.3 (see `VERSIONS.lock`).
   update add only their bundles. The replay matches within 1%.
 - Confidence: high.
 
+### F20. A VMEM load of an address stored within 10 cycles waits for the store
+
+- Experiment: `bench/micro.py:vmem_access` plain/masked forms (phase3k, a vst then a vld of the same
+  VMEM address on the next pass) and `vmem_chain` (phase3i, the same through run-time addresses).
+- Result: one store->load latency of 10 cycles fits all three (plain +0.6..3.3%, masked +0.1%,
+  vmem_chain +-1.2%); without it the replay is 18-62% fast. Compiled kernels rarely hit it.
+- Confidence: high.
+
+### F21. The XLU transposer streams: one input vreg per ~8 cycles (f32), result j ~160 cycles after input j
+
+- Experiment: `xpose_chain` (phase3j, dependent 128x128 transposes, f32 and bf16) and `tgmm_tile`
+  (phase3n, megablox tgmm's inner step, transposes beside weight pushes and matmuls, masked and not).
+- Result: per form, acceptance interval and per-result latency: f32 (b32) 8.2 / 160 cycles; packed
+  bf16 (c.b16) 16.6 / 169 (twice the rows per vreg, same row rate); bf16 binary 8.5 / 164. All 13
+  transpose benchmarks within 2.5%. A model where results appear only after the last input fits
+  either context but not both (chains +7..10% with tgmm steps still -11..-18%).
+- Confidence: high for these forms.
+
+### F22. Masked weight pushes (`vmatpush.*.msk`) cost the same as plain pushes
+
+- Experiment: `tgmm_tile` masked vs unmasked (phase3n; bundle check confirms vmatpush.bf16.msk).
+- Result: 14715 vs 14492 cycles (128 tiles, 32 reps); 19132 vs 18909 (256 tiles).
+- Confidence: high for bf16 masked pushes.
+
 ## Hypotheses (not yet tested; the model must not depend on these)
 
 - H2. MXU is 128x128.
@@ -204,6 +228,10 @@ xprof 2.24.1, Python 3.12.3 (see `VERSIONS.lock`).
   (within 5%: 37/47 without, 22/47 with latency 7, 35/47 with the address lag), mostly paged
   attention, which is already over-predicted without them. Needs a benchmark that separates
   load-to-use from address dependence.
+- H12. Vector issue: per-slot queues (pop, push, mxu, xlu, vld, vst, eup, valu) with the front end at
+  most 8 cycles ahead (`issue_lead`). Fitted on core microbenchmarks (every one within 2.9%; strictly
+  in-order issue leaves the 8-32-wide XLU chains 4-9% slow); the queue structure is inferred.
+- H13. Scalar divide (`sdivrem` -> `spop.drf`) has no stall beyond the compiler's spacing. Unmeasured.
 - H10. DMA queueing structure: one FIFO per direction, heads interleaving (`model/dma.py:DirFifoHbm`).
   Chosen because it fits F14/F15 better than processor sharing or one FIFO; not observed directly.
 - H6. Meaning of each bundle mnemonic and slot.

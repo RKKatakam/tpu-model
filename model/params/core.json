@@ -33,19 +33,22 @@
     "pop_latency": 1,
     "xpose": {
      "b32": {
-      "occupancy": 0.9729667020155384,
-      "latency": 31.861367295666874,
-      "interval": 8.766652291529699
+      "occupancy": 8.220884611585644,
+      "latency": 160.41596629144624,
+      "interval": 0,
+      "stream": true
      },
      "b16": {
-      "occupancy": 0.08490672165717339,
-      "latency": 140.61828423949254,
-      "interval": 4.690236070641978
+      "occupancy": 16.580072427168425,
+      "latency": 169.3301431760192,
+      "interval": 0,
+      "stream": true
      },
      "b16bin": {
-      "occupancy": 0.08490672165717339,
-      "latency": 79.875,
-      "interval": 4.690236070641978
+      "occupancy": 8.535846152901648,
+      "latency": 164.22696888446808,
+      "interval": 0,
+      "stream": true
      }
     }
    },
@@ -200,28 +203,43 @@
   },
   "xlu_xpose": {
    "b32": {
-    "occupancy": 0.9729667020155384,
-    "latency": 31.861367295666874,
-    "interval": 8.766652291529699
+    "occupancy": 8.220884611585644,
+    "latency": 160.41596629144624,
+    "interval": 0,
+    "stream": true
    },
    "b16": {
-    "occupancy": 0.08490672165717339,
-    "latency": 140.61828423949254,
-    "interval": 4.690236070641978
+    "occupancy": 16.580072427168425,
+    "latency": 169.3301431760192,
+    "interval": 0,
+    "stream": true
    },
    "b16bin": {
-    "occupancy": 0.08490672165717339,
-    "latency": 79.875,
-    "interval": 4.690236070641978
+    "occupancy": 8.535846152901648,
+    "latency": 164.22696888446808,
+    "interval": 0,
+    "stream": true
    }
   },
   "xlu_xpose_err": {
-   "xpose_chain__bf16_nv1_k16": -0.014379433180673251,
-   "xpose_chain__bf16_nv1_k64": 0.013772866034775566,
-   "xpose_chain__bf16_nv4_k16": -0.000180770634647609,
-   "xpose_chain__f32_nv1_k16": -0.015132736160867188,
-   "xpose_chain__f32_nv1_k64": 0.014416745760584826,
-   "xpose_chain__f32_nv4_k16": -1.61782647055686e-05
+   "xpose_chain__f32_nv1_k16": 0.0058622356229536265,
+   "xpose_chain__f32_nv1_k64": 0.006412315107341415,
+   "xpose_chain__f32_nv4_k16": 0.024927666991058972,
+   "tgmm_tile__128_128_128_msk_x32": -0.013193310040677586,
+   "tgmm_tile__128_128_128_msk_x8": 0.0007957970040646245,
+   "tgmm_tile__128_128_128_plain_x32": -0.019779840406347504,
+   "tgmm_tile__128_128_128_plain_x8": -0.004194039138458616,
+   "tgmm_tile__256_256_256_msk_x32": -0.010168413573046431,
+   "tgmm_tile__256_256_256_msk_x8": 0.0005460904425129698,
+   "tgmm_tile__256_256_256_plain_x32": -0.011901590390095085,
+   "tgmm_tile__256_256_256_plain_x8": -0.0006855280574755707,
+   "tgmm_tile__512_128_128_msk_x32": -0.013915370253780313,
+   "tgmm_tile__512_128_128_msk_x8": -0.003883797758444718,
+   "xpose_chain__bf16_nv1_k16": 0.00011792150205924834,
+   "xpose_chain__bf16_nv1_k64": -2.752248189363815e-05,
+   "xpose_chain__bf16_nv4_k16": -0.00020220108595214725,
+   "tgmm_tile__512_128_128_plain_x32": -0.005712756571095046,
+   "tgmm_tile__512_128_128_plain_x8": 0.006756021316435934
   },
   "vop_err": {
    "vop_chain__add_nv1_k1024": -0.00024384296513046966,
@@ -250,7 +268,8 @@
    "data/raw/phase3d",
    "data/raw/phase3f",
    "data/raw/phase3e",
-   "data/raw/phase3j"
+   "data/raw/phase3j",
+   "data/raw/phase3n"
   ],
   "script": "scripts/fit_core.py"
  }

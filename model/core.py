@@ -119,7 +119,10 @@ class Units:
             tk = (cls, uid, "trf")
             self.busy[tk] = t + xp["occupancy"] * n
             self.xcount[tk] = (0 if ".start" in mnemonic else self.xcount.get(tk, 0)) + n
-            if ".end" in mnemonic:
+            if xp.get("stream"):  # result j is ready `latency` after input j is accepted
+                q = self.fifo.setdefault(tk, [])
+                q.extend(t + xp["latency"] + i * xp["occupancy"] for i in range(n))
+            elif ".end" in mnemonic:
                 q = self.fifo.setdefault(tk, [])
                 q.extend(t + xp["latency"] + j * xp["interval"] for j in range(self.xcount[tk]))
             return None

@@ -1,0 +1,195 @@
+{
+ "schema": 1,
+ "record_id": "add__p0",
+ "config": {
+  "record_id": "add__p0",
+  "kernel": "add",
+  "kernel_tag": "k_add",
+  "params": {
+   "rows": 4096,
+   "cols": 4096,
+   "block_rows": 512,
+   "block_cols": 1024
+  },
+  "mode": "device",
+  "reps": 200,
+  "warmup": 20
+ },
+ "kernel": "add",
+ "kernel_class": "streaming",
+ "params": {
+  "rows": 4096,
+  "cols": 4096,
+  "block_rows": 512,
+  "block_cols": 1024
+ },
+ "arg_specs": [
+  {
+   "shape": [
+    4096,
+    4096
+   ],
+   "dtype": "float32"
+  },
+  {
+   "shape": [
+    4096,
+    4096
+   ],
+   "dtype": "float32"
+  }
+ ],
+ "versions": {
+  "jax": "0.12.0.1",
+  "jaxlib": "0.12.0.1",
+  "libtpu": "0.0.50.1",
+  "xprof": "2.24.1",
+  "numpy": "2.5.4",
+  "python": "3.12.3"
+ },
+ "flags": {
+  "LIBTPU_INIT_ARGS": "--xla_jf_dump_to=/content/tpum/results/phase0_noise/v5e-a/add__p0/dump/jf --xla_jf_dump_llo_text=true --xla_jf_dump_llo_static_gaps=true --xla_jf_emit_annotations=true --xla_jf_debug_level=2 --xla_mosaic_dump_to=/content/tpum/results/phase0_noise/v5e-a/add__p0/dump/mosaic --xla_mosaic_enable_dump_debug_info=true --xla_mosaic_enable_llo_source_annotations=true --xla_jf_dump_static_llo_profile_to=/content/tpum/results/phase0_noise/v5e-a/add__p0/dump/static_profile --xla_tpu_use_enhanced_launch_barrier=true",
+  "XLA_FLAGS": "--xla_dump_to=/content/tpum/results/phase0_noise/v5e-a/add__p0/dump/xla --xla_dump_hlo_as_text"
+ },
+ "machine": {
+  "hostname": "bee1bfd566f7",
+  "session": "v5e-a",
+  "timestamp_utc": "2026-10-29T04:23:17.169735+00:00",
+  "cpu_model": "AMD EPYC 7B13",
+  "platform_version": "TFRT TPU v5 lite\nBuilt on Oct 22 2026 00:45:19 (1792655119) cl/1004524046",
+  "devices": [
+   {
+    "id": 0,
+    "platform": "tpu",
+    "device_kind": "TPU v5 lite",
+    "str": "TPU_0(process=0,(0,0,0,0))",
+    "coords": [
+     0,
+     0,
+     0
+    ],
+    "core_on_chip": 0,
+    "num_cores": 1
+   }
+  ],
+  "tpu_env": {
+   "TPU_WORKER_ID": "0",
+   "TPU_SKIP_MDS_QUERY": "1",
+   "TPU_CHIPS_PER_HOST_BOUNDS": "2,2,1",
+   "TPU_ACCELERATOR_TYPE": "v5e-1",
+   "TPU_RUNTIME_METRICS_PORTS": "8431,8432,8433,8434",
+   "TPU_HOST_BOUNDS": "1,1,1",
+   "TPU_WORKER_HOSTNAMES": "localhost",
+   "TPU_LIBRARY_PATH": "/content/tpum_venv/lib/python3.12/site-packages/libtpu/libtpu.so",
+   "TPU_ML_PLATFORM": "JAX",
+   "TPU_ML_PLATFORM_VERSION": "0.12.0.1"
+  }
+ },
+ "cost_analysis": {
+  "utilization0{}": 1.0,
+  "bytes accessed0{}": 67108864.0,
+  "utilization1{}": 1.0,
+  "bytes accessedout{}": 67108864.0,
+  "bytes accessed1{}": 67108864.0
+ },
+ "dump_root": "/content/tpum/results/phase0_noise/v5e-a/add__p0/dump",
+ "dump_files": [
+  {
+   "path": "jf/1793247764501159691-<late-finalization>-71-schedule-analysis_final_bundles.txt",
+   "bytes": 159,
+   "sha256": "fa3742809cf0dcc14c898c0eda33b518e5ca07669bb45ee12d653cc5ca1426a6"
+  },
+  {
+   "path": "jf/1793247764501159691-<late-finalization>-72-final_bundles.txt",
+   "bytes": 389,
+   "sha256": "2e62dd526319c5fc6c7279cb1d1ad26239d63919db991c9efe57a595e8800e85"
+  },
+  {
+   "path": "jf/1793247764501159691-<late-finalization>-73-static_gap_analysis_final_bundles.txt",
+   "bytes": 123,
+   "sha256": "ceb98a0ad9e3807775b556c220561690584f5e035bcb3d63930014d113ca7402"
+  },
+  {
+   "path": "jf/1793247764501159691-<late-initialization>-74-schedule-analysis_final_bundles.txt",
+   "bytes": 161,
+   "sha256": "7240d2e2e9ff5613f2276e86f284df8669066598c033960543feec6df43eaab4"
+  },
+  "... 2524 files total"
+ ],
+ "timing": {
+  "xplane_path": "/content/tpum/results/phase0_noise/v5e-a/add__p0/profile/plugins/profile/2026_10_29_04_23_17/bee1bfd566f7.xplane.pb",
+  "kernel_tag": "k_add",
+  "reps": 200,
+  "warmup": 20,
+  "by_line": {
+   "XLA Ops": {
+    "stats": {
+     "n": 200,
+     "median_ns": 292201.0,
+     "mean_ns": 292223.88,
+     "stdev_ns": 218.1241304427528,
+     "min_ns": 291715.0,
+     "max_ns": 293067.0,
+     "p10_ns": 291975.0,
+     "p90_ns": 292480.0,
+     "mad_ns": 139.5
+    },
+    "samples_ns": [
+     292192.0,
+     292096.0,
+     292084.0,
+     292470.0,
+     292992.0,
+     "... 195 more"
+    ]
+   }
+  },
+  "profile_summary": {
+   "planes": {
+    "/host:metadata": [],
+    "#Chip0 Host Interface": [
+     "_counters_"
+    ],
+    "/device:TPU:0": [
+     "Async XLA Ops",
+     "Pallas Primitives",
+     "TC Overlay",
+     "XLA Modules",
+     "XLA Ops",
+     "_counters_"
+    ],
+    "#Chip0 Misc": [
+     "_counters_"
+    ],
+    "/device:CUSTOM:Megascale Trace": [],
+    "Task Environment": [],
+    "/host:CPU": [
+     "GrpcClientEvents",
+     "GrpcServerEvents",
+     "GrpcSystemStatsEvents",
+     "GrpcTcpEvents",
+     "futex-default-SDomainT/3589",
+     "main/3427",
+     "python"
+    ]
+   },
+   "device_events": [
+    {
+     "plane": "/device:TPU:0",
+     "line": "XLA Modules",
+     "name": "jit_fn(12088046217028684085)",
+     "count": 200,
+     "median_ns": 292217.0
+    },
+    {
+     "plane": "/device:TPU:0",
+     "line": "XLA Ops",
+     "name": "%k_add.1 = f32[4096,4096]{1,0:T(8,128)} custom-call(f32[4096,4096]{1,0:T(8,128)} %x_ref.1, f32[4096,4096]{1,0:T(8,128)} %y_ref.1), custom_call_target=\"tpu_custom_call\", operand_layout_constraints={f32[4096,4096]{1,0}, f32[4096,4096]{1,0}}, frontend_attributes={kernel_metadata={}}",
+     "count": 200,
+     "median_ns": 292201.0
+    }
+   ]
+  }
+ },
+ "wall_s": 34.66561222076416
+}

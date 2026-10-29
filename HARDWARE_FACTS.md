@@ -64,9 +64,42 @@ xprof 2.24.1, Python 3.12.3 (see `VERSIONS.lock`).
   (20 warmup), on separate Colab v5e sessions. Script: `scripts/noise_report.py`.
 - Confidence: high for the sessions measured; see the gate report for numbers.
 
+### F7. Clock is 1.5 GHz and hazard-free code issues one bundle per cycle with no launch overhead
+
+- Experiment: `bench/micro.py:valu_straight` nv=8, k in {0..4096} (bundle check `bench/checks.py`:
+  exactly k*nv vadd.f32, no DMA, no branch, no spill). `batches/phase1_device.json`, session v5e-p1-1.
+  Fit: `scripts/phase1_report.py`. Data: `data/raw/phase1_device/v5e-p1-1/valu_straight__*`.
+- Result: device time = bundles / 1.4999 GHz - 0.03 ns, max residual 0.69 ns over 1 to 8201 bundles.
+  The `XLA Ops` event of a 1-bundle kernel lasts 1.0 ns.
+- Confidence: high. Confirms H1.
+
+### F8. A taken backward branch costs only its bundles (4 delay slots, no extra penalty)
+
+- Experiment: `bench/micro.py:valu_loop` k in {1, 8}, trip 10 to 10000 (bundle check: k*nv vadd, one
+  loop branch). Same session and script.
+- Result: valu_loop k8 t10000 issues 180009 bundles (replayed by `model/machine.py`) and takes
+  120006 ns = 180009 cycles at 1.5 GHz; k1 t10000: 80006 bundles, 53337 ns = 80006 cycles.
+- Confidence: high.
+
+### F9. vadd.f32 has a 2-cycle result latency enforced by a hardware interlock
+
+- Experiment: `valu_straight` nv=1 (each vadd reads the previous bundle's result; the dump has one
+  vadd per bundle and no padding), k in {64, 256, 1024, 4096}.
+- Result: 2.000 cycles per bundle (k=4096: 4098 bundles, 5463 ns). The static bundle count
+  undercounts such code; the model needs a register scoreboard.
+- Confidence: high for vadd.f32. Other ops: Phase 3.
+
+### F10. Single-stream HBM->VMEM DMA time vs size (start, then wait, one at a time)
+
+- Experiment: `bench/micro.py:dma_seq` rows in {1..8192} x 128 f32 (512 B to 4 MiB), 1 and 8 copies
+  (bundle check: exactly `reps` dma.hbm_to_vmem of the right granule count, one wait each, no
+  vector work besides the final semaphore check). Per-copy = (t8 - t1) / 7.
+- Result: 301 ns at 512 B, 334 ns at 4 KiB, 447 ns at 64 KiB, 1114 ns at 512 KiB, 5972 ns at 4 MiB
+  (702 GB/s). Smooth and monotone; table in `reports/phase1.md`, stored in `model/params/phase1.json`.
+- Confidence: high for contiguous, single stream. Concurrency, strides, VMEM->HBM: Phase 3.
+
 ## Hypotheses (not yet tested; the model must not depend on these)
 
-- H1. Clock about 1.5 GHz (197e12 / (4 x 128 x 128 x 2)). Phase 1a measures it.
 - H2. MXU is 128x128.
 - H3. Compiler per-bundle slot capacities, from `*-final_hlo-static-per-bundle-utilization.txt`:
   MXU 4, XLU 3, VALU 4, VPOP 2, EUP 1, VLOAD 3, VLOAD:FILL 3, VSTORE 1, VSTORE:SPILL 1, SALU 2.

@@ -59,6 +59,7 @@ class Machine:
         self.regs = {}
         self.smem = dict(smem or {})
         self.flags = {}
+        self.sfrf = []
         self.alloc = {}
         self.operand_bases = operand_bases or {}
         self.max_bundles = max_bundles
@@ -155,12 +156,22 @@ class Machine:
             return u32(v(a[0]) + v(a[1]))
         if base == "sld":
             return self.smem.get(self.mem_addr(a[0]), 0)
+        if m == "vpop.sfrf":
+            return self.sfrf.pop(0)
         if base == "inlined_call_operand":
             idx = int(re.search(r"index:\s*(\d+)", a[0]).group(1))
             return self.operand_bases.get(idx, (idx + 1) << 24)
         raise NotImplementedError(f"scalar op {m}: {op.text}")
 
+    def bind_operands(self):
+        """inlined_call_operand ops define register values at kernel entry, before bundle 0 issues."""
+        for b in self.p.bundles:
+            for op in b.ops:
+                if op.mnemonic.startswith("inlined_call_operand"):
+                    self.regs[op.dest_reg] = self.scalar(op)
+
     def run(self, dma_model):
+        self.bind_operands()
         bundles, trace = self.p.bundles, Trace()
         pc, t, branch = 0, 0.0, None
         inflight = []
@@ -183,6 +194,8 @@ class Machine:
                 if not self.pred_ok(op):
                     continue
                 m = op.mnemonic
+                if m.startswith("inlined_call_operand"):
+                    continue
                 if m.startswith("int_to_ptr"):
                     pseudo.append(op)
                 elif op.dest_reg and op.dest_reg[0] in "sp" and not op.dest_reg.startswith("vm"):
@@ -193,6 +206,8 @@ class Machine:
                     writes.append((("smem", self.mem_addr(op.args[0])), self.val(op.args[1])))
                 elif m == "vsyncpa":
                     writes.append((("flag", self.val(op.args[0])), self.val(op.args[1])))
+                elif m == "vsyncmov":
+                    self.sfrf.append(self.flags.get(self.val(op.args[0]), 0))
                 elif m == "vsyncadd":
                     writes.append((("flagadd", self.val(op.args[0])), s32(self.val(op.args[1]))))
                 elif m.startswith("dma.") and m != "dma.done.wait":

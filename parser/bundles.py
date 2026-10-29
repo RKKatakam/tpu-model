@@ -147,9 +147,9 @@ def parse_op(raw):
     args, labels, attrs, pred, cond, pending = [], {}, {}, None, None, None
     for tok in _split_top(rest, ","):
         tok = tok.strip()
-        lab = re.match(r"^/\*(\w+)=\*/\s*", tok)
+        lab = re.search(r"/\*(\w+)=\*/\s*", tok)
         if lab:
-            pending, tok = lab.group(1), tok[lab.end():]
+            pending, tok = lab.group(1), tok[: lab.start()] + " " + tok[lab.end():]
         tok = re.sub(r"/\*.*?\*/", "", tok, flags=re.S).strip()
         cm = COND.match(tok)
         if cm:

@@ -631,7 +631,40 @@ def mxu_masked(params):
     return fn, specs, lambda seed: [np.array([kk // 2], np.int32), np.zeros((8, 128), np.float32)]
 
 
+def vmem_access(params):
+    """`reps` passes over a (rows, 128) f32 VMEM scratch, each pass reading it with the given
+    access form and writing the result to a second scratch. form: 'plain' (contiguous rows),
+    'stride2' / 'stride4' (sublane-strided reads, every 2nd / 4th row), 'masked' (stores of
+    5-row blocks, partial sublane masks), 'stride2_store' (sublane-strided stores).
+
+    isolates: cost of sublane-shuffle loads/stores (vld.sshfl / vst.sshfl) and masked stores
+    (vst.msk) relative to plain vld/vst, as used by ragged paged attention.
+    """
+    rows, reps, form = params["rows"], params["reps"], params["form"]
+
+    def kernel(x_hbm, o_hbm, a, b):
+        def body(_, carry):
+            if form == "plain":
+                b[...] = a[...] + 1.0
+            elif form in ("stride2", "stride4"):
+                st = 2 if form == "stride2" else 4
+                b[pl.ds(0, rows // st), :] = a[pl.ds(0, rows // st, stride=st), :] + 1.0
+            elif form == "stride2_store":
+                b[pl.ds(0, rows // 2, stride=2), :] = a[pl.ds(0, rows // 2), :] + 1.0
+            elif form == "masked":
+                for i in range(rows // 8):
+                    b[pl.ds(8 * i, 5), :] = a[pl.ds(8 * i, 5), :] + 1.0
+            a[pl.ds(0, 8), :] = b[pl.ds(0, 8), :]  # carry a dependence into the next pass
+            return carry
+
+        jax.lax.fori_loop(0, reps, body, 0)
+
+    scratch = [pltpu.VMEM((rows, 128), jnp.float32), pltpu.VMEM((rows, 128), jnp.float32)]
+    return _no_dma_call(kernel, scratch, "k_vmem_access")
+
+
 MICRO = {
+    "vmem_access": (vmem_access, "micro"),
     "xpose_chain": (xpose_chain, "micro"),
     "mxu_masked": (mxu_masked, "micro"),
     "mxu_fresh": (mxu_fresh, "micro"),

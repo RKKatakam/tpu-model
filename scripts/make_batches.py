@@ -207,6 +207,16 @@ def phase3j_configs():
     return cfgs
 
 
+def phase3k_configs():
+    """Sublane-shuffle and masked VMEM accesses (ragged paged attention)."""
+    cfgs = []
+    for form in ("plain", "stride2", "stride4", "stride2_store", "masked"):
+        for rows in (64, 512):
+            for reps in (16, 64):
+                cfgs.append(device("vmem_access", {"rows": rows, "reps": reps, "form": form}, f"vmem_access__{form}_r{rows}_x{reps}"))
+    return cfgs
+
+
 def phase3b_configs():
     cfgs = []
     for rows in (1, 8, 64, 512, 2048, 8192):
@@ -380,6 +390,7 @@ BATCHES = {
     "phase3h": {"flags": DUMP_FLAGS, "configs": phase3h_configs()},
     "phase3i": {"flags": DUMP_FLAGS, "configs": phase3i_configs()},
     "phase3j": {"flags": DUMP_FLAGS, "configs": phase3j_configs()},
+    "phase3k": {"flags": DUMP_FLAGS, "configs": phase3k_configs()},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},
     "phase0_aot": {

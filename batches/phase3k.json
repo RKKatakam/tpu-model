@@ -1,0 +1,282 @@
+{
+ "batch_id": "phase3k",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "vmem_access__plain_r64_x16",
+   "kernel": "vmem_access",
+   "kernel_tag": "k_vmem_access",
+   "params": {
+    "rows": 64,
+    "reps": 16,
+    "form": "plain"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_access__plain_r64_x64",
+   "kernel": "vmem_access",
+   "kernel_tag": "k_vmem_access",
+   "params": {
+    "rows": 64,
+    "reps": 64,
+    "form": "plain"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_access__plain_r512_x16",
+   "kernel": "vmem_access",
+   "kernel_tag": "k_vmem_access",
+   "params": {
+    "rows": 512,
+    "reps": 16,
+    "form": "plain"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_access__plain_r512_x64",
+   "kernel": "vmem_access",
+   "kernel_tag": "k_vmem_access",
+   "params": {
+    "rows": 512,
+    "reps": 64,
+    "form": "plain"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_access__stride2_r64_x16",
+   "kernel": "vmem_access",
+   "kernel_tag": "k_vmem_access",
+   "params": {
+    "rows": 64,
+    "reps": 16,
+    "form": "stride2"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_access__stride2_r64_x64",
+   "kernel": "vmem_access",
+   "kernel_tag": "k_vmem_access",
+   "params": {
+    "rows": 64,
+    "reps": 64,
+    "form": "stride2"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_access__stride2_r512_x16",
+   "kernel": "vmem_access",
+   "kernel_tag": "k_vmem_access",
+   "params": {
+    "rows": 512,
+    "reps": 16,
+    "form": "stride2"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_access__stride2_r512_x64",
+   "kernel": "vmem_access",
+   "kernel_tag": "k_vmem_access",
+   "params": {
+    "rows": 512,
+    "reps": 64,
+    "form": "stride2"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_access__stride4_r64_x16",
+   "kernel": "vmem_access",
+   "kernel_tag": "k_vmem_access",
+   "params": {
+    "rows": 64,
+    "reps": 16,
+    "form": "stride4"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_access__stride4_r64_x64",
+   "kernel": "vmem_access",
+   "kernel_tag": "k_vmem_access",
+   "params": {
+    "rows": 64,
+    "reps": 64,
+    "form": "stride4"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_access__stride4_r512_x16",
+   "kernel": "vmem_access",
+   "kernel_tag": "k_vmem_access",
+   "params": {
+    "rows": 512,
+    "reps": 16,
+    "form": "stride4"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_access__stride4_r512_x64",
+   "kernel": "vmem_access",
+   "kernel_tag": "k_vmem_access",
+   "params": {
+    "rows": 512,
+    "reps": 64,
+    "form": "stride4"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_access__stride2_store_r64_x16",
+   "kernel": "vmem_access",
+   "kernel_tag": "k_vmem_access",
+   "params": {
+    "rows": 64,
+    "reps": 16,
+    "form": "stride2_store"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_access__stride2_store_r64_x64",
+   "kernel": "vmem_access",
+   "kernel_tag": "k_vmem_access",
+   "params": {
+    "rows": 64,
+    "reps": 64,
+    "form": "stride2_store"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_access__stride2_store_r512_x16",
+   "kernel": "vmem_access",
+   "kernel_tag": "k_vmem_access",
+   "params": {
+    "rows": 512,
+    "reps": 16,
+    "form": "stride2_store"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_access__stride2_store_r512_x64",
+   "kernel": "vmem_access",
+   "kernel_tag": "k_vmem_access",
+   "params": {
+    "rows": 512,
+    "reps": 64,
+    "form": "stride2_store"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_access__masked_r64_x16",
+   "kernel": "vmem_access",
+   "kernel_tag": "k_vmem_access",
+   "params": {
+    "rows": 64,
+    "reps": 16,
+    "form": "masked"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_access__masked_r64_x64",
+   "kernel": "vmem_access",
+   "kernel_tag": "k_vmem_access",
+   "params": {
+    "rows": 64,
+    "reps": 64,
+    "form": "masked"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_access__masked_r512_x16",
+   "kernel": "vmem_access",
+   "kernel_tag": "k_vmem_access",
+   "params": {
+    "rows": 512,
+    "reps": 16,
+    "form": "masked"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "vmem_access__masked_r512_x64",
+   "kernel": "vmem_access",
+   "kernel_tag": "k_vmem_access",
+   "params": {
+    "rows": 512,
+    "reps": 64,
+    "form": "masked"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  }
+ ]
+}

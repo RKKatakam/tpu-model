@@ -108,6 +108,11 @@ def check(kernel, params, program):
         if params["kind"] == "vmem":
             vst = sum(v for m, v in c.items() if m.startswith("vst"))
             expect(vst >= params["amount"] * 1024 // 1024, f"vst={vst}: VMEM copy eliminated?")
+    elif kernel == "vmem_access":
+        want = {"stride2": "vld.sshfl", "stride4": "vld.sshfl", "stride2_store": "vst.sshfl", "masked": "vst.msk"}.get(params["form"])
+        if want:
+            expect(c[want] >= 1, f"no {want}: {sorted(m for m in c if m.startswith(('vld', 'vst')))}")
+        expect(not dma_ops(c), f"unexpected DMA ops {dma_ops(c)}")
     elif kernel == "xpose_chain":
         n = sum(v for m, v in c.items() if m.startswith("vxpose"))
         expect(n >= params["k"] * params["nv"], f"vxpose ops {n} want >= {params['k'] * params['nv']}")

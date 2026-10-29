@@ -486,6 +486,8 @@ BATCHES["corpus1_rerun"] = {"flags": DUMP_FLAGS,
 BATCHES["corpus2_splash"] = {"flags": DUMP_FLAGS, "configs": corpus2_configs()}
 for i, part in enumerate(split(external_vllm_configs(), 2)):
     BATCHES[f"external_vllm_part{i}"] = {"flags": DUMP_FLAGS, "configs": part}
+# part0's session was reclaimed before its non-attention records were downloaded
+BATCHES["external_vllm_part0b"] = {"flags": DUMP_FLAGS, "configs": [c for c in split(external_vllm_configs(), 2)[0] if c["kernel"] != "vllm_rpa"]}
 BATCHES["external_vllm_rpa"] = {"flags": DUMP_FLAGS, "configs": [c for c in external_vllm_configs() if c["kernel"] == "vllm_rpa"]}
 for i, part in enumerate(split(corpus3_configs(), 2)):
     BATCHES[f"corpus3_part{i}"] = {"flags": DUMP_FLAGS, "configs": part}

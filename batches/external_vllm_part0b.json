@@ -1,0 +1,165 @@
+{
+ "batch_id": "external_vllm_part0b",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "vllm_qmm__w8a8_m128_k4096_n4096",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 128,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a8"
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "vllm_qmm__w8a8_m2048_k4096_n4096",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 2048,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a8"
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "vllm_qmm__w8a16_m128_k4096_n4096",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 128,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16"
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "vllm_qmm__w8a16_m2048_k4096_n4096",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 2048,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16"
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "vllm_flash__s2048_c1_q512_k512",
+   "kernel": "vllm_flash",
+   "kernel_tag": "flash",
+   "params": {
+    "b": 1,
+    "h": 8,
+    "s": 2048,
+    "d": 128,
+    "causal": true,
+    "block_q": 512,
+    "block_k_major": 512,
+    "block_k": 512
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "vllm_flash__s4096_c0_q256_k256",
+   "kernel": "vllm_flash",
+   "kernel_tag": "flash",
+   "params": {
+    "b": 1,
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "causal": false,
+    "block_q": 256,
+    "block_k_major": 256,
+    "block_k": 256
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "vllm_flash__s4096_c0_q512_k1024",
+   "kernel": "vllm_flash",
+   "kernel_tag": "flash",
+   "params": {
+    "b": 1,
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "causal": false,
+    "block_q": 512,
+    "block_k_major": 1024,
+    "block_k": 512
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "vllm_gmm__m4096_k2048_n1024_g8_t256_512_512",
+   "kernel": "vllm_gmm",
+   "kernel_tag": "gmm",
+   "params": {
+    "m": 4096,
+    "k": 2048,
+    "n": 1024,
+    "groups": 8,
+    "tm": 256,
+    "tk": 512,
+    "tn": 512
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  }
+ ]
+}

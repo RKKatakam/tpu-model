@@ -1,6 +1,6 @@
 """Fit vector-side core parameters (latencies, EUP/XLU/MXU unit timings) from phase3a microbenchmarks.
 
-usage: fit_core.py PHASE3A_DIR PHASE3D_DIR OUT_JSON
+usage: fit_core.py PHASE3A_DIR PHASE3D_DIR PHASE3F_DIR PHASE3E_DIR OUT_JSON
 Each parameter family is fitted only on the microbenchmark that isolates it; MXU parameters are
 fitted on reps=4 runs and checked on reps=16 runs.
 """
@@ -43,7 +43,7 @@ def fit(objective_records, build, x0, names):
     return dict(zip(names, res.x)), res
 
 
-def main(batch_dir, f32_dir, out_json):
+def main(batch_dir, f32_dir, f3_dir, gather_dir, out_json):
     recs = load_records(batch_dir)
     vop = {r.raw["record_id"]: r for r in recs if r.raw["kernel"] == "vop_chain"}
     report = {}
@@ -130,15 +130,56 @@ def main(batch_dir, f32_dir, out_json):
     report["mxu_f32_train_err"] = {r.raw["record_id"]: float(e) for r, e in zip(f32_train, rel_errors(f32_train, final))}
     report["mxu_f32_check_err"] = {r.raw["record_id"]: float(e) for r, e in zip(f32_check, rel_errors(f32_check, final))}
 
+    # Scalar load-to-use latency (phase3f sld_chain: j = table[j]); integer cycles, checked on the
+    # dma_gather loops (phase3e), which use an sld result in the next bundle.
+    from model.operands import integer_operands
+    from model.predict import load_dma, simulate
+
+    def cyc_with_ops(r, params, dma=None):
+        prog = r.program()
+        from model.predict import dma_model
+        engine = dma_model(dma, CLOCK_GHZ) if dma else NoDma()
+        return Machine(prog, core=Scoreboard(params), operands=integer_operands(r, prog)).run(engine).cycles
+
+    sld_recs = [r for r in load_records(f3_dir) if r.raw["kernel"] == "sld_chain"]
+
+    def with_sld(lat):
+        return CoreParams(latency=dict(final.latency, sld=lat), units=final.units)
+
+    dma = load_dma()
+    sld_err = {lat: [cyc_with_ops(r, with_sld(lat), dma) / measured_cycles(r) - 1 for r in sld_recs] for lat in range(1, 13)}
+    sld_lat = min(sld_err, key=lambda lat: sum(e * e for e in sld_err[lat]))
+    # Reported, not installed: an sld result latency of 7 and a 2-cycle address-register lag both fit
+    # sld_chain exactly, and both make the calibration corpus worse (HARDWARE_FACTS F17, H11).
+    report["sld_latency_if_result_latency"] = sld_lat
+    report["sld_err"] = {r.raw["record_id"]: float(e) for r, e in zip(sld_recs, sld_err[sld_lat])}
+    gather = [r for r in load_records(gather_dir) if r.raw["kernel"] == "dma_gather"]
+    report["sld_check_dma_gather_err"] = {r.raw["record_id"]: float(cyc_with_ops(r, with_sld(sld_lat), dma) / measured_cycles(r) - 1) for r in gather}
+
+    # Transposed bf16 weight pushes (phase3f mxu_dot rhs_t): one push cost, fit on reps=4, check reps=16.
+    xt = [r for r in load_records(f3_dir) if r.raw["kernel"] == "mxu_dot"]
+    xt_train = [r for r in xt if r.raw["params"]["reps"] == 4]
+    xt_check = [r for r in xt if r.raw["params"]["reps"] == 16]
+
+    def with_xpose(x):
+        u = final.units | {"mxu": dict(final.units["mxu"], push_cycles_xpose=x[0])}
+        return CoreParams(latency=final.latency, units=u)
+
+    xp, _ = fit(xt_train, with_xpose, [8.0], ["push_cycles_xpose"])
+    final = with_xpose([xp["push_cycles_xpose"]])
+    report["mxu_xpose"] = xp
+    report["mxu_xpose_train_err"] = {r.raw["record_id"]: float(e) for r, e in zip(xt_train, rel_errors(xt_train, final))}
+    report["mxu_xpose_check_err"] = {r.raw["record_id"]: float(e) for r, e in zip(xt_check, rel_errors(xt_check, final))}
+
     # cast and roll_sublane chains were folded by the compiler (1 to 4 bundles); not usable.
     usable = [r for r in vop.values() if r.raw["params"]["op"] not in ("cast", "roll_sublane")]
     report["vop_err"] = {r.raw["record_id"]: float(e) for r, e in zip(usable, rel_errors(usable, final))}
 
     with open(out_json, "w") as f:
         json.dump({"core": {"latency": final.latency, "units": final.units}, "fit_report": report,
-                   "provenance": {"sources": [batch_dir, f32_dir], "script": "scripts/fit_core.py"}}, f, indent=1)
+                   "provenance": {"sources": [batch_dir, f32_dir, f3_dir, gather_dir], "script": "scripts/fit_core.py"}}, f, indent=1)
     print(json.dumps(report, indent=1))
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:4])
+    main(*sys.argv[1:6])

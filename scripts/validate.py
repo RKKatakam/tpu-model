@@ -8,6 +8,7 @@ import json
 import os
 import statistics
 import sys
+from concurrent.futures import ProcessPoolExecutor
 from collections import defaultdict
 
 import numpy as np
@@ -49,30 +50,31 @@ def stats(errs):
     return pct(np.median(a)), pct(np.percentile(a, 90)), pct(a.max())
 
 
-def main(out_md, dirs):
+def row_for(r):
+    """Replay one record; a replay failure is reported (stderr) and scored NaN, never hidden."""
     P = Params.load("model/params/phase1.json")
-    core, dma = load_core(), load_dma()
-    rows = []
-    for d in dirs:
-        for r in load_records(d):
-            if r.raw["kernel_class"] not in CLASSES:
-                continue
-            try:
-                prog = r.program()
-                tr = simulate(prog, P, core, dma, integer_operands(r, prog))
-                if tr.unmodeled_smem_dmas or tr.halts:
-                    print(f"warning {r.raw['record_id']}: {tr.unmodeled_smem_dmas} unmodeled SMEM DMAs, "
-                          f"halts at {tr.halts[:3]}", file=sys.stderr)
-                ours = predict_ns(tr, P)
-            except Exception as e:  # report, never hide, a replay failure
-                print(f"replay failed {r.raw['record_id']}: {e!r}", file=sys.stderr)
-                ours = float("nan")
-            est = r.xla_estimated_cycles()
-            rows.append({
-                "id": r.raw["record_id"], "kernel": r.raw["kernel"], "class": r.raw["kernel_class"],
-                "split": split_of(r.raw["record_id"]), "sweep": sweep_key(r.raw),
-                "meas": r.measured_ns(), "ours": ours, "xla": est / P.clock_ghz if est else float("nan"),
-            })
+    try:
+        prog = r.program()
+        tr = simulate(prog, P, load_core(), load_dma(), integer_operands(r, prog))
+        if tr.unmodeled_smem_dmas or tr.halts:
+            print(f"warning {r.raw['record_id']}: {tr.unmodeled_smem_dmas} unmodeled SMEM DMAs, "
+                  f"halts at {tr.halts[:3]}", file=sys.stderr)
+        ours = predict_ns(tr, P)
+    except Exception as e:
+        print(f"replay failed {r.raw['record_id']}: {e!r}", file=sys.stderr)
+        ours = float("nan")
+    est = r.xla_estimated_cycles()
+    return {
+        "id": r.raw["record_id"], "kernel": r.raw["kernel"], "class": r.raw["kernel_class"],
+        "split": split_of(r.raw["record_id"]), "sweep": sweep_key(r.raw),
+        "meas": r.measured_ns(), "ours": ours, "xla": est / P.clock_ghz if est else float("nan"),
+    }
+
+
+def main(out_md, dirs):
+    recs = [r for d in dirs for r in load_records(d) if r.raw["kernel_class"] in CLASSES]
+    with ProcessPoolExecutor(max_workers=max(1, (os.cpu_count() or 2) - 2)) as pool:
+        rows = list(pool.map(row_for, recs))
     md = []
     w = md.append
     w("# Validation\n")
@@ -107,11 +109,16 @@ def main(out_md, dirs):
         ours = [r["ours"] for r in g]
         xla = [r["xla"] for r in g]
         best = int(np.argmin(meas))
-        bo, bx = int(np.argmin(ours)), int(np.nanargmin(xla))
+        bo = int(np.argmin(ours))
         top3 = set(np.argsort(meas)[:3])
-        w(f"| {key[:70]} | {len(g)} | {spearman(ours, meas):.2f} | {spearman(xla, meas):.2f} | "
-          f"{'yes' if bo == best else 'no'} | {'yes' if bx == best else 'no'} | "
-          f"{len(top3 & set(np.argsort(ours)[:3]))}/3 | {pct(meas[bo] / meas[best] - 1)} | {pct(meas[bx] / meas[best] - 1)} |")
+        if all(np.isnan(xla)):  # XLA's static profiler rejects the kernel (e.g. splash)
+            sx = t1x = rx = "n/a"
+        else:
+            bx = int(np.nanargmin(xla))
+            sx, t1x, rx = f"{spearman(xla, meas):.2f}", "yes" if bx == best else "no", pct(meas[bx] / meas[best] - 1)
+        w(f"| {key[:70]} | {len(g)} | {spearman(ours, meas):.2f} | {sx} | "
+          f"{'yes' if bo == best else 'no'} | {t1x} | "
+          f"{len(top3 & set(np.argsort(ours)[:3]))}/3 | {pct(meas[bo] / meas[best] - 1)} | {rx} |")
     w("\n## All records\n")
     w("| id | class | split | measured µs | ours | XLA |")
     w("|---|---|---|---|---|---|")

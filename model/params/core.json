@@ -49,7 +49,8 @@
     "push_cycles": 4.013939476079351,
     "load_latency": 0.33537845125258736,
     "pop_latency": 1,
-    "push_cycles_f32": 1.9998908194247633
+    "push_cycles_f32": 1.9998908194247633,
+    "push_cycles_xpose": 7.9125000000000005
    }
   }
  },
@@ -140,6 +141,43 @@
    "mxu_dot__f32xf32_64_128_128_x16": 0.009671091141297161,
    "mxu_dot__f32xf32_8_128_128_x16": -0.014788960097964488
   },
+  "sld_err": {
+   "sld_chain__n256": 0.00310645563924683,
+   "sld_chain__n4096": 0.00037973388298007116
+  },
+  "sld_check_dma_gather_err": {
+   "dma_gather__r128_random_c1": 0.014098757136848716,
+   "dma_gather__r128_random_c16": 0.007103282777423114,
+   "dma_gather__r128_random_c4": -0.032829726068674736,
+   "dma_gather__r128_seq_c1": 0.011150707993847542,
+   "dma_gather__r128_seq_c16": 0.01003338356391481,
+   "dma_gather__r128_seq_c4": -0.025938215819725996,
+   "dma_gather__r32_random_c1": 0.035064583139813754,
+   "dma_gather__r32_random_c16": -0.07319905841416185,
+   "dma_gather__r32_random_c4": 0.021106698892697562,
+   "dma_gather__r32_seq_c1": 0.03821277059081729,
+   "dma_gather__r32_seq_c16": -0.07140709014389157,
+   "dma_gather__r32_seq_c4": 0.009572193910992288,
+   "dma_gather__r8_random_c1": 0.03566355161918788,
+   "dma_gather__r8_random_c16": -0.06937783061041025,
+   "dma_gather__r8_random_c4": 0.017280677027212032,
+   "dma_gather__r8_seq_c1": 0.024300923596085156,
+   "dma_gather__r8_seq_c16": -0.06917383627253437,
+   "dma_gather__r8_seq_c4": 0.01776045272107396
+  },
+  "mxu_xpose": {
+   "push_cycles_xpose": 7.9125000000000005
+  },
+  "mxu_xpose_train_err": {
+   "mxu_dot__bf16xbf16T_1024_128_128_x4": 0.00013603437109876992,
+   "mxu_dot__bf16xbf16T_1024_256_256_x4": 0.0008422952581812471,
+   "mxu_dot__bf16xbf16T_256_128_128_x4": -0.00010257165707927562
+  },
+  "mxu_xpose_check_err": {
+   "mxu_dot__bf16xbf16T_1024_128_128_x16": -0.0002814453640265224,
+   "mxu_dot__bf16xbf16T_1024_256_256_x16": 0.0007657138290686483,
+   "mxu_dot__bf16xbf16T_256_128_128_x16": -0.0008320410747745255
+  },
   "vop_err": {
    "vop_chain__add_nv1_k1024": -0.00024384296513046966,
    "vop_chain__add_nv1_k256": -0.0009718172983479434,
@@ -159,12 +197,15 @@
    "vop_chain__sum_lane_nv1_k1024": 0.000199731028881045,
    "vop_chain__sum_lane_nv1_k256": 0.0,
    "vop_chain__sum_lane_nv8_k128": 0.08276692155196819
-  }
+  },
+  "sld_latency_if_result_latency": 7
  },
  "provenance": {
   "sources": [
    "data/raw/phase3a",
-   "data/raw/phase3d"
+   "data/raw/phase3d",
+   "data/raw/phase3f",
+   "data/raw/phase3e"
   ],
   "script": "scripts/fit_core.py"
  }

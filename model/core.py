@@ -8,7 +8,8 @@ FIFO units (MXU, XLU, EUP) take work ops and return results through `vpop.*`:
   `results` entries that become poppable `latency` (+ j * `interval`) cycles after start;
 - a pop waits for its unit's oldest entry; the popped vreg is ready `pop_latency` later.
 MXU weights: `vmatpush.<msr>` streams into staging register msr (one push path per MXU,
-`push_cycles` each, `push_cycles_f32` for f32 weights, which take two pushes per bf16 one); a
+`push_cycles` each, `push_cycles_f32` for f32 weights, which take two pushes per bf16 one,
+`push_cycles_xpose` for transposed bf16 weights); a
 `vmatmul.vlgmr.<msr>` first waits until those pushes finish plus `load_latency`.
 """
 
@@ -16,6 +17,7 @@ import re
 from dataclasses import dataclass, field
 
 VREG = re.compile(r"%\w+?_(vm\d+|v\d+)\b")
+SREG = re.compile(r"%\w+?_(s\d+)\b")
 
 
 @dataclass
@@ -102,7 +104,13 @@ class Units:
             q.extend(t + wp["latency"] + j * wp.get("interval", 0) for j in range(wp.get("results", 1)))
         elif role == "push":
             up = self.p[cls]
-            done = t + (up["push_cycles"] if ".bf16" in mnemonic else up.get("push_cycles_f32", up["push_cycles"]))
+            if ".xpose" in mnemonic:
+                cost = up.get("push_cycles_xpose", up["push_cycles"])
+            elif ".bf16" in mnemonic:
+                cost = up["push_cycles"]
+            else:
+                cost = up.get("push_cycles_f32", up["push_cycles"])
+            done = t + cost
             self.push_busy[key] = done
             msr = re.search(r"\.(msr\w)\.", mnemonic).group(1)
             self.staged[(key, msr)] = done
@@ -118,14 +126,23 @@ class Scoreboard:
         self.ready_at = {}
         self.cache = {}
         self.units = Units(params.units)
+        # Scalar timing, off unless calibrated: `sld` = load-to-use latency; `saddr` = extra cycles
+        # before a freshly written scalar register can serve as an sld/sst address.
+        self.sld_latency = params.latency.get("sld", 1)
+        self.saddr = params.latency.get("saddr", 0)
+        self.scalar = "sld" in params.latency or "saddr" in params.latency
 
     def info(self, b):
         inf = self.cache.get(b.index)
         if inf is None:
             srcs, dests, unit_ops = set(), [], []
             for op in b.ops:
-                for a in op.args:
-                    srcs.update(VREG.findall(a))
+                is_mem = op.mnemonic.startswith(("sld", "sst"))
+                for i, a in enumerate(op.args):
+                    srcs.update((r, 0) for r in VREG.findall(a))
+                    if self.scalar:
+                        lag = self.saddr if is_mem and a.lstrip().startswith("[") else 0
+                        srcs.update((r, lag) for r in SREG.findall(a))
                 c = classify(op.mnemonic)
                 if c and c[0] in self.p.units:
                     unit_ops.append((*c, op.mnemonic))
@@ -135,13 +152,15 @@ class Scoreboard:
                     else:
                         lat = _longest_prefix(op.mnemonic, self.p.latency, self.p.default_latency)
                     dests.append((op.dest_reg, lat))
+                elif self.scalar and op.dest_reg and op.dest_reg[0] == "s":
+                    dests.append((op.dest_reg, self.sld_latency if op.mnemonic.startswith("sld") else 1))
             inf = self.cache[b.index] = _Info(tuple(srcs), tuple(dests), tuple(unit_ops))
         return inf
 
     def issue_time(self, b, t):
         inf = self.info(b)
-        for r in inf.srcs:
-            t = max(t, self.ready_at.get(r, 0.0))
+        for r, lag in inf.srcs:
+            t = max(t, self.ready_at.get(r, 0.0) + lag)
         for cls, uid, role, m in inf.unit_ops:
             t = max(t, self.units.ready(cls, uid, role, m, t))
         return t

@@ -163,6 +163,29 @@ xprof 2.24.1, Python 3.12.3 (see `VERSIONS.lock`).
 - Confidence: high for these kernels (replays issue the measured kernels' DMA counts and no
   `shalt.err`).
 
+### F17. A dependent scalar-load chain takes one cycle per iteration more than its bundles
+
+- Experiment: `bench/micro.py:sld_chain` (j = table[j] over a scalar-prefetched cyclic table; 8 bundles
+  per iteration, the loaded value is moved into the next load's address register 6 bundles after the
+  load), n 256 and 4096, `batches/phase3f.json`, session v5e-p3f.
+- Result: 9.0 cycles per iteration against 8 issued bundles (both n).
+- Confidence: high for the measurement. The mechanism is open (H11), so the model does not use it.
+
+### F18. Transposed bf16 weight pushes (`vmatpush.bf16.xpose`) cost ~7.9 cycles, twice a plain push
+
+- Experiment: `mxu_dot` with weights stored (n, k) and contracted on their last dim, 3 shapes, reps 4
+  (fit) and 16 (check), `batches/phase3f.json`.
+- Result: push cost 7.91 cycles; fit and check within 0.1%. Splash pushes K this way.
+- Confidence: high for these shapes. Refutes the former hypothesis H9.
+
+### F19. Starting a DMA and waiting on one that has already finished cost the core nothing extra
+
+- Experiment: `bench/micro.py:dma_overhead` (start an (8,128) copy, 512 dependent vadds, wait) vs the
+  same loop without the copy, n 64 and 256, `batches/phase3f.json`.
+- Result: 176650 vs 176646 ns (n=256), 44170 vs 44166 ns (n=64): the start, wait and semaphore
+  update add only their bundles. The replay matches within 1%.
+- Confidence: high.
+
 ## Hypotheses (not yet tested; the model must not depend on these)
 
 - H2. MXU is 128x128.
@@ -171,12 +194,16 @@ xprof 2.24.1, Python 3.12.3 (see `VERSIONS.lock`).
   This is the compiler's model, not a timing measurement.
 - H4. The Colab host has four v5e chips and the VM sees one (`TPU_CHIPS_PER_HOST_BOUNDS=2,2,1`,
   `TPU_HOST_BOUNDS=1,1,1`). Unknown whether neighbours share anything that affects timing.
-- H5. Number of DMA engines and transfers in flight; whether random addresses slow small DMAs
-  (paged attention runs ~45% slower than the replay at 4 KiB pages; `dma_gather`, phase 3e).
-- H8. XLU occupancy per op (fixed at 1 cycle: the nv=8 chains are latency-bound and cannot
-  identify it).
-- H9. Transposed weight pushes (`vmatpush.bf16.xpose`, used by splash for K) cost the same as plain
-  bf16 pushes. Unmeasured; the model assumes it.
+- H5. Number of DMA engines and transfers in flight. (Random addresses do not slow 4-64 KiB copies:
+  `dma_gather` random vs sequential within 1% at 1, 4 and 16 in flight, phase 3e.)
+- H8. XLU occupancy per op (fixed at 1 cycle: the nv=8, 16 and 32 chains are all latency-bound,
+  108-110 cycles per round, and cannot identify it; the replay is 4-9% slow on the wide ones).
+- H11. Mechanism of F17. Two fit sld_chain exactly: an `sld` result latency of 7 cycles, or a 2-cycle
+  lag before a freshly written scalar register can be an sld address. On `dma_gather` (16 in flight)
+  the first leaves -7%, the second -14% (none: -18%). Both make the calibration corpus worse
+  (within 5%: 37/47 without, 22/47 with latency 7, 35/47 with the address lag), mostly paged
+  attention, which is already over-predicted without them. Needs a benchmark that separates
+  load-to-use from address dependence.
 - H10. DMA queueing structure: one FIFO per direction, heads interleaving (`model/dma.py:DirFifoHbm`).
   Chosen because it fits F14/F15 better than processor sharing or one FIFO; not observed directly.
 - H6. Meaning of each bundle mnemonic and slot.

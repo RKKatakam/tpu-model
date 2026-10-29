@@ -14,6 +14,7 @@ Semantics assumed here (hypotheses until confirmed, see parser/MNEMONICS.md):
 """
 
 import re
+import struct
 from dataclasses import dataclass, field
 
 BRANCH_DELAY = 4
@@ -169,6 +170,13 @@ class Machine:
                     "sshra": lambda: s32(x) >> (y & 31),
                 }[base]()
             )
+        if base == "scvt":  # scalar int <-> float conversion; values are kept as 32-bit patterns
+            src, dst = m.split(".")[1], m.split(".")[2]
+            x = v(a[-1])
+            f = struct.unpack("<f", struct.pack("<I", u32(x)))[0] if src == "f32" else s32(x)
+            if dst == "f32":
+                return struct.unpack("<I", struct.pack("<f", float(f)))[0]
+            return u32(int(f))
         if base in ("smin", "smax"):
             x, y = v(a[0]), v(a[1])
             if m.split(".")[1].startswith("s"):

@@ -1,0 +1,212 @@
+{
+ "batch_id": "phase0_aot",
+ "probe": true,
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "add_one__aot__full",
+   "kernel": "add_one",
+   "params": {
+    "rows": 8,
+    "cols": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "add__aot__full",
+   "kernel": "add",
+   "params": {
+    "rows": 4096,
+    "cols": 4096,
+    "block_rows": 512,
+    "block_cols": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "col_sum__aot__full",
+   "kernel": "col_sum",
+   "params": {
+    "rows": 8192,
+    "cols": 4096,
+    "block_rows": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "matmul__aot__full",
+   "kernel": "matmul",
+   "params": {
+    "m": 2048,
+    "n": 2048,
+    "k": 2048,
+    "bm": 512,
+    "bn": 512,
+    "bk": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "add_one__aot__estimate",
+   "kernel": "add_one",
+   "params": {
+    "rows": 8,
+    "cols": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "extra_flags": {
+    "libtpu": [
+     "--xla_jf_dump_llo_critical_paths_to={dump}/critical_paths"
+    ]
+   }
+  },
+  {
+   "record_id": "add__aot__estimate",
+   "kernel": "add",
+   "params": {
+    "rows": 4096,
+    "cols": 4096,
+    "block_rows": 512,
+    "block_cols": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "extra_flags": {
+    "libtpu": [
+     "--xla_jf_dump_llo_critical_paths_to={dump}/critical_paths"
+    ]
+   }
+  },
+  {
+   "record_id": "col_sum__aot__estimate",
+   "kernel": "col_sum",
+   "params": {
+    "rows": 8192,
+    "cols": 4096,
+    "block_rows": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "extra_flags": {
+    "libtpu": [
+     "--xla_jf_dump_llo_critical_paths_to={dump}/critical_paths"
+    ]
+   }
+  },
+  {
+   "record_id": "matmul__aot__estimate",
+   "kernel": "matmul",
+   "params": {
+    "m": 2048,
+    "n": 2048,
+    "k": 2048,
+    "bm": 512,
+    "bn": 512,
+    "bk": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "extra_flags": {
+    "libtpu": [
+     "--xla_jf_dump_llo_critical_paths_to={dump}/critical_paths"
+    ]
+   }
+  },
+  {
+   "record_id": "add_one__aot__minimal",
+   "kernel": "add_one",
+   "params": {
+    "rows": 8,
+    "cols": 128
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "flags": {
+    "libtpu": [
+     "--xla_jf_dump_to={dump}/jf",
+     "--xla_jf_dump_llo_text=true"
+    ],
+    "xla": []
+   }
+  },
+  {
+   "record_id": "add__aot__minimal",
+   "kernel": "add",
+   "params": {
+    "rows": 4096,
+    "cols": 4096,
+    "block_rows": 512,
+    "block_cols": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "flags": {
+    "libtpu": [
+     "--xla_jf_dump_to={dump}/jf",
+     "--xla_jf_dump_llo_text=true"
+    ],
+    "xla": []
+   }
+  },
+  {
+   "record_id": "col_sum__aot__minimal",
+   "kernel": "col_sum",
+   "params": {
+    "rows": 8192,
+    "cols": 4096,
+    "block_rows": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "flags": {
+    "libtpu": [
+     "--xla_jf_dump_to={dump}/jf",
+     "--xla_jf_dump_llo_text=true"
+    ],
+    "xla": []
+   }
+  },
+  {
+   "record_id": "matmul__aot__minimal",
+   "kernel": "matmul",
+   "params": {
+    "m": 2048,
+    "n": 2048,
+    "k": 2048,
+    "bm": 512,
+    "bn": 512,
+    "bk": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "flags": {
+    "libtpu": [
+     "--xla_jf_dump_to={dump}/jf",
+     "--xla_jf_dump_llo_text=true"
+    ],
+    "xla": []
+   }
+  }
+ ]
+}

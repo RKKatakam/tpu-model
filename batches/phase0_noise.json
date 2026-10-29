@@ -1,0 +1,188 @@
+{
+ "batch_id": "phase0_noise",
+ "probe": true,
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "add_one__p0",
+   "kernel": "add_one",
+   "kernel_tag": "k_add_one",
+   "params": {
+    "rows": 8,
+    "cols": 128
+   },
+   "mode": "device",
+   "reps": 200,
+   "warmup": 20
+  },
+  {
+   "record_id": "add__p0",
+   "kernel": "add",
+   "kernel_tag": "k_add",
+   "params": {
+    "rows": 4096,
+    "cols": 4096,
+    "block_rows": 512,
+    "block_cols": 1024
+   },
+   "mode": "device",
+   "reps": 200,
+   "warmup": 20
+  },
+  {
+   "record_id": "col_sum__p0",
+   "kernel": "col_sum",
+   "kernel_tag": "k_col_sum",
+   "params": {
+    "rows": 8192,
+    "cols": 4096,
+    "block_rows": 256
+   },
+   "mode": "device",
+   "reps": 200,
+   "warmup": 20
+  },
+  {
+   "record_id": "matmul__p0",
+   "kernel": "matmul",
+   "kernel_tag": "k_matmul",
+   "params": {
+    "m": 2048,
+    "n": 2048,
+    "k": 2048,
+    "bm": 512,
+    "bn": 512,
+    "bk": 512
+   },
+   "mode": "device",
+   "reps": 200,
+   "warmup": 20
+  },
+  {
+   "record_id": "add_one__p1",
+   "kernel": "add_one",
+   "kernel_tag": "k_add_one",
+   "params": {
+    "rows": 8,
+    "cols": 128
+   },
+   "mode": "device",
+   "reps": 200,
+   "warmup": 20
+  },
+  {
+   "record_id": "add__p1",
+   "kernel": "add",
+   "kernel_tag": "k_add",
+   "params": {
+    "rows": 4096,
+    "cols": 4096,
+    "block_rows": 512,
+    "block_cols": 1024
+   },
+   "mode": "device",
+   "reps": 200,
+   "warmup": 20
+  },
+  {
+   "record_id": "col_sum__p1",
+   "kernel": "col_sum",
+   "kernel_tag": "k_col_sum",
+   "params": {
+    "rows": 8192,
+    "cols": 4096,
+    "block_rows": 256
+   },
+   "mode": "device",
+   "reps": 200,
+   "warmup": 20
+  },
+  {
+   "record_id": "matmul__p1",
+   "kernel": "matmul",
+   "kernel_tag": "k_matmul",
+   "params": {
+    "m": 2048,
+    "n": 2048,
+    "k": 2048,
+    "bm": 512,
+    "bn": 512,
+    "bk": 512
+   },
+   "mode": "device",
+   "reps": 200,
+   "warmup": 20
+  },
+  {
+   "record_id": "add_one__p2",
+   "kernel": "add_one",
+   "kernel_tag": "k_add_one",
+   "params": {
+    "rows": 8,
+    "cols": 128
+   },
+   "mode": "device",
+   "reps": 200,
+   "warmup": 20
+  },
+  {
+   "record_id": "add__p2",
+   "kernel": "add",
+   "kernel_tag": "k_add",
+   "params": {
+    "rows": 4096,
+    "cols": 4096,
+    "block_rows": 512,
+    "block_cols": 1024
+   },
+   "mode": "device",
+   "reps": 200,
+   "warmup": 20
+  },
+  {
+   "record_id": "col_sum__p2",
+   "kernel": "col_sum",
+   "kernel_tag": "k_col_sum",
+   "params": {
+    "rows": 8192,
+    "cols": 4096,
+    "block_rows": 256
+   },
+   "mode": "device",
+   "reps": 200,
+   "warmup": 20
+  },
+  {
+   "record_id": "matmul__p2",
+   "kernel": "matmul",
+   "kernel_tag": "k_matmul",
+   "params": {
+    "m": 2048,
+    "n": 2048,
+    "k": 2048,
+    "bm": 512,
+    "bn": 512,
+    "bk": 512
+   },
+   "mode": "device",
+   "reps": 200,
+   "warmup": 20
+  }
+ ]
+}

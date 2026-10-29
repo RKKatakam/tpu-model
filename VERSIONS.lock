@@ -1,0 +1,19 @@
+# Pinned toolchain. Do not change without the owner's approval.
+# Full hashed lock for the Colab VM (linux x86_64, CPython 3.12): requirements.lock,
+# compiled from requirements.in with:
+#   uv pip compile requirements.in --python-version 3.12 \
+#     --python-platform x86_64-manylinux_2_31 --generate-hashes -o requirements.lock
+
+jax==0.12.0.1
+jaxlib==0.12.0.1
+libtpu==0.0.50.1
+xprof==2.24.1
+python==3.12.3   # Colab VM venv, observed in every record
+
+# libtpu build string reported on device (TPU v5 lite):
+#   "TFRT TPU v5 lite / Built on Oct 22 2026 00:45:19 (1792655119) cl/1004524046"
+# Why 0.0.50.1 and not 0.0.51: jax 0.12.0.1[tpu] pins libtpu==0.0.50.*, and the
+# --xla_jf_dump_to breakage was reported against 0.0.51 (jax issue #41951).
+
+# Local (macOS arm64) env: pyproject.toml + uv.lock, same jax/jaxlib/xprof pins, CPU only.
+# libtpu has no macOS wheel, so AOT bundle dumps run on a Colab CPU runtime (no TPU).

@@ -1,0 +1,634 @@
+{
+ "batch_id": "phase1_aot",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "valu_straight__nv8_k0",
+   "kernel": "valu_straight",
+   "kernel_tag": "k_valu_straight",
+   "params": {
+    "k": 0,
+    "nv": 8
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "valu_straight__nv8_k32",
+   "kernel": "valu_straight",
+   "kernel_tag": "k_valu_straight",
+   "params": {
+    "k": 32,
+    "nv": 8
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "valu_straight__nv8_k128",
+   "kernel": "valu_straight",
+   "kernel_tag": "k_valu_straight",
+   "params": {
+    "k": 128,
+    "nv": 8
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "valu_straight__nv8_k512",
+   "kernel": "valu_straight",
+   "kernel_tag": "k_valu_straight",
+   "params": {
+    "k": 512,
+    "nv": 8
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "valu_straight__nv8_k1024",
+   "kernel": "valu_straight",
+   "kernel_tag": "k_valu_straight",
+   "params": {
+    "k": 1024,
+    "nv": 8
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "valu_straight__nv8_k2048",
+   "kernel": "valu_straight",
+   "kernel_tag": "k_valu_straight",
+   "params": {
+    "k": 2048,
+    "nv": 8
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "valu_straight__nv8_k4096",
+   "kernel": "valu_straight",
+   "kernel_tag": "k_valu_straight",
+   "params": {
+    "k": 4096,
+    "nv": 8
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "valu_straight__nv1_k0",
+   "kernel": "valu_straight",
+   "kernel_tag": "k_valu_straight",
+   "params": {
+    "k": 0,
+    "nv": 1
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "valu_straight__nv1_k64",
+   "kernel": "valu_straight",
+   "kernel_tag": "k_valu_straight",
+   "params": {
+    "k": 64,
+    "nv": 1
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "valu_straight__nv1_k256",
+   "kernel": "valu_straight",
+   "kernel_tag": "k_valu_straight",
+   "params": {
+    "k": 256,
+    "nv": 1
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "valu_straight__nv1_k1024",
+   "kernel": "valu_straight",
+   "kernel_tag": "k_valu_straight",
+   "params": {
+    "k": 1024,
+    "nv": 1
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "valu_straight__nv1_k4096",
+   "kernel": "valu_straight",
+   "kernel_tag": "k_valu_straight",
+   "params": {
+    "k": 4096,
+    "nv": 1
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "valu_loop__k8_t1",
+   "kernel": "valu_loop",
+   "kernel_tag": "k_valu_loop",
+   "params": {
+    "trip": 1,
+    "k": 8,
+    "nv": 8
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "valu_loop__k8_t10",
+   "kernel": "valu_loop",
+   "kernel_tag": "k_valu_loop",
+   "params": {
+    "trip": 10,
+    "k": 8,
+    "nv": 8
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "valu_loop__k8_t100",
+   "kernel": "valu_loop",
+   "kernel_tag": "k_valu_loop",
+   "params": {
+    "trip": 100,
+    "k": 8,
+    "nv": 8
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "valu_loop__k8_t1000",
+   "kernel": "valu_loop",
+   "kernel_tag": "k_valu_loop",
+   "params": {
+    "trip": 1000,
+    "k": 8,
+    "nv": 8
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "valu_loop__k8_t10000",
+   "kernel": "valu_loop",
+   "kernel_tag": "k_valu_loop",
+   "params": {
+    "trip": 10000,
+    "k": 8,
+    "nv": 8
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "valu_loop__k1_t1000",
+   "kernel": "valu_loop",
+   "kernel_tag": "k_valu_loop",
+   "params": {
+    "trip": 1000,
+    "k": 1,
+    "nv": 8
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "valu_loop__k1_t10000",
+   "kernel": "valu_loop",
+   "kernel_tag": "k_valu_loop",
+   "params": {
+    "trip": 10000,
+    "k": 1,
+    "nv": 8
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r1_x1",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 1,
+    "reps": 1,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r1_x8",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 1,
+    "reps": 8,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r2_x1",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 2,
+    "reps": 1,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r2_x8",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 2,
+    "reps": 8,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r4_x1",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 4,
+    "reps": 1,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r4_x8",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 4,
+    "reps": 8,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r8_x1",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 8,
+    "reps": 1,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r8_x8",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 8,
+    "reps": 8,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r16_x1",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 16,
+    "reps": 1,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r16_x8",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 16,
+    "reps": 8,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r32_x1",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 32,
+    "reps": 1,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r32_x8",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 32,
+    "reps": 8,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r64_x1",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 64,
+    "reps": 1,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r64_x8",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 64,
+    "reps": 8,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r128_x1",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 128,
+    "reps": 1,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r128_x8",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 128,
+    "reps": 8,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r256_x1",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 256,
+    "reps": 1,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r256_x8",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 256,
+    "reps": 8,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r512_x1",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 512,
+    "reps": 1,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r512_x8",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 512,
+    "reps": 8,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r1024_x1",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 1024,
+    "reps": 1,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r1024_x8",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 1024,
+    "reps": 8,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r2048_x1",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 2048,
+    "reps": 1,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r2048_x8",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 2048,
+    "reps": 8,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r4096_x1",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 4096,
+    "reps": 1,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r4096_x8",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 4096,
+    "reps": 8,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r8192_x1",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 8192,
+    "reps": 1,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "dma_seq__r8192_x8",
+   "kernel": "dma_seq",
+   "kernel_tag": "k_dma_seq",
+   "params": {
+    "rows": 8192,
+    "reps": 8,
+    "total_rows": 8192
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "matmul__256_256_256",
+   "kernel": "matmul",
+   "kernel_tag": "k_matmul",
+   "params": {
+    "m": 2048,
+    "n": 2048,
+    "k": 2048,
+    "bm": 256,
+    "bn": 256,
+    "bk": 256
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "matmul__512_512_512",
+   "kernel": "matmul",
+   "kernel_tag": "k_matmul",
+   "params": {
+    "m": 2048,
+    "n": 2048,
+    "k": 2048,
+    "bm": 512,
+    "bn": 512,
+    "bk": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "matmul__1024_1024_512",
+   "kernel": "matmul",
+   "kernel_tag": "k_matmul",
+   "params": {
+    "m": 2048,
+    "n": 2048,
+    "k": 2048,
+    "bm": 1024,
+    "bn": 1024,
+    "bk": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  },
+  {
+   "record_id": "matmul__256_512_1024",
+   "kernel": "matmul",
+   "kernel_tag": "k_matmul",
+   "params": {
+    "m": 2048,
+    "n": 2048,
+    "k": 2048,
+    "bm": 256,
+    "bn": 512,
+    "bk": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1"
+  }
+ ]
+}

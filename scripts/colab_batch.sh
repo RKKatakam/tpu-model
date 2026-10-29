@@ -69,7 +69,8 @@ while kill -0 "$runner" 2>/dev/null; do
   fetch_parts
   if limit 60 colab ls -s "$session" /content/tpum/results/ 2>/dev/null | grep -q "${batch_id}__${session}[.]tgz"; then
     final_seen=$((final_seen + 1))
-    [ "$final_seen" -ge 2 ] && pkill -f "colab exec -s $session -f .*run_batch" || true
+    # the batch is finished on the VM: stop the retry loop itself, not just its exec (else retry restarts it)
+    if [ "$final_seen" -ge 2 ]; then kill "$runner" 2>/dev/null; pkill -f "colab exec -s $session -f .*run_batch" || true; break; fi
   fi
   echo "[colab_batch] $(date +%T) configs downloaded: $(ls "$out/parts" | wc -l | tr -d ' ')/$(python3 -c 'import json,sys; print(len(json.load(open(sys.argv[1]))["configs"]))' "$batch")"
 done

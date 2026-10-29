@@ -103,9 +103,23 @@ def compile_aot(fn, specs, topology_name):
     return compiled, topo.devices, None
 
 
-def make_inputs(specs):
-    keys = jax.random.split(jax.random.key(0), len(specs))
+def make_inputs(specs, factory, seed):
+    """Concrete inputs: the builder's factory when it has one, else seeded normals."""
+    if factory is not None:
+        return [jax.device_put(a) for a in factory(seed)]
+    keys = jax.random.split(jax.random.key(seed), len(specs))
     return [jax.random.normal(k, s.shape, s.dtype) for k, s in zip(keys, specs)]
+
+
+def integer_inputs(args):
+    """Integer arguments (page tables, lengths, group sizes) by position, for SMEM replay."""
+    import numpy as np
+
+    out = {}
+    for i, a in enumerate(args):
+        if jax.numpy.issubdtype(a.dtype, jax.numpy.integer):
+            out[str(i)] = np.asarray(a).tolist()
+    return out
 
 
 def time_on_device(compiled, args, cfg, logdir):
@@ -131,7 +145,8 @@ def main(config_path, record_dir):
     with open(config_path) as f:
         cfg = json.load(f)
     t0 = time.time()
-    fn, specs, kernel_class = kernels.build(cfg["kernel"], cfg["params"])
+    fn, specs, kernel_class, factory = kernels.build(cfg["kernel"], cfg["params"])
+    int_inputs = {}
 
     if cfg["mode"] == "aot":
         compiled, devices, client = compile_aot(fn, specs, cfg["topology"])
@@ -139,7 +154,8 @@ def main(config_path, record_dir):
     else:
         devices = jax.devices()
         client = devices[0].client
-        args = make_inputs(specs)
+        args = make_inputs(specs, factory, cfg.get("seed", 0))
+        int_inputs = integer_inputs(args)
         compiled = jax.jit(fn).lower(*args).compile()
         timing = time_on_device(compiled, args, cfg, os.path.join(record_dir, "profile"))
 
@@ -156,6 +172,7 @@ def main(config_path, record_dir):
         "kernel_class": kernel_class,
         "params": cfg["params"],
         "arg_specs": [{"shape": list(s.shape), "dtype": str(s.dtype)} for s in specs],
+        "integer_inputs": int_inputs,
         "versions": versions(),
         "flags": {k: os.environ.get(k) for k in ("LIBTPU_INIT_ARGS", "XLA_FLAGS")},
         "machine": machine(devices, client),

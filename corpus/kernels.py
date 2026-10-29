@@ -128,11 +128,14 @@ KERNELS = {
 
 
 from bench.micro import MICRO  # noqa: E402
+from corpus.ops import OPS  # noqa: E402
 
 KERNELS.update(MICRO)
+KERNELS.update(OPS)
 
 
 def build(name, params):
+    """(fn, arg_specs, kernel_class, make_inputs or None)."""
     builder, kernel_class = KERNELS[name]
-    fn, specs = builder(params)
-    return fn, specs, kernel_class
+    fn, specs, *rest = builder(params)
+    return fn, specs, kernel_class, (rest[0] if rest else None)

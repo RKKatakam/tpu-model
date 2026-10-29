@@ -127,6 +127,74 @@ def phase3b_configs():
     return cfgs
 
 
+CORPUS_TAGS = {
+    "flash": "_flash_attention_kernel",
+    "splash": "splash_mha_fwd",
+    "paged": "paged_flash_attention_kernel",
+    "gmm": "%kernel",
+    "layernorm": "k_layernorm",
+    "softmax": "k_softmax",
+    "matmul": "k_matmul",
+    "add": "k_add",
+    "col_sum": "k_col_sum",
+}
+
+
+def corpus(kernel, params, rid, reps=50):
+    return {"record_id": rid, "kernel": kernel, "kernel_tag": CORPUS_TAGS[kernel], "params": params,
+            "mode": "device", "reps": reps, "warmup": 5, "seed": 0, "timeout_s": 600}
+
+
+def corpus_configs():
+    """Autotune-style sweeps: each kernel at a few shapes x several tile configs."""
+    cfgs = []
+    for s_len, causal in ((2048, True), (4096, True), (2048, False)):
+        for bq, bk in ((128, 128), (256, 256), (512, 512), (512, 1024), (1024, 512)):
+            if bk > s_len or bq > s_len:
+                continue
+            p = {"b": 1, "h": 8, "s": s_len, "d": 128, "causal": causal, "block_q": bq,
+                 "block_k_major": bk, "block_k": min(bk, 512)}
+            cfgs.append(corpus("flash", p, f"flash__s{s_len}_c{int(causal)}_q{bq}_k{bk}"))
+    for s_len, mask in ((2048, "causal"), (4096, "causal"), (4096, "local"), (2048, "full")):
+        for bq, bkv, bkc in ((128, 128, 128), (256, 256, 256), (512, 512, 512), (512, 1024, 512), (1024, 1024, 512)):
+            p = {"h": 8, "s": s_len, "d": 128, "mask": mask, "block_q": bq, "block_kv": bkv,
+                 "block_kv_compute": bkc, "window": 512}
+            cfgs.append(corpus("splash", p, f"splash__s{s_len}_{mask}_q{bq}_kv{bkv}_c{bkc}"))
+    for batch, pps, page in ((8, 64, 16), (32, 32, 16), (16, 64, 32)):
+        for ppcb in (4, 8, 16):
+            p = {"batch": batch, "q_heads": 32, "kv_heads": 8, "head_dim": 128, "page_size": page,
+                 "pages_per_seq": pps, "total_pages": 4096, "pages_per_compute_block": ppcb}
+            cfgs.append(corpus("paged", p, f"paged__b{batch}_pps{pps}_pg{page}_cb{ppcb}"))
+    for m, k, n, g in ((4096, 1024, 1024, 8), (8192, 2048, 512, 16)):
+        for tm, tk, tn in ((128, 128, 128), (256, 512, 512), (512, 512, 512), (512, 1024, 256)):
+            if tk > k or tn > n:
+                continue
+            p = {"m": m, "k": k, "n": n, "groups": g, "tm": tm, "tk": tk, "tn": tn}
+            cfgs.append(corpus("gmm", p, f"gmm__m{m}_k{k}_n{n}_g{g}_t{tm}_{tk}_{tn}"))
+    for rows, cols in ((8192, 1024), (16384, 4096)):
+        for br in (8, 64, 256, 1024):
+            if br * cols * 4 * 4 > 12 * 2**20:
+                continue
+            for kname in ("layernorm", "softmax"):
+                p = {"rows": rows, "cols": cols, "block_rows": br}
+                cfgs.append(corpus(kname, p, f"{kname}__r{rows}_c{cols}_b{br}"))
+    for n_, (bm, bn, bk) in ((4096, (512, 512, 512)), (4096, (1024, 1024, 512)), (4096, (256, 1024, 512)),
+                             (1024, (256, 256, 256)), (1024, (512, 512, 1024)), (8192, (1024, 1024, 1024))):
+        p = {"m": n_, "n": n_, "k": n_, "bm": bm, "bn": bn, "bk": bk}
+        cfgs.append(corpus("matmul", p, f"matmul__n{n_}_{bm}_{bn}_{bk}"))
+    for rows, cols, br, bc in ((8192, 2048, 256, 2048), (8192, 2048, 1024, 512), (2048, 2048, 64, 2048)):
+        p = {"rows": rows, "cols": cols, "block_rows": br, "block_cols": bc}
+        cfgs.append(corpus("add", p, f"add__r{rows}_c{cols}_b{br}x{bc}"))
+    for rows, cols, br in ((16384, 2048, 128), (16384, 2048, 512), (4096, 8192, 64)):
+        p = {"rows": rows, "cols": cols, "block_rows": br}
+        cfgs.append(corpus("col_sum", p, f"col_sum__r{rows}_c{cols}_b{br}"))
+    return cfgs
+
+
+def split(cfgs, parts):
+    return [cfgs[i::parts] for i in range(parts)]
+
+
 BATCHES = {
     "phase3a": {"flags": DUMP_FLAGS, "configs": phase3a_configs()},
     "phase3b": {"flags": DUMP_FLAGS, "configs": phase3b_configs()},
@@ -145,6 +213,9 @@ BATCHES = {
         "configs": [device_cfg(k, t, p, r) for r in range(3) for k, t, p in NOISE_KERNELS],
     },
 }
+
+for i, part in enumerate(split(corpus_configs(), 2)):
+    BATCHES[f"corpus1_part{i}"] = {"flags": DUMP_FLAGS, "configs": part}
 
 for batch_id, batch in BATCHES.items():
     with open(os.path.join(HERE, "batches", f"{batch_id}.json"), "w") as f:

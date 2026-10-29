@@ -40,7 +40,10 @@ def _longest_prefix(mnemonic, table, default):
 def classify(mnemonic):
     """(unit class, unit id, role) for FIFO-unit ops, else None.
 
-    role: 'work' (produces results), 'pop', 'push' (MXU weight staging)."""
+    role: 'work' (produces results), 'pop', 'push' (MXU weight staging), 'xpose' (XLU transpose
+    input: start/cont/end, one vreg each, two for `.binary`; results queue at `.end`)."""
+    if mnemonic.startswith("vxpose"):
+        return "xlu", int(re.search(r"\.xlu(\d+)", mnemonic).group(1)), "xpose"
     m = re.search(r"\.(mxu|xlu)(\d+)$", mnemonic)
     if m:
         cls, uid = m.group(1), int(m.group(2))
@@ -77,13 +80,20 @@ class Units:
         self.fifo = {}
         self.push_busy = {}
         self.staged = {}
+        self.xcount = {}  # vregs pushed into the transpose in progress, per unit
 
     def _wp(self, cls, mnemonic):
         up = self.p[cls]
         return up["work"][_work_key(cls, mnemonic)]
 
+    @staticmethod
+    def _fifo_key(cls, uid, mnemonic):
+        return (cls, uid, "trf") if ("xpose" in mnemonic or ".trf" in mnemonic) else (cls, uid)
+
     def ready(self, cls, uid, role, mnemonic, t):
         key = (cls, uid)
+        if role == "xpose":
+            return max(t, self.busy.get((cls, uid, "trf"), 0.0)) if self.p[cls].get("xpose") else t
         if role == "work":
             t = max(t, self.busy.get(key, 0.0))
             msr = re.search(r"\.vlgmr\.(msr\w)", mnemonic)
@@ -94,12 +104,25 @@ class Units:
             return max(t, self.push_busy.get(key, 0.0))
         if self.p[cls].get("nonblocking_pop"):
             return t
-        q = self.fifo.get(key)
+        q = self.fifo.get(self._fifo_key(cls, uid, mnemonic))
         return max(t, q[0]) if q else t
 
     def commit(self, cls, uid, role, mnemonic, t):
         """Returns, for a pop, the time its result reaches the register file (else None)."""
         key = (cls, uid)
+        if role == "xpose":
+            xps = self.p[cls].get("xpose")
+            if not xps:  # uncalibrated: transposes cost only their issue slots
+                return None
+            xp = xps["b16bin" if ".binary" in mnemonic else "b16" if ".b16" in mnemonic else "b32"]
+            n = 2 if ".binary" in mnemonic else 1
+            tk = (cls, uid, "trf")
+            self.busy[tk] = t + xp["occupancy"] * n
+            self.xcount[tk] = (0 if ".start" in mnemonic else self.xcount.get(tk, 0)) + n
+            if ".end" in mnemonic:
+                q = self.fifo.setdefault(tk, [])
+                q.extend(t + xp["latency"] + j * xp["interval"] for j in range(self.xcount[tk]))
+            return None
         if role == "work":
             wp = self._wp(cls, mnemonic)
             self.busy[key] = t + wp["occupancy"]
@@ -118,7 +141,7 @@ class Units:
             msr = re.search(r"\.(msr\w)\.", mnemonic).group(1)
             self.staged[(key, msr)] = done
         else:
-            q = self.fifo.get(key)
+            q = self.fifo.get(self._fifo_key(cls, uid, mnemonic))
             head = q.pop(0) if q else t
             return max(t, head) + self.p[cls]["pop_latency"]
         return None
@@ -130,7 +153,7 @@ def slot_of(m):
         return "pop"
     if m.startswith(("vmatmul", "vmatpush")):
         return "mxu"
-    if re.search(r"\.xlu\d+$", m):
+    if re.search(r"\.xlu\d+$", m) or m.startswith("vxpose"):
         return "xlu"
     if m.startswith("vld"):
         return "vld"
@@ -182,12 +205,15 @@ class Scoreboard:
             for op in b.ops:
                 m = op.mnemonic
                 slot = slot_of(m)
+                if self.scalar:
+                    # address generation: sld/sst/vld/vst address operands and scalar_lea inputs
+                    is_lea = m.startswith("scalar_lea")
+                    for a in op.args:
+                        addr = is_lea or (a.lstrip().startswith("[") and (slot in ("vld", "vst") or m.startswith(("sld", "sst"))))
+                        if slot is None or addr:
+                            ssrcs.update((r, self.saddr if addr else 0) for r in SREG.findall(a))
                 if slot is None:
                     if self.scalar:
-                        is_mem = m.startswith(("sld", "sst"))
-                        for a in op.args:
-                            lag = self.saddr if is_mem and a.lstrip().startswith("[") else 0
-                            ssrcs.update((r, lag) for r in SREG.findall(a))
                         if op.dest_reg and op.dest_reg[0] == "s":
                             sdests.append((op.dest_reg, self.sld_latency if m.startswith("sld") else 1, _mclass(m)))
                     continue

@@ -1,6 +1,6 @@
 """Fit vector-side core parameters (latencies, EUP/XLU/MXU unit timings) from phase3a microbenchmarks.
 
-usage: fit_core.py PHASE3A_DIR PHASE3D_DIR PHASE3F_DIR PHASE3E_DIR OUT_JSON
+usage: fit_core.py PHASE3A_DIR PHASE3D_DIR PHASE3F_DIR PHASE3E_DIR PHASE3J_DIR OUT_JSON
 Each parameter family is fitted only on the microbenchmark that isolates it; MXU parameters are
 fitted on reps=4 runs and checked on reps=16 runs.
 """
@@ -44,7 +44,7 @@ def fit(objective_records, build, x0, names):
     return dict(zip(names, res.x)), res
 
 
-def main(batch_dir, f32_dir, f3_dir, gather_dir, out_json):
+def main(batch_dir, f32_dir, f3_dir, gather_dir, xpose_dir, out_json):
     recs = load_records(batch_dir)
     vop = {r.raw["record_id"]: r for r in recs if r.raw["kernel"] == "vop_chain"}
     report = {}
@@ -172,15 +172,40 @@ def main(batch_dir, f32_dir, f3_dir, gather_dir, out_json):
     report["mxu_xpose_train_err"] = {r.raw["record_id"]: float(e) for r, e in zip(xt_train, rel_errors(xt_train, final))}
     report["mxu_xpose_check_err"] = {r.raw["record_id"]: float(e) for r, e in zip(xt_check, rel_errors(xt_check, final))}
 
+    # XLU transposes (phase3j xpose_chain, 1 and 4 independent chains), per dtype (b32 = f32, 16 vregs
+    # per 128x128 tile; b16 = packed bf16, 8): per-vreg push occupancy, latency from `.end` to the
+    # first result, interval between results.
+    xc = [r for r in load_records(xpose_dir) if r.raw["kernel"] == "xpose_chain"]
+    xpose = {}
+
+    def with_xp(key, entry):
+        u = final.units | {"xlu": dict(final.units["xlu"], xpose=dict(xpose, **{key: entry}))}
+        return CoreParams(latency=final.latency, units=u, issue_lead=LEAD)
+
+    # f32 (b32) and packed bf16 (c.b16) chains: 1-chain runs use these forms.
+    for key, dtype in (("b32", "f32"), ("b16", "bf16")):
+        rs = [r for r in xc if r.raw["params"]["dtype"] == dtype and (dtype == "f32" or r.raw["params"]["nv"] == 1)]
+        got, _ = fit(rs, lambda x, key=key: with_xp(key, {"occupancy": x[0], "latency": x[1], "interval": x[2]}),
+                     [1.0, 60.0, 4.0], ["occupancy", "latency", "interval"])
+        xpose[key] = got
+    # bf16 `vxpose.binary` (two vregs per op) appears only in the 4-chain run: one measurement, so
+    # only its latency is fitted; occupancy and interval are taken from c.b16 (an assumption).
+    rs = [r for r in xc if r.raw["params"]["dtype"] == "bf16" and r.raw["params"]["nv"] == 4]
+    got, _ = fit(rs, lambda x: with_xp("b16bin", dict(xpose["b16"], latency=x[0])), [60.0], ["latency"])
+    xpose["b16bin"] = dict(xpose["b16"], latency=got["latency"])
+    final = CoreParams(latency=final.latency, units=final.units | {"xlu": dict(final.units["xlu"], xpose=xpose)}, issue_lead=LEAD)
+    report["xlu_xpose"] = xpose
+    report["xlu_xpose_err"] = {r.raw["record_id"]: float(e) for r, e in zip(xc, rel_errors(xc, final))}
+
     # cast and roll_sublane chains were folded by the compiler (1 to 4 bundles); not usable.
     usable = [r for r in vop.values() if r.raw["params"]["op"] not in ("cast", "roll_sublane")]
     report["vop_err"] = {r.raw["record_id"]: float(e) for r, e in zip(usable, rel_errors(usable, final))}
 
     with open(out_json, "w") as f:
         json.dump({"core": {"latency": final.latency, "units": final.units, "issue_lead": LEAD}, "fit_report": report,
-                   "provenance": {"sources": [batch_dir, f32_dir, f3_dir, gather_dir], "script": "scripts/fit_core.py"}}, f, indent=1)
+                   "provenance": {"sources": [batch_dir, f32_dir, f3_dir, gather_dir, xpose_dir], "script": "scripts/fit_core.py"}}, f, indent=1)
     print(json.dumps(report, indent=1))
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:6])
+    main(*sys.argv[1:7])

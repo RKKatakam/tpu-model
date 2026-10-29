@@ -108,6 +108,12 @@ def check(kernel, params, program):
         if params["kind"] == "vmem":
             vst = sum(v for m, v in c.items() if m.startswith("vst"))
             expect(vst >= params["amount"] * 1024 // 1024, f"vst={vst}: VMEM copy eliminated?")
+    elif kernel == "xpose_chain":
+        n = sum(v for m, v in c.items() if m.startswith("vxpose"))
+        expect(n >= params["k"] * params["nv"], f"vxpose ops {n} want >= {params['k'] * params['nv']}")
+        expect(not dma_ops(c), f"unexpected DMA ops {dma_ops(c)}")
+    elif kernel == "mxu_masked":
+        expect(any(".msk" in m for m in c if m.startswith("vmatpush")), f"no masked pushes: {sorted(m for m in c if m.startswith('vmatpush'))}")
     elif kernel == "mxu_fresh":
         expect(any(m.startswith("vmatpush") for m in c), "no weight pushes")
         expect(not dma_ops(c), f"unexpected DMA ops {dma_ops(c)}")

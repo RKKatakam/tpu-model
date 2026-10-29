@@ -582,7 +582,58 @@ def vmem_chain(params):
     return fn, specs, make_inputs
 
 
+def xpose_chain(params):
+    """k rounds of v = v.T + 1 on `nv` independent (128, 128) tiles (dtype f32 or bf16), in VMEM.
+
+    isolates: XLU transpose (vxpose start/cont/end + vpop.trf) latency and throughput.
+    """
+    k, nv = params["k"], params["nv"]
+    dt = {"bf16": jnp.bfloat16, "f32": jnp.float32}[params["dtype"]]
+
+    def kernel(x_hbm, o_hbm, buf):
+        vs = [buf[i] for i in range(nv)]
+        for _ in range(k):
+            vs = [(v.T + 1).astype(dt) for v in vs]
+        for i, v in enumerate(vs):
+            buf[i] = v
+
+    return _no_dma_call(kernel, [pltpu.VMEM((nv, 128, 128), dt)], "k_xpose_chain")
+
+
+def mxu_masked(params):
+    """mxu_fresh with the weight rows at or beyond a run-time bound (scalar prefetch) zeroed, as in
+    megablox tgmm group boundaries; aims at masked weight pushes (vmatpush.*.msk)."""
+    m, kk, n, reps = params["m"], params["k"], params["n"], params["reps"]
+
+    def kernel(lim_ref, x_hbm, o_ref, xs, ws, acc):
+        rows = jax.lax.broadcasted_iota(jnp.int32, (kk, n), 0)
+
+        def body(i, carry):
+            w = jnp.where(rows < lim_ref[0], ws[i], jnp.zeros_like(ws[i]))
+            acc[...] += jnp.dot(xs[...], w, preferred_element_type=jnp.float32)
+            return carry
+
+        jax.lax.fori_loop(0, reps, body, 0)
+        o_ref[...] = acc[pl.ds(0, 8), pl.ds(0, 128)]
+
+    grid_spec = pltpu.PrefetchScalarGridSpec(
+        num_scalar_prefetch=1, grid=(1,), in_specs=[HBM],
+        out_specs=pl.BlockSpec((8, 128), lambda i, lim: (0, 0)),
+        scratch_shapes=[pltpu.VMEM((m, kk), jnp.bfloat16), pltpu.VMEM((reps, kk, n), jnp.bfloat16),
+                        pltpu.VMEM((m, n), jnp.float32)],
+    )
+
+    def fn(lim, x):
+        return pl.pallas_call(kernel, out_shape=jax.ShapeDtypeStruct((8, 128), jnp.float32),
+                              grid_spec=grid_spec, name="k_mxu_masked")(lim, x)
+
+    specs = [jax.ShapeDtypeStruct((1,), jnp.int32), jax.ShapeDtypeStruct((8, 128), jnp.float32)]
+    return fn, specs, lambda seed: [np.array([kk // 2], np.int32), np.zeros((8, 128), np.float32)]
+
+
 MICRO = {
+    "xpose_chain": (xpose_chain, "micro"),
+    "mxu_masked": (mxu_masked, "micro"),
     "mxu_fresh": (mxu_fresh, "micro"),
     "vmem_chain": (vmem_chain, "micro"),
     "unit_chain": (unit_chain, "micro"),

@@ -29,7 +29,24 @@
       "results": 1
      }
     },
-    "pop_latency": 1
+    "pop_latency": 1,
+    "xpose": {
+     "b32": {
+      "occupancy": 0.9067217192710499,
+      "latency": 24.87792994892984,
+      "interval": 9.23466849847896
+     },
+     "b16": {
+      "occupancy": 1.1473302027861214,
+      "latency": 131.45654119442315,
+      "interval": 2.219614124455625
+     },
+     "b16bin": {
+      "occupancy": 1.1473302027861214,
+      "latency": 64.78125,
+      "interval": 2.219614124455625
+     }
+    }
    },
    "mxu": {
     "work": {
@@ -144,28 +161,28 @@
   },
   "sld_latency_if_result_latency": 7,
   "sld_err": {
-   "sld_chain__n256": 0.00310645563924683,
-   "sld_chain__n4096": 0.00037973388298007116
+   "sld_chain__n256": 0.003106081142134176,
+   "sld_chain__n4096": 0.0003797024874774291
   },
   "sld_check_dma_gather_err": {
-   "dma_gather__r128_random_c1": 0.014098757136848716,
-   "dma_gather__r128_random_c16": 0.007103282777423114,
-   "dma_gather__r128_random_c4": -0.032829726068674736,
-   "dma_gather__r128_seq_c1": 0.011150707993847542,
-   "dma_gather__r128_seq_c16": 0.01003338356391481,
-   "dma_gather__r128_seq_c4": -0.025938215819725996,
-   "dma_gather__r32_random_c1": 0.035064583139813754,
-   "dma_gather__r32_random_c16": -0.07319905841416185,
-   "dma_gather__r32_random_c4": 0.021106698892697562,
-   "dma_gather__r32_seq_c1": 0.03821277059081729,
-   "dma_gather__r32_seq_c16": -0.07140709014389157,
-   "dma_gather__r32_seq_c4": 0.009572193910992288,
-   "dma_gather__r8_random_c1": 0.03566355161918788,
-   "dma_gather__r8_random_c16": -0.06937783061041025,
-   "dma_gather__r8_random_c4": 0.017280677027212032,
-   "dma_gather__r8_seq_c1": 0.024300923596085156,
-   "dma_gather__r8_seq_c16": -0.06917383627253437,
-   "dma_gather__r8_seq_c4": 0.01776045272107396
+   "dma_gather__r128_random_c1": 0.0140970951805941,
+   "dma_gather__r128_random_c16": 0.004281922276153871,
+   "dma_gather__r128_random_c4": -0.032843253501964154,
+   "dma_gather__r128_seq_c1": 0.011149050869004862,
+   "dma_gather__r128_seq_c16": 0.007203814499765038,
+   "dma_gather__r128_seq_c4": -0.025951839641880525,
+   "dma_gather__r32_random_c1": 0.03506255194069974,
+   "dma_gather__r32_random_c16": -0.07319914267076688,
+   "dma_gather__r32_random_c4": 0.0211047352260898,
+   "dma_gather__r32_seq_c1": 0.03821073321373558,
+   "dma_gather__r32_seq_c16": -0.07140717456340662,
+   "dma_gather__r32_seq_c4": 0.009570252426123416,
+   "dma_gather__r8_random_c1": 0.03566131125658689,
+   "dma_gather__r8_random_c16": -0.06937791553176176,
+   "dma_gather__r8_random_c4": 0.01727852525401241,
+   "dma_gather__r8_seq_c1": 0.024298707813287912,
+   "dma_gather__r8_seq_c16": -0.06917392121250077,
+   "dma_gather__r8_seq_c4": 0.017758299933042787
   },
   "mxu_xpose": {
    "push_cycles_xpose": 7.9125000000000005
@@ -179,6 +196,31 @@
    "mxu_dot__bf16xbf16T_1024_128_128_x16": -0.0002814453640265224,
    "mxu_dot__bf16xbf16T_1024_256_256_x16": 0.0007657138290686483,
    "mxu_dot__bf16xbf16T_256_128_128_x16": -0.0008320410747745255
+  },
+  "xlu_xpose": {
+   "b32": {
+    "occupancy": 0.9067217192710499,
+    "latency": 24.87792994892984,
+    "interval": 9.23466849847896
+   },
+   "b16": {
+    "occupancy": 1.1473302027861214,
+    "latency": 131.45654119442315,
+    "interval": 2.219614124455625
+   },
+   "b16bin": {
+    "occupancy": 1.1473302027861214,
+    "latency": 64.78125,
+    "interval": 2.219614124455625
+   }
+  },
+  "xlu_xpose_err": {
+   "xpose_chain__bf16_nv1_k16": -0.014038995415381117,
+   "xpose_chain__bf16_nv1_k64": 0.013888751510781283,
+   "xpose_chain__bf16_nv4_k16": -0.0002411190930720064,
+   "xpose_chain__f32_nv1_k16": -0.014916549626347808,
+   "xpose_chain__f32_nv1_k64": 0.01464073363489038,
+   "xpose_chain__f32_nv4_k16": -3.3703425078135396e-05
   },
   "vop_err": {
    "vop_chain__add_nv1_k1024": -0.00024384296513046966,
@@ -206,7 +248,8 @@
    "data/raw/phase3a",
    "data/raw/phase3d",
    "data/raw/phase3f",
-   "data/raw/phase3e"
+   "data/raw/phase3e",
+   "data/raw/phase3j"
   ],
   "script": "scripts/fit_core.py"
  }

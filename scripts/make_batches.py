@@ -195,6 +195,18 @@ def phase3i_configs():
     return cfgs
 
 
+def phase3j_configs():
+    """XLU transposes (tgmm, x.T) and masked weight pushes."""
+    cfgs = []
+    for dtype in ("f32", "bf16"):
+        for nv, k in ((1, 16), (1, 64), (4, 16)):
+            cfgs.append(device("xpose_chain", {"k": k, "nv": nv, "dtype": dtype}, f"xpose_chain__{dtype}_nv{nv}_k{k}"))
+    for m, k, n in ((128, 128, 128), (256, 128, 128), (1024, 128, 128)):
+        for reps in (8, 32):
+            cfgs.append(device("mxu_masked", {"m": m, "k": k, "n": n, "reps": reps}, f"mxu_masked__{m}_{k}_{n}_x{reps}"))
+    return cfgs
+
+
 def phase3b_configs():
     cfgs = []
     for rows in (1, 8, 64, 512, 2048, 8192):
@@ -367,6 +379,7 @@ BATCHES = {
     "phase3g": {"flags": DUMP_FLAGS, "configs": phase3g_configs()},
     "phase3h": {"flags": DUMP_FLAGS, "configs": phase3h_configs()},
     "phase3i": {"flags": DUMP_FLAGS, "configs": phase3i_configs()},
+    "phase3j": {"flags": DUMP_FLAGS, "configs": phase3j_configs()},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},
     "phase0_aot": {

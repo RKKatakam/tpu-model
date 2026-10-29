@@ -304,7 +304,7 @@ class Machine:
                 branch = new_branch
             pc += 1
         dma_model.project(t)
-        trace.cycles = max([t] + [d.done for d in inflight])
+        trace.cycles = max([t] + [d.done for d in inflight] + ([self.core.drain()] if self.core is not None else []))
         return trace
 
     def _flag_ready_time(self, inflight, flag, need, t):

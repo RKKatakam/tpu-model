@@ -20,6 +20,7 @@ from model.machine import Machine  # noqa: E402
 from model.predict import load_records  # noqa: E402
 
 CLOCK_GHZ = 1.5  # HARDWARE_FACTS F7
+LEAD = float(os.environ.get("TPUM_ISSUE_LEAD", "0"))  # front-end lead over queued vector ops
 
 
 
@@ -59,7 +60,7 @@ def main(batch_dir, f32_dir, f3_dir, gather_dir, out_json):
     base_units = {}
 
     def with_units(units):
-        return CoreParams(latency=dict(latency), units=units)
+        return CoreParams(latency=dict(latency), units=units, issue_lead=LEAD)
 
     # EUP: latency from the nv1 exp chain, occupancy from nv8
     eup_recs = [vop["vop_chain__exp_nv1_k256"], vop["vop_chain__exp_nv8_k128"]]
@@ -72,12 +73,12 @@ def main(batch_dir, f32_dir, f3_dir, gather_dir, out_json):
     base_units.update(eup_units([eup["latency"]]))
     report["eup"] = eup
 
-    # XLU: permute (lane rotate) and xlane (lane reduction), 3 units each. Latency from the nv1
-    # chain. The nv8 run is still latency-bound (8 chains x ~105 cycles), so it cannot identify
-    # occupancy; occupancy stays 1 until a wider microbenchmark measures it.
+    # XLU: permute (lane rotate) and xlane (lane reduction), 3 units each. Latency fitted on chains
+    # 1, 8, 16 and 32 wide (phase3a, phase3f). All are latency-bound, so occupancy stays 1 (H8).
     xlu = {}
+    wide = [r for r in load_records(f3_dir) if r.raw["kernel"] == "vop_chain"]
     for key, op in (("permute", "roll_lane"), ("xlane", "sum_lane")):
-        rs = [vop[f"vop_chain__{op}_nv1_k256"]]
+        rs = [r for r in list(vop.values()) + wide if r.raw["params"]["op"] == op]
 
         def xlu_units(x, key=key):
             return {"xlu": {"work": {key: {"occupancy": 1, "latency": x[0], "results": 1}}, "pop_latency": 1}}
@@ -144,7 +145,7 @@ def main(batch_dir, f32_dir, f3_dir, gather_dir, out_json):
     sld_recs = [r for r in load_records(f3_dir) if r.raw["kernel"] == "sld_chain"]
 
     def with_sld(lat):
-        return CoreParams(latency=dict(final.latency, sld=lat), units=final.units)
+        return CoreParams(latency=dict(final.latency, sld=lat), units=final.units, issue_lead=LEAD)
 
     dma = load_dma()
     sld_err = {lat: [cyc_with_ops(r, with_sld(lat), dma) / measured_cycles(r) - 1 for r in sld_recs] for lat in range(1, 13)}
@@ -163,7 +164,7 @@ def main(batch_dir, f32_dir, f3_dir, gather_dir, out_json):
 
     def with_xpose(x):
         u = final.units | {"mxu": dict(final.units["mxu"], push_cycles_xpose=x[0])}
-        return CoreParams(latency=final.latency, units=u)
+        return CoreParams(latency=final.latency, units=u, issue_lead=LEAD)
 
     xp, _ = fit(xt_train, with_xpose, [8.0], ["push_cycles_xpose"])
     final = with_xpose([xp["push_cycles_xpose"]])
@@ -176,7 +177,7 @@ def main(batch_dir, f32_dir, f3_dir, gather_dir, out_json):
     report["vop_err"] = {r.raw["record_id"]: float(e) for r, e in zip(usable, rel_errors(usable, final))}
 
     with open(out_json, "w") as f:
-        json.dump({"core": {"latency": final.latency, "units": final.units}, "fit_report": report,
+        json.dump({"core": {"latency": final.latency, "units": final.units, "issue_lead": LEAD}, "fit_report": report,
                    "provenance": {"sources": [batch_dir, f32_dir, f3_dir, gather_dir], "script": "scripts/fit_core.py"}}, f, indent=1)
     print(json.dumps(report, indent=1))
 

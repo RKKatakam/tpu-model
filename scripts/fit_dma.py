@@ -2,9 +2,11 @@
 
 usage: fit_dma.py PHASE1_DIR PHASE3B_DIR PHASE3C_DIR OUT_JSON
 Read curve: bench dma_seq (phase 1). Write curve: bench dma_out (phase 3b). Both per-copy
-= (t(8 copies) - t(1 copy)) / 7. Bandwidths, read/write turnaround,
-per-DMA issue cost, mixed-direction start-up and per-direction start-up adjustments are fitted
-on dma_stream, dma_conc, dma_inout, dma_seq and dma_out; dma_strided is reported as a check.
+= (t(8 copies) - t(1 copy)) / 7. Sustained read and write bandwidth
+and the read/write overlap cost come in closed form from the 128- and 512-row dma_stream runs
+(HARDWARE_FACTS F14: time = R/bw_read + W/bw_write + turnaround * min(R, W)). Per-DMA issue cost
+and mixed-direction start-up are then fitted on dma_stream, dma_conc, dma_inout, dma_seq and
+dma_out; dma_strided is reported as a check.
 """
 
 import json
@@ -35,20 +37,40 @@ def per_copy_table(recs, kernel, size_of):
     return sorted(out)
 
 
-def params_of(read_ns, write_ns, x):
-    bw_read, bw_write, turnaround_ps, issue_ns, mix_ns, read_adj, write_adj = x
-    return {"engine": "DirFifoHbm", "read_table_ns": read_ns, "write_table_ns": write_ns,
-            "bw_read_GBps": bw_read, "bw_write_GBps": bw_write,
-            "turnaround_ns_per_byte": turnaround_ps / 1000, "issue_ns": issue_ns, "mix_ns": mix_ns,
-            "read_lat_adj_ns": read_adj, "write_lat_adj_ns": write_adj}
+def params_of(read_ns, write_ns, sustained, x):
+    issue_ns, mix_ns = x
+    return {"engine": "DirFifoHbm", "read_table_ns": read_ns, "write_table_ns": write_ns, **sustained,
+            "issue_ns": issue_ns, "mix_ns": mix_ns}
+
+
+def _cycles(args):
+    r, dma = args
+    return Machine(r.program()).run(dma_model(dma, CLOCK_GHZ)).cycles / (r.measured_ns() * CLOCK_GHZ) - 1
+
+
+POOL = None
 
 
 def errors(recs, dma):
-    out = []
-    for r in recs:
-        cyc = Machine(r.program()).run(dma_model(dma, CLOCK_GHZ)).cycles
-        out.append(cyc / (r.measured_ns() * CLOCK_GHZ) - 1)
-    return np.array(out)
+    return np.array(list(POOL.map(_cycles, [(r, dma) for r in recs])))
+
+
+def sustained_fit(stream_recs):
+    """Bandwidths (GB/s) and overlap cost (ns/byte) from the bandwidth-bound stream runs."""
+    rows = []
+    for r in stream_recs:
+        p = r.raw["params"]
+        if p["block_rows"] < 128:
+            continue  # 32-row blocks are latency-bound
+        unit = p["rows"] * p["cols"] * 4
+        R, W = unit * p["reads"], unit * p["writes"]
+        rows.append(([R, W, min(R, W)], r.measured_ns()))
+    a = np.array([x for x, _ in rows], dtype=float)
+    t = np.array([y for _, y in rows])
+    # relative least squares: divide each equation by its measured time
+    coef, *_ = np.linalg.lstsq(a / t[:, None], np.ones(len(t)), rcond=None)
+    inv_r, inv_w, turn = coef
+    return {"bw_read_GBps": 1 / inv_r, "bw_write_GBps": 1 / inv_w, "turnaround_ns_per_byte": turn}
 
 
 def main(p1, p3b, p3c, out_json):
@@ -59,12 +81,10 @@ def main(p1, p3b, p3c, out_json):
     fit_recs = [r for r in everything if r.raw["kernel"] in FIT]
     check = [r for r in everything if r.raw["kernel"] in CHECK]
 
-    # x = (bw_read GB/s, bw_write GB/s, turnaround ps/byte, issue ns, mix ns, read / write latency
-    # adjustment ns); start from the previous fit.
-    loss = lambda x: float(np.sum(errors(fit_recs, params_of(read_ns, write_ns, x)) ** 2))  # noqa: E731
-    res = minimize(loss, [730.0, 672.0, 0.25, 12.8, 75.0, 0.0, 0.0], method="Nelder-Mead",
-                   options={"xatol": 0.05, "fatol": 1e-8, "maxiter": 900})
-    dma = params_of(read_ns, write_ns, res.x)
+    sustained = sustained_fit([r for r in r3c if r.raw["kernel"] == "dma_stream"])
+    loss = lambda x: float(np.sum(errors(fit_recs, params_of(read_ns, write_ns, sustained, x)) ** 2))  # noqa: E731
+    res = minimize(loss, [12.0, 80.0], method="Nelder-Mead", options={"xatol": 0.05, "fatol": 1e-8, "maxiter": 300})
+    dma = params_of(read_ns, write_ns, sustained, res.x)
     fit_err, check_err = errors(fit_recs, dma), errors(check, dma)
     out = {
         "dma": dma,
@@ -86,4 +106,7 @@ def main(p1, p3b, p3c, out_json):
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:5])
+    from concurrent.futures import ProcessPoolExecutor
+
+    with ProcessPoolExecutor(max_workers=max(1, (os.cpu_count() or 2) - 2)) as POOL:
+        main(*sys.argv[1:5])

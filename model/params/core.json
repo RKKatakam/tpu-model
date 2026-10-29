@@ -20,12 +20,12 @@
     "work": {
      "permute": {
       "occupancy": 1,
-      "latency": 106.015625,
+      "latency": 103.18359375,
       "results": 1
      },
      "xlane": {
       "occupancy": 1,
-      "latency": 107.03125,
+      "latency": 101.54296875,
       "results": 1
      }
     },
@@ -52,7 +52,8 @@
     "push_cycles_f32": 1.9998908194247633,
     "push_cycles_xpose": 7.9125000000000005
    }
-  }
+  },
+  "issue_lead": 0.0
  },
  "fit_report": {
   "valu_latency": {
@@ -66,12 +67,12 @@
   "xlu": {
    "permute": {
     "occupancy": 1,
-    "latency": 106.015625,
+    "latency": 103.18359375,
     "results": 1
    },
    "xlane": {
     "occupancy": 1,
-    "latency": 107.03125,
+    "latency": 101.54296875,
     "results": 1
    }
   },
@@ -141,6 +142,7 @@
    "mxu_dot__f32xf32_64_128_128_x16": 0.009671091141297161,
    "mxu_dot__f32xf32_8_128_128_x16": -0.014788960097964488
   },
+  "sld_latency_if_result_latency": 7,
   "sld_err": {
    "sld_chain__n256": 0.00310645563924683,
    "sld_chain__n4096": 0.00037973388298007116
@@ -191,14 +193,13 @@
    "vop_chain__mul_nv1_k1024": -0.00024384296513046966,
    "vop_chain__mul_nv1_k256": -0.0009718172983479434,
    "vop_chain__mul_nv8_k128": -0.0018832391713747842,
-   "vop_chain__roll_lane_nv1_k1024": 7.300735549109483e-05,
-   "vop_chain__roll_lane_nv1_k256": -0.00014597474636890428,
-   "vop_chain__roll_lane_nv8_k128": 0.041420979835480765,
-   "vop_chain__sum_lane_nv1_k1024": 0.000199731028881045,
-   "vop_chain__sum_lane_nv1_k256": 0.0,
-   "vop_chain__sum_lane_nv8_k128": 0.08276692155196819
-  },
-  "sld_latency_if_result_latency": 7
+   "vop_chain__roll_lane_nv1_k1024": -0.026392159010020233,
+   "vop_chain__roll_lane_nv1_k256": -0.026603897525728004,
+   "vop_chain__roll_lane_nv8_k128": 0.015032394263667426,
+   "vop_chain__sum_lane_nv1_k1024": -0.04968864151831087,
+   "vop_chain__sum_lane_nv1_k256": -0.04987575434859781,
+   "vop_chain__sum_lane_nv8_k128": 0.033028887000849716
+  }
  },
  "provenance": {
   "sources": [

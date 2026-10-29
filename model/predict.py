@@ -90,7 +90,7 @@ def load_records(batch_dir):
 def load_core(path="model/params/core.json"):
     with open(path) as f:
         c = json.load(f)["core"]
-    return CoreParams(latency=c["latency"], units=c["units"])
+    return CoreParams(latency=c["latency"], units=c["units"], issue_lead=c.get("issue_lead", 0.0))
 
 
 def load_dma(path="model/params/dma.json"):

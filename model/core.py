@@ -6,7 +6,8 @@ every unit it needs can accept work (in-order VLIW with interlocks, HARDWARE_FAC
 FIFO units (MXU, XLU, EUP) take work ops and return results through `vpop.*`:
 - work op on unit u starts when u is free, occupies it `occupancy` cycles, and queues
   `results` entries that become poppable `latency` (+ j * `interval`) cycles after start;
-- a pop waits for its unit's oldest entry; the popped vreg is ready `pop_latency` later.
+- a pop waits for its unit's oldest entry; the popped vreg is ready `pop_latency` later. With
+  `nonblocking_pop` the pop issues at once and only readers of its vreg wait for the entry.
 MXU weights: `vmatpush.<msr>` streams into staging register msr (one push path per MXU,
 `push_cycles` each, `push_cycles_f32` for f32 weights, which take two pushes per bf16 one,
 `push_cycles_xpose` for transposed bf16 weights); a
@@ -25,6 +26,7 @@ class CoreParams:
     latency: dict = field(default_factory=dict)  # mnemonic prefix -> result latency (cycles)
     default_latency: int = 1
     units: dict = field(default_factory=dict)  # unit class -> params, see classify()
+    issue_lead: float = 0.0  # cycles the front end may run ahead of queued vector ops (Scoreboard)
 
 
 def _longest_prefix(mnemonic, table, default):
@@ -54,6 +56,11 @@ def classify(mnemonic):
     return None
 
 
+def _mclass(mnemonic):
+    """Mnemonic without unit index, for attribution ('vpop.f32.mrf.mxu2' -> 'vpop.f32.mrf')."""
+    return re.sub(r"\.(mxu|xlu)\d+$", "", mnemonic)
+
+
 def _work_key(cls, mnemonic):
     """Sub-key selecting per-op parameters inside a unit class."""
     if cls == "mxu":
@@ -61,13 +68,6 @@ def _work_key(cls, mnemonic):
     if cls == "xlu":
         return "xlane" if ".xlane" in mnemonic else "permute"
     return "default"
-
-
-@dataclass
-class _Info:
-    srcs: tuple
-    dests: tuple  # (vreg, latency, is_pop)
-    unit_ops: tuple  # (cls, uid, role, mnemonic)
 
 
 class Units:
@@ -92,10 +92,13 @@ class Units:
             return t
         if role == "push":
             return max(t, self.push_busy.get(key, 0.0))
+        if self.p[cls].get("nonblocking_pop"):
+            return t
         q = self.fifo.get(key)
         return max(t, q[0]) if q else t
 
     def commit(self, cls, uid, role, mnemonic, t):
+        """Returns, for a pop, the time its result reaches the register file (else None)."""
         key = (cls, uid)
         if role == "work":
             wp = self._wp(cls, mnemonic)
@@ -116,16 +119,56 @@ class Units:
             self.staged[(key, msr)] = done
         else:
             q = self.fifo.get(key)
-            if q:
-                q.pop(0)
+            head = q.pop(0) if q else t
+            return max(t, head) + self.p[cls]["pop_latency"]
+        return None
+
+
+def slot_of(m):
+    """Issue queue of a vector op; None for scalar-side ops (run by the front end)."""
+    if m.startswith("vpop") and m != "vpop.sfrf":
+        return "pop"
+    if m.startswith(("vmatmul", "vmatpush")):
+        return "mxu"
+    if re.search(r"\.xlu\d+$", m):
+        return "xlu"
+    if m.startswith("vld"):
+        return "vld"
+    if m.startswith("vst"):
+        return "vst"
+    if m.startswith(("vexp", "vlog", "vrcp", "vrsqrt", "vtanh", "vpow", "vsigmoid")):
+        return "eup"
+    if m.startswith("v") and not m.startswith(("vsync", "vnop")):
+        return "valu"
+    return None
+
+
+@dataclass
+class _Bundle:
+    groups: dict  # slot -> [(vreg srcs, unit op or None, (dest, latency, producer) or None, dest reg)]
+    scalar_srcs: tuple  # (sreg, extra lag)
+    scalar_dests: tuple  # (sreg, latency, producer)
+    dma_start: bool
 
 
 class Scoreboard:
+    """Vector ops wait in per-slot in-order queues (pop, mxu, xlu, vld, vst, eup, valu); a slot starts
+    one bundle's ops per cycle once their registers and units are ready. The scalar front end
+    dispatches a bundle at most `issue_lead` cycles before its latest-starting vector op
+    (issue_lead 0 = whole bundles issue in order) and stalls on scalar dependencies; a DMA start
+    waits for queued vector stores."""
+
     def __init__(self, params):
         self.p = params
+        self.lead = params.issue_lead
         self.ready_at = {}
+        self.producer = {}  # reg -> mnemonic class of its last writer (stall attribution)
+        self.stall_by = {}  # cause -> front-end stall cycles
         self.cache = {}
         self.units = Units(params.units)
+        self.slot_free = {}
+        self.done_max = 0.0
+        self.pending = None
         # Scalar timing, off unless calibrated: `sld` = load-to-use latency; `saddr` = extra cycles
         # before a freshly written scalar register can serve as an sld/sst address.
         self.sld_latency = params.latency.get("sld", 1)
@@ -135,39 +178,88 @@ class Scoreboard:
     def info(self, b):
         inf = self.cache.get(b.index)
         if inf is None:
-            srcs, dests, unit_ops = set(), [], []
+            groups, ssrcs, sdests = {}, set(), []
             for op in b.ops:
-                is_mem = op.mnemonic.startswith(("sld", "sst"))
-                for i, a in enumerate(op.args):
-                    srcs.update((r, 0) for r in VREG.findall(a))
+                m = op.mnemonic
+                slot = slot_of(m)
+                if slot is None:
                     if self.scalar:
-                        lag = self.saddr if is_mem and a.lstrip().startswith("[") else 0
-                        srcs.update((r, lag) for r in SREG.findall(a))
-                c = classify(op.mnemonic)
-                if c and c[0] in self.p.units:
-                    unit_ops.append((*c, op.mnemonic))
+                        is_mem = m.startswith(("sld", "sst"))
+                        for a in op.args:
+                            lag = self.saddr if is_mem and a.lstrip().startswith("[") else 0
+                            ssrcs.update((r, lag) for r in SREG.findall(a))
+                        if op.dest_reg and op.dest_reg[0] == "s":
+                            sdests.append((op.dest_reg, self.sld_latency if m.startswith("sld") else 1, _mclass(m)))
+                    continue
+                srcs = set()
+                for a in op.args:
+                    srcs.update(VREG.findall(a))
+                c = classify(m)
+                unit = (*c, m) if c and c[0] in self.p.units else None
+                dest = None
                 if op.dest_reg and op.dest_reg[0] == "v":
-                    if c and c[2] == "pop" and c[0] in self.p.units:
-                        lat = self.p.units[c[0]]["pop_latency"]
+                    if unit and unit[2] == "pop":
+                        lat = self.p.units[unit[0]]["pop_latency"]
                     else:
-                        lat = _longest_prefix(op.mnemonic, self.p.latency, self.p.default_latency)
-                    dests.append((op.dest_reg, lat))
-                elif self.scalar and op.dest_reg and op.dest_reg[0] == "s":
-                    dests.append((op.dest_reg, self.sld_latency if op.mnemonic.startswith("sld") else 1))
-            inf = self.cache[b.index] = _Info(tuple(srcs), tuple(dests), tuple(unit_ops))
+                        lat = _longest_prefix(m, self.p.latency, self.p.default_latency)
+                    dest = (op.dest_reg, lat, _mclass(m))
+                groups.setdefault(slot, []).append((tuple(srcs), unit, dest, op.dest_reg))
+            dma = any(op.mnemonic.startswith("dma.") and op.mnemonic != "dma.done.wait" for op in b.ops)
+            inf = self.cache[b.index] = _Bundle(groups, tuple(ssrcs), tuple(sdests), dma)
         return inf
 
     def issue_time(self, b, t):
         inf = self.info(b)
-        for r, lag in inf.srcs:
-            t = max(t, self.ready_at.get(r, 0.0) + lag)
-        for cls, uid, role, m in inf.unit_ops:
-            t = max(t, self.units.ready(cls, uid, role, m, t))
-        return t
+        t0, cause = t, None
+        for r, lag in inf.scalar_srcs:
+            tr = self.ready_at.get(r, 0.0) + lag
+            if tr > t:
+                t, cause = tr, "wait " + self.producer.get(r, "?")
+        if inf.dma_start and self.slot_free.get("vst", 0.0) > t:
+            t, cause = self.slot_free["vst"], "dma start waits for vector stores"
+        floor, latest, latest_cause = {}, t, None
+        for slot, ops in inf.groups.items():
+            g, c = max(t, self.slot_free.get(slot, 0.0)), None
+            for srcs, unit, dest, _ in ops:
+                for r in srcs:
+                    tr = self.ready_at.get(r, 0.0)
+                    if tr > g:
+                        g, c = tr, "wait " + self.producer.get(r, "?")
+                if unit:
+                    tu = self.units.ready(*unit, g)
+                    if tu > g:
+                        g, c = tu, f"unit {unit[0]} {unit[2]} ({_mclass(unit[3])})"
+            floor[slot] = g
+            if g > latest:
+                latest, latest_cause = g, c
+        d = max(t, latest - self.lead)
+        if d > t:
+            cause = latest_cause
+        if d > t0:
+            self.stall_by[cause] = self.stall_by.get(cause, 0.0) + d - t0
+        self.pending = {slot: max(d, g) for slot, g in floor.items()}
+        return d
 
     def commit(self, b, t):
         inf = self.info(b)
-        for r, lat in inf.dests:
+        for r, lat, m in inf.scalar_dests:
             self.ready_at[r] = t + lat
-        for cls, uid, role, m in inf.unit_ops:
-            self.units.commit(cls, uid, role, m, t)
+            self.producer[r] = m
+        for slot, ops in inf.groups.items():
+            g = self.pending[slot]
+            self.slot_free[slot] = g + 1
+            self.done_max = max(self.done_max, g + 1)
+            for srcs, unit, dest, dreg in ops:
+                if dest:
+                    self.ready_at[dest[0]] = g + dest[1]
+                    self.producer[dest[0]] = dest[2]
+                    self.done_max = max(self.done_max, g + dest[1])
+                if unit:
+                    done = self.units.commit(*unit, g)
+                    if done is not None and dreg:
+                        self.ready_at[dreg] = max(self.ready_at.get(dreg, 0.0), done)
+                        self.done_max = max(self.done_max, done)
+
+    def drain(self):
+        """Cycle by which every queued vector op has finished."""
+        return self.done_max

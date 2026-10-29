@@ -232,6 +232,11 @@ xprof 2.24.1, Python 3.12.3 (see `VERSIONS.lock`).
   most 8 cycles ahead (`issue_lead`). Fitted on core microbenchmarks (every one within 2.9%; strictly
   in-order issue leaves the 8-32-wide XLU chains 4-9% slow); the queue structure is inferred.
 - H13. Scalar divide (`sdivrem` -> `spop.drf`) has no stall beyond the compiler's spacing. Unmeasured.
+- H14. Pipelined writes complete faster than start-then-wait writes imply (32-row write-only stream:
+  <= ~426 ns issue-to-done vs ~560 ns per sequential copy; replay +21%), and 1-read 1-write streams
+  with moderate core work run slower than the replay (-17..-21%). Tested and rejected (fit does not
+  improve them or breaks other DMA benchmarks): one shared queue, posted write completion,
+  per-direction start-up adjustment, semaphore wake-up cost paid only on blocking waits.
 - H10. DMA queueing structure: one FIFO per direction, heads interleaving (`model/dma.py:DirFifoHbm`).
   Chosen because it fits F14/F15 better than processor sharing or one FIFO; not observed directly.
 - H6. Meaning of each bundle mnemonic and slot.

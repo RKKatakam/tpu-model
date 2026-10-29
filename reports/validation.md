@@ -8,7 +8,7 @@ Error = predicted / measured - 1 on the median device time. XLA = `estimated_cyc
 |---|---|---|---|---|---|---|---|---|---|
 | compute | 38 | 2.3% | 4.7% | 12.6% | 9.7% | 18.9% | 19.3% | 35/38 | 37/38 |
 | streaming | 9 | 2.3% | 8.0% | 11.9% | 31.4% | 52.2% | 52.3% | 6/9 | 8/9 |
-| latency | 16 | 7.7% | 12.6% | 15.3% | - | - | - | 4/16 | 9/16 |
+| latency | 16 | 7.7% | 12.5% | 12.6% | - | - | - | 5/16 | 10/16 |
 
 ## Per-class error, split = calib
 
@@ -16,7 +16,7 @@ Error = predicted / measured - 1 on the median device time. XLA = `estimated_cyc
 |---|---|---|---|---|---|---|---|---|---|
 | compute | 40 | 1.3% | 7.3% | 15.4% | 2.1% | 20.1% | 25.8% | 35/40 | 38/40 |
 | streaming | 16 | 1.1% | 11.4% | 19.7% | 44.2% | 72.9% | 73.2% | 14/16 | 14/16 |
-| latency | 19 | 5.7% | 14.4% | 20.5% | - | - | - | 8/19 | 13/19 |
+| latency | 19 | 5.5% | 12.8% | 19.8% | - | - | - | 9/19 | 14/19 |
 
 ## Per-class error, supplementary kernels (flash), all splits
 
@@ -209,11 +209,11 @@ Error = predicted / measured - 1 on the median device time. XLA = `estimated_cyc
 | splash__s4096_local_q256_kv256_c256 | compute | valid | 214.81 | +3.8% | +nan% |
 | splash__s4096_local_q512_kv1024_c512 | compute | valid | 169.45 | +1.1% | +nan% |
 | splash__s4096_local_q512_kv512_c512 | compute | valid | 134.03 | +0.9% | +nan% |
-| tgmm__m4096_k1024_n1024_g8_t128_128_128 | latency | calib | 1061.05 | -14.0% | +nan% |
-| tgmm__m4096_k1024_n1024_g8_t256_256_256 | latency | valid | 211.20 | -5.9% | +nan% |
+| tgmm__m4096_k1024_n1024_g8_t128_128_128 | latency | calib | 1061.05 | -2.8% | +nan% |
+| tgmm__m4096_k1024_n1024_g8_t256_256_256 | latency | valid | 211.20 | -4.7% | +nan% |
 | tgmm__m4096_k1024_n1024_g8_t512_512_1024 | latency | calib | 109.45 | +4.3% | +nan% |
-| tgmm__m4096_k1024_n1024_g8_t512_512_512 | latency | valid | 122.48 | -1.8% | +nan% |
-| tgmm__m8192_k512_n2048_g16_t128_128_128 | latency | valid | 2379.98 | -15.3% | +nan% |
-| tgmm__m8192_k512_n2048_g16_t256_256_256 | latency | calib | 544.21 | -20.5% | +nan% |
+| tgmm__m4096_k1024_n1024_g8_t512_512_512 | latency | valid | 122.48 | -1.6% | +nan% |
+| tgmm__m8192_k512_n2048_g16_t128_128_128 | latency | valid | 2379.98 | -8.7% | +nan% |
+| tgmm__m8192_k512_n2048_g16_t256_256_256 | latency | calib | 544.21 | -19.8% | +nan% |
 | tgmm__m8192_k512_n2048_g16_t512_512_1024 | latency | calib | 249.17 | +3.4% | +nan% |
-| tgmm__m8192_k512_n2048_g16_t512_512_512 | latency | calib | 272.02 | -5.7% | +nan% |
+| tgmm__m8192_k512_n2048_g16_t512_512_512 | latency | calib | 272.02 | -5.6% | +nan% |

@@ -245,7 +245,8 @@ class Machine:
                     flag, need = self.val(op.args[0]), self.val(op.args[1])
                     dma_model.project(t)
                     ready = self._flag_ready_time(inflight, flag, need, t)
-                    if ready > t:
+                    if ready > t:  # a core that actually blocks pays the semaphore wake-up
+                        ready += getattr(dma_model, "wake_cycles", 0.0)
                         key = (pc, op.comment[:40])
                         trace.stalls[key] = trace.stalls.get(key, 0.0) + (ready - t)
                         trace.stall_cycles += ready - t

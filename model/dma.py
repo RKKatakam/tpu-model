@@ -51,10 +51,11 @@ class TableHbm:
 
 
 class _Xfer:
-    __slots__ = ("d", "ready", "left", "cap", "write")
+    __slots__ = ("d", "ready", "left", "cap", "write", "post")
 
     def __init__(self, d, ready, nbytes, cap, write):
         self.d, self.ready, self.left, self.cap, self.write = d, ready, float(nbytes), cap, write
+        self.post = math.inf  # posted completion time (writes), if earlier than the data finishing
 
 
 class SharedHbm:
@@ -85,7 +86,10 @@ class SharedHbm:
         latency = max(0.0, self.curves[write](nbytes) - nbytes / self.bw[write] - self.lat_adj[write])
         if any(x.write != write and x.left > 0 for x in self.active):
             latency += self.mix_cycles
-        self.active.append(_Xfer(d, start + latency, nbytes, math.inf, write))
+        x = _Xfer(d, start + latency, nbytes, math.inf, write)
+        if write and getattr(self, "bw_post", None):
+            x.post = x.ready + nbytes / self.bw_post
+        self.active.append(x)
         self.project(t)
 
     def project(self, t):
@@ -95,7 +99,7 @@ class SharedHbm:
         for x, ready, left in state:
             x.ready, x.left = ready, left
         for x in self.active:
-            x.d.done = done[id(x)]
+            x.d.done = min(done[id(x)], x.post)
 
     def _rates(self, xs, now):
         moving = [x for x in xs if x.ready <= now and x.left > 0]
@@ -147,7 +151,7 @@ class SharedHbm:
         finished = self._run(self.active, self.now, until=t)
         for x in list(self.active):
             if id(x) in finished:
-                x.d.done = finished[id(x)]
+                x.d.done = min(finished[id(x)], x.post)
         self.now = t
 
 
@@ -160,13 +164,20 @@ class DirFifoHbm(SharedHbm):
     direction is in flight pays `mix_cycles` more start-up."""
 
     def __init__(self, read_cycles, write_cycles, bw_read, bw_write, turnaround, issue_cycles,
-                 mix_cycles=0.0, read_lat_adj=0.0, write_lat_adj=0.0, single_queue=False):
+                 mix_cycles=0.0, read_lat_adj=0.0, write_lat_adj=0.0, single_queue=False, bw_post=None,
+                 wake_cycles=0.0):
         super().__init__(read_cycles, write_cycles, bw_read, bw_write, None, issue_cycles, mix_cycles)
         self.single_queue = single_queue
+        # Semaphore wake-up: paid by the core only when a dma.done.wait actually blocks (Machine).
+        # The single-stream curves come from start-then-wait loops, so they include it once per copy.
+        self.wake_cycles = wake_cycles
+        # Posted writes: the semaphore fires when the data has left VMEM (at bw_post) while HBM keeps
+        # absorbing it at bw_write; None = completion when the last byte is written.
+        self.bw_post = bw_post
         self.pair_rate = 1.0 / (1.0 / bw_read + 1.0 / bw_write + turnaround)
         # start-up latency = single-stream time - bytes / bw - adj (adj fitted: back-to-back
         # per-copy times include more than a pipelined transfer waits for)
-        self.lat_adj = {False: read_lat_adj, True: write_lat_adj}
+        self.lat_adj = {False: read_lat_adj + wake_cycles, True: write_lat_adj + wake_cycles}
 
     single_queue = False  # one FIFO for both directions (set by DirFifoHbm(..., single_queue=True))
 

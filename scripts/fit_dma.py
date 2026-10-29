@@ -5,7 +5,8 @@ Read curve: bench dma_seq (phase 1). Write curve: bench dma_out (phase 3b). Both
 = (t(8 copies) - t(1 copy)) / 7. Sustained read and write bandwidth
 and the read/write overlap cost come in closed form from the 128- and 512-row dma_stream runs
 (HARDWARE_FACTS F14: time = R/bw_read + W/bw_write + turnaround * min(R, W)). Per-DMA issue cost,
-mixed-direction start-up and per-direction start-up adjustments are then fitted on dma_stream,
+mixed-direction start-up, a write start-up adjustment and the semaphore wake-up cost (paid only
+when the core actually blocks on a wait; removed from the curve-implied latency) are fitted on dma_stream,
 dma_conc, dma_inout, dma_seq, dma_out and dma_compute (streams with core work, replayed with the
 core scoreboard); dma_strided is reported as a check.
 """
@@ -40,9 +41,9 @@ def per_copy_table(recs, kernel, size_of):
 
 
 def params_of(read_ns, write_ns, sustained, x):
-    issue_ns, mix_ns, read_adj, write_adj = x
+    issue_ns, mix_ns, write_adj, wake_ns = x
     return {"engine": "DirFifoHbm", "read_table_ns": read_ns, "write_table_ns": write_ns, **sustained,
-            "issue_ns": issue_ns, "mix_ns": mix_ns, "read_lat_adj_ns": read_adj, "write_lat_adj_ns": write_adj}
+            "issue_ns": issue_ns, "mix_ns": mix_ns, "write_lat_adj_ns": write_adj, "wake_ns": wake_ns}
 
 
 def _cycles(args):
@@ -88,7 +89,7 @@ def main(p1, p3b, p3c, out_json, *more):
 
     sustained = sustained_fit([r for r in r3c if r.raw["kernel"] == "dma_stream"])
     loss = lambda x: float(np.sum(errors(fit_recs, params_of(read_ns, write_ns, sustained, x)) ** 2))  # noqa: E731
-    res = minimize(loss, [11.0, 85.0, 0.0, 0.0], method="Nelder-Mead", options={"xatol": 0.05, "fatol": 1e-8, "maxiter": 500})
+    res = minimize(loss, [11.0, 85.0, 0.0, 40.0], method="Nelder-Mead", options={"xatol": 0.05, "fatol": 1e-8, "maxiter": 500})
     dma = params_of(read_ns, write_ns, sustained, res.x)
     fit_err, check_err = errors(fit_recs, dma), errors(check, dma)
     out = {

@@ -109,6 +109,8 @@ def dma_model(dma, clock_ghz):
             dma["turnaround_ns_per_byte"] * clock_ghz, dma["issue_ns"] * clock_ghz,
             dma.get("mix_ns", 0.0) * clock_ghz, dma.get("read_lat_adj_ns", 0.0) * clock_ghz,
             dma.get("write_lat_adj_ns", 0.0) * clock_ghz, dma.get("single_queue", False),
+            dma["bw_post_GBps"] / clock_ghz if dma.get("bw_post_GBps") else None,
+            dma.get("wake_ns", 0.0) * clock_ghz,
         )
     return {"SharedHbm": SharedHbm, "FifoHbm": FifoHbm}[engine](
         cyc(dma["read_table_ns"]), cyc(dma["write_table_ns"]),

@@ -27,6 +27,7 @@ class CoreParams:
     default_latency: int = 1
     units: dict = field(default_factory=dict)  # unit class -> params, see classify()
     issue_lead: float = 0.0  # cycles the front end may run ahead of queued vector ops (Scoreboard)
+    overlay: dict = None  # instruction overlays (model/overlay.py); None = every program fits
 
 
 def _longest_prefix(mnemonic, table, default):
@@ -212,13 +213,20 @@ class Scoreboard:
         # before a freshly written scalar register can serve as an sld/sst address.
         self.sld_latency = params.latency.get("sld", 1)
         self.saddr = params.latency.get("saddr", 0)
-        self.scalar = "sld" in params.latency or "saddr" in params.latency
+        # scalar result latencies other than sld (mnemonic prefix -> cycles, default 1)
+        self.scalar_latency = params.latency.get("scalar", {})
+        self.scalar = "sld" in params.latency or "saddr" in params.latency or bool(self.scalar_latency)
         # VMEM read-after-write: a vld of an address stored within `vmem_raw` cycles waits (phase3k)
         self.vmem_raw = params.latency.get("vmem_raw", 0)
         # cycles an op holds its issue slot (default 1): e.g. sublane-shuffle / masked VMEM accesses
         self.occ = params.latency.get("slot_occupancy", {})
         self.last_store = {}
         self.mem_addrs = {}  # op index in the current bundle -> VMEM address (set by the Machine)
+        # Decoupled front end (0 = off): bundles without vector ops keep issuing while up to
+        # `vector_queue` vector bundles wait for their operands; vector bundles stay in order.
+        self.vq = int(params.latency.get("vector_queue", 0))
+        self.vq_issued = []  # vector issue times of the last `vq` vector bundles
+        self.vec_next = 0.0
 
     def info(self, b):
         inf = self.cache.get(b.index)
@@ -237,7 +245,8 @@ class Scoreboard:
                 if slot is None:
                     if self.scalar:
                         if op.dest_reg and op.dest_reg[0] == "s":
-                            sdests.append((op.dest_reg, self.sld_latency if m.startswith("sld") else 1, _mclass(m)))
+                            lat = self.sld_latency if m.startswith("sld") else _longest_prefix(m, self.scalar_latency, 1)
+                            sdests.append((op.dest_reg, lat, _mclass(m)))
                     continue
                 srcs = set()
                 for a in op.args:
@@ -258,6 +267,21 @@ class Scoreboard:
         return inf
 
     def issue_time(self, b, t):
+        """Cycle the front end dispatches bundle `b` (arriving at `t`); its vector ops issue at the
+        slot times left in self.pending."""
+        if not self.vq:
+            return self._issue(b, t)
+        inf = self.info(b)
+        if not inf.groups:
+            return self._issue(b, t)
+        if len(self.vq_issued) >= self.vq:
+            t = max(t, self.vq_issued[-self.vq])
+        d = self._issue(b, max(t, self.vec_next))
+        self.vec_next = d + 1
+        self.vq_issued = (self.vq_issued + [d])[-self.vq:]
+        return d if inf.dma_start else t  # the DMA engine takes descriptors in program order
+
+    def _issue(self, b, t):
         inf = self.info(b)
         t0, cause = t, None
         for r, lag in inf.scalar_srcs:

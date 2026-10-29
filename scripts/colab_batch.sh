@@ -60,9 +60,11 @@ fetch_parts() {
 lost=0 final_seen=0
 while kill -0 "$runner" 2>/dev/null; do
   sleep 120
-  if ! limit 60 colab sessions 2>/dev/null | grep -q "^\[$session\]"; then
+  # `colab sessions` has listed a live session as missing (phase3s lost 4 configs that way), so
+  # ask for this session's status and give up only after 4 misses in a row (8 min).
+  if ! limit 60 colab status -s "$session" 2>/dev/null | grep -q "Status:"; then
     lost=$((lost + 1))
-    if [ "$lost" -ge 2 ]; then echo "[colab_batch] session $session is gone; stopping" >&2; kill "$runner"; break; fi
+    if [ "$lost" -ge 4 ]; then echo "[colab_batch] session $session is gone; stopping" >&2; kill "$runner"; break; fi
     continue
   fi
   lost=0

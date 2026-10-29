@@ -1,6 +1,7 @@
 """Glue: record directory -> parsed program -> replay -> predicted device time."""
 
 import json
+import math
 import os
 import re
 import statistics
@@ -113,7 +114,8 @@ def load_records(batch_dir):
 def load_core(path="model/params/core.json"):
     with open(path) as f:
         c = json.load(f)["core"]
-    return CoreParams(latency=c["latency"], units=c["units"], issue_lead=c.get("issue_lead", 0.0))
+    return CoreParams(latency=c["latency"], units=c["units"], issue_lead=c.get("issue_lead", 0.0),
+                      overlay=c.get("overlay"))
 
 
 def load_dma(path="model/params/dma.json"):
@@ -135,6 +137,7 @@ def dma_model(dma, clock_ghz):
             dma["bw_post_GBps"] / clock_ghz if dma.get("bw_post_GBps") else None,
             dma.get("wake_ns", 0.0) * clock_ghz, dma.get("pause_latency", False),
             dma.get("read_tail_ns", 0.0) * clock_ghz, dma.get("write_tail_ns", 0.0) * clock_ghz,
+            dma.get("pause_cap_ns", math.inf) * clock_ghz,
         )
     return {"SharedHbm": SharedHbm, "FifoHbm": FifoHbm}[engine](
         cyc(dma["read_table_ns"]), cyc(dma["write_table_ns"]),
@@ -151,7 +154,7 @@ def simulate(program, params, core=None, dma=None, operands=None):
     else:
         engine = dma_model(dma, params.clock_ghz)
     sb = Scoreboard(core) if core is not None else None
-    return Machine(program, core=sb, operands=operands).run(engine)
+    return Machine(program, core=sb, operands=operands, overlay=core.overlay if core is not None else None).run(engine)
 
 
 def predict_ns(trace, params):

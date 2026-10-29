@@ -132,6 +132,19 @@ def check(kernel, params, program):
         expect(vec >= params["k"] * params["nv"], f"vector ops {vec} < k*nv={params['k'] * params['nv']} (folded?)")
         expect(not dma_ops(c), f"unexpected DMA ops {dma_ops(c)}")
         expect(not has_spill(program), "spills")
+    elif kernel == "pop_loop":
+        pop = "vpop.f32.mrf" if params["kind"] == "mxu" else "vpop.xlane"
+        expect(any(m.startswith(pop) for m in c), f"no {pop}: {sorted(m for m in c if m.startswith('vpop'))}")
+        expect(sum(v for m, v in c.items() if m.startswith("smul")) >= 1, "no scalar multiply")
+        expect(c["sbr.rel"] >= 2, f"branches={c['sbr.rel']} (want outer + inner loop)")
+    elif kernel == "pop_scalar":
+        pop = "vpop.f32.mrf" if params["kind"] == "mxu" else "vpop.xlane"
+        expect(any(m.startswith(pop) for m in c), f"no {pop}: {sorted(m for m in c if m.startswith('vpop'))}")
+        smul = sum(v for m, v in c.items() if m.startswith("smul"))
+        expect(smul >= params["n"], f"scalar multiplies {smul} < n={params['n']} (folded?)")
+        expect(c["sbr.rel"] >= (2 if params["n"] else 1), f"branches={c['sbr.rel']} (want loop + region)")
+        expect(not {m for m in dma_ops(c) if not m.endswith("_to_smem")} - {"dma.vmem_to_hbm", "dma.done.wait"},
+               f"dma ops {dma_ops(c)}")
     elif kernel == "xpose_chain":
         n = sum(v for m, v in c.items() if m.startswith("vxpose"))
         expect(n >= params["k"] * params["nv"], f"vxpose ops {n} want >= {params['k'] * params['nv']}")

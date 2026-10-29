@@ -847,7 +847,101 @@ def vop_chain2(params):
     return _no_dma_call(kernel, [pltpu.VMEM((8 * (nv + 1), 128), dt)], "k_vop_chain2")
 
 
+def pop_scalar(params):
+    """`trip` iterations of: a vector result pop (MXU matmul or cross-lane max), `m` dependent vadds
+    on it, a store, then `n` rounds of a dependent scalar multiply-add in a separate region (a cond on
+    a run-time table value that is always true).
+
+    isolates: whether scalar-only bundles issue while queued vector bundles wait on a pop (a
+    decoupled front end) and how many vector bundles can queue.
+    """
+    kind, n, m, trip = params["kind"], params["n"], params["m"], params["trip"]
+
+    def kernel(tbl_ref, x_hbm, o_ref, buf, ws):
+        def scal(s):
+            for _ in range(n):
+                s = s * tbl_ref[3] + tbl_ref[1]
+            return s
+
+        def body(i, s):
+            v = buf[...]
+            if kind == "mxu":
+                v = jnp.dot(v.astype(jnp.bfloat16), ws[...], preferred_element_type=jnp.float32)
+            else:
+                v = v - jnp.max(v, axis=1, keepdims=True)
+            for _ in range(m):
+                v = v + 0.5
+            buf[...] = v
+            return jax.lax.cond(tbl_ref[0] > i, scal, lambda s: s, s)
+
+        s = jax.lax.fori_loop(0, trip, body, tbl_ref[2])
+        o_ref[...] = jnp.zeros((8, 128), jnp.float32) + s.astype(jnp.float32)
+
+    grid_spec = pltpu.PrefetchScalarGridSpec(
+        num_scalar_prefetch=1, grid=(1,), in_specs=[HBM],
+        out_specs=pl.BlockSpec((8, 128), lambda i, tbl: (0, 0)),
+        scratch_shapes=[pltpu.VMEM((8, 128), jnp.float32), pltpu.VMEM((128, 128), jnp.bfloat16)],
+    )
+
+    def fn(tbl, x):
+        return pl.pallas_call(kernel, out_shape=jax.ShapeDtypeStruct((8, 128), jnp.float32),
+                              grid_spec=grid_spec, name="k_pop_scalar")(tbl, x)
+
+    specs = [jax.ShapeDtypeStruct((8,), jnp.int32), jax.ShapeDtypeStruct((8, 128), jnp.float32)]
+
+    def make_inputs(seed):
+        return [np.array([1 << 30, 3, 7, 5, 0, 0, 0, 0], np.int32), np.zeros((8, 128), np.float32)]
+
+    return fn, specs, make_inputs
+
+
+def pop_loop(params):
+    """`trip` iterations of: a vector result pop (MXU matmul or cross-lane max), `m` dependent vadds
+    on it, a store, then an inner loop of `n` (a run-time table value) dependent scalar multiply-adds.
+    Unlike pop_scalar's cond, which the compiler predicates and schedules around the matmul, the inner
+    loop is a real region boundary.
+
+    isolates: whether the front end runs scalar-only bundles while queued vector bundles wait on a
+    pop (decoupled issue), and how many vector bundles can queue.
+    """
+    kind, m, trip = params["kind"], params["m"], params["trip"]
+
+    def kernel(tbl_ref, x_hbm, o_ref, buf, ws):
+        def body(i, s):
+            v = buf[...]
+            if kind == "mxu":
+                v = jnp.dot(v.astype(jnp.bfloat16), ws[...], preferred_element_type=jnp.float32)
+            else:
+                v = v - jnp.max(v, axis=1, keepdims=True)
+            for _ in range(m):
+                v = v + 0.5
+            buf[...] = v
+            return jax.lax.fori_loop(0, tbl_ref[4], lambda j, s: s * tbl_ref[3] + tbl_ref[1], s)
+
+        s = jax.lax.fori_loop(0, trip, body, tbl_ref[2])
+        o_ref[...] = jnp.zeros((8, 128), jnp.float32) + s.astype(jnp.float32)
+
+    grid_spec = pltpu.PrefetchScalarGridSpec(
+        num_scalar_prefetch=1, grid=(1,), in_specs=[HBM],
+        out_specs=pl.BlockSpec((8, 128), lambda i, tbl: (0, 0)),
+        scratch_shapes=[pltpu.VMEM((8, 128), jnp.float32), pltpu.VMEM((128, 128), jnp.bfloat16)],
+    )
+
+    def fn(tbl, x):
+        return pl.pallas_call(kernel, out_shape=jax.ShapeDtypeStruct((8, 128), jnp.float32),
+                              grid_spec=grid_spec, name="k_pop_loop")(tbl, x)
+
+    specs = [jax.ShapeDtypeStruct((8,), jnp.int32), jax.ShapeDtypeStruct((8, 128), jnp.float32)]
+
+    def make_inputs(seed):
+        return [np.array([0, 3, 7, 5, params["n"], 0, 0, 0], np.int32), np.zeros((8, 128), np.float32)]
+
+    return fn, specs, make_inputs
+
+
 MICRO = {
+    "pop_loop": (pop_loop, "micro"),
+    "pop_scalar": (pop_scalar, "micro"),
     "vop_chain2": (vop_chain2, "micro"),
     "scoped_stream": (scoped_stream, "micro"),
     "kv_strided": (kv_strided, "micro"),

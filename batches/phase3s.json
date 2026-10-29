@@ -1,0 +1,248 @@
+{
+ "batch_id": "phase3s",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "valu_loop__imem_k4000_t4",
+   "kernel": "valu_loop",
+   "kernel_tag": "k_valu_loop",
+   "params": {
+    "k": 4000,
+    "nv": 8,
+    "trip": 4
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 3,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   },
+   "timeout_s": 2400
+  },
+  {
+   "record_id": "valu_loop__imem_k8000_t4",
+   "kernel": "valu_loop",
+   "kernel_tag": "k_valu_loop",
+   "params": {
+    "k": 8000,
+    "nv": 8,
+    "trip": 4
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 3,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   },
+   "timeout_s": 2400
+  },
+  {
+   "record_id": "valu_loop__imem_k12000_t4",
+   "kernel": "valu_loop",
+   "kernel_tag": "k_valu_loop",
+   "params": {
+    "k": 12000,
+    "nv": 8,
+    "trip": 4
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 3,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   },
+   "timeout_s": 2400
+  },
+  {
+   "record_id": "valu_loop__imem_k16000_t4",
+   "kernel": "valu_loop",
+   "kernel_tag": "k_valu_loop",
+   "params": {
+    "k": 16000,
+    "nv": 8,
+    "trip": 4
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 3,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   },
+   "timeout_s": 2400
+  },
+  {
+   "record_id": "valu_loop__imem_k20000_t4",
+   "kernel": "valu_loop",
+   "kernel_tag": "k_valu_loop",
+   "params": {
+    "k": 20000,
+    "nv": 8,
+    "trip": 4
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 3,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   },
+   "timeout_s": 2400
+  },
+  {
+   "record_id": "valu_loop__imem_k24000_t4",
+   "kernel": "valu_loop",
+   "kernel_tag": "k_valu_loop",
+   "params": {
+    "k": 24000,
+    "nv": 8,
+    "trip": 4
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 3,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   },
+   "timeout_s": 2400
+  },
+  {
+   "record_id": "valu_loop__imem_k32000_t4",
+   "kernel": "valu_loop",
+   "kernel_tag": "k_valu_loop",
+   "params": {
+    "k": 32000,
+    "nv": 8,
+    "trip": 4
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 3,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   },
+   "timeout_s": 2400
+  },
+  {
+   "record_id": "valu_loop__imem_k48000_t4",
+   "kernel": "valu_loop",
+   "kernel_tag": "k_valu_loop",
+   "params": {
+    "k": 48000,
+    "nv": 8,
+    "trip": 4
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 3,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   },
+   "timeout_s": 2400
+  },
+  {
+   "record_id": "valu_loop__imem_k16000_t1",
+   "kernel": "valu_loop",
+   "kernel_tag": "k_valu_loop",
+   "params": {
+    "k": 16000,
+    "nv": 8,
+    "trip": 1
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 3,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   },
+   "timeout_s": 2400
+  },
+  {
+   "record_id": "valu_loop__imem_k48000_t1",
+   "kernel": "valu_loop",
+   "kernel_tag": "k_valu_loop",
+   "params": {
+    "k": 48000,
+    "nv": 8,
+    "trip": 1
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 3,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   },
+   "timeout_s": 2400
+  },
+  {
+   "record_id": "valu_straight__imem_k16000",
+   "kernel": "valu_straight",
+   "kernel_tag": "k_valu_straight",
+   "params": {
+    "k": 16000,
+    "nv": 8
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 3,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   },
+   "timeout_s": 2400
+  },
+  {
+   "record_id": "valu_straight__imem_k48000",
+   "kernel": "valu_straight",
+   "kernel_tag": "k_valu_straight",
+   "params": {
+    "k": 48000,
+    "nv": 8
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 3,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   },
+   "timeout_s": 2400
+  }
+ ]
+}

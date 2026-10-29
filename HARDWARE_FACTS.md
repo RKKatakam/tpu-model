@@ -210,6 +210,55 @@ xprof 2.24.1, Python 3.12.3 (see `VERSIONS.lock`).
 - Result: 14715 vs 14492 cycles (128 tiles, 32 reps); 19132 vs 18909 (256 tiles).
 - Confidence: high for bf16 masked pushes.
 
+### F23. Vector ALU result latencies: most ops 2 cycles, select 1
+- Experiment: `vop_chain2` with nv=1 (latency) and nv=8 (issue rate), k=256 and 1024 rounds (phase3q).
+  Bundle checks confirm one op per round.
+- Result: 2 cycles per round for add/sub/mul (f32, s32, u32), shifts, max, ceil/floor, conversions,
+  pack/unpack. `cmp_select` (`where(v > c, v - c, v + c)`) takes 3 cycles per round, which is
+  max(vcmp, vsub 2) + vsel 1. So vsel = 1 and vcmp <= 2. The compiler schedules mask consumers one
+  bundle after a vcmp, and vcmp = 2 adds +9% to a calibration splash kernel with chunked masks, so
+  the model keeps vcmp at 1.
+- Unmeasured: logic ops (vand/vor/vxor), mask ops (vmand/vmor), vweird, vlaneseq; the bf16 select
+  chain folded at compile time.
+
+### F24. Scalar multiply (`smul.u32`) has a 2-cycle result latency
+- Experiment: `pop_scalar` (phase3t): a chain of `s = s * c + d` (smul.u32 then sadd.s32) of n
+  rounds, n = 64, 128, 256. The bundle dump shows the compiler issuing each round in 2 bundles.
+- Result: 3.0 cycles per round (slope over n; intercepts agree for MXU and XLU variants). With sadd
+  at 1, smul is 2.
+- Confidence: high for the smul -> sadd pair. Other scalar ops are assumed to take 1 cycle.
+
+### F25. Programs over ~64k bundles run from instruction overlays
+- Experiment: VALU loops and straight-line code with 8k-96k bundles under sync-flag tracing
+  (`TRACE_COMPUTE_AND_SYNC`, phase3s/phase3t). The trace has "sequencer_overlay" (flag 511)
+  SyncWait / SyncNoWait / Set events.
+- Results:
+  - Up to 64,011 bundles: no overlay events inside the kernel, and the replay is exact.
+  - 72,011 bundles and above: overlay events. Straight-line code switches every 14.67-14.70 us
+    (about 21.7k bundles plus the switch). A SyncNoWait + Set pair marks entering a prefetched
+    chunk and starting the next chunk's load.
+  - A loop over more than two chunks waits at every wrap. The wait equals the load time minus the
+    time spent in the last chunk.
+  - A load takes 7.7-7.96 us, measured from Set to the end of the blocking wait. A 17-bundle
+    chunk loads as slowly as a full one. Under philox's output writes a load takes 8.7 us.
+  - Each switch costs about 0.27-0.3 us beyond the waits.
+- Philox b1024 (85k bundles) shows the same pattern: 5 switches per grid step and an 8.2-8.7 us
+  wait at every wrap, which is 13% of its time.
+- Model (`model/overlay.py`):
+  - A grid of 21,700-bundle chunks, also split at forward-branch targets in another chunk (philox
+    has a fifth chunk at its pipeline-skip region).
+  - 2 slots, LRU eviction, prefetch of the next chunk (after the last, the loop-head chunk).
+  - Static branch prediction: a not-taken backward branch waits for its target chunk; a forward
+    branch waits only when taken.
+  - Fitted on the microbenchmarks to within 0.5%; philox (not fitted) goes from -15.4% to -1.0%.
+- Confidence: high for the threshold, cadence, load time and wrap waits. Chunk size in bundles
+  (rather than bytes), the slot count and the branch rule are inferred from these kernels.
+
+### F26. Sync-flag tracing exposes every DMA wait and overlay load without changing kernel time
+- `ProfileOptions.advanced_configuration={"tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"}`: device times
+  match untraced runs. The "Tensor Core Sync Flag" line has SyncWait (blocked, with duration) or
+  SyncNoWait per dma.done.wait, plus Set/Add events (`scripts/sync_diff.py`).
+
 ## Hypotheses (not yet tested; the model must not depend on these)
 
 - H2. MXU is 128x128.
@@ -253,6 +302,14 @@ xprof 2.24.1, Python 3.12.3 (see `VERSIONS.lock`).
   -5..+3% and the overall DMA microbenchmark fit is unchanged (98-99/123 within 5%); a free refit
   wants a negative start-up (unphysical), so mix is held at 0. Calibration family biases move toward 0
   (layernorm -9% -> +2%, softmax -9% -> +3%, gmm -4% -> -1%). Inferred structure.
+  With 512 KiB-1 MiB blocks it looks too strong: a read issued just after a 1 MiB write waits the
+  whole 1.65 us of write data, so rope (1 MiB blocks) is +6..13% and dma_compute r1w1 b128 valu512
+  is +6.4%. phase3u (2 MiB blocks) tests a cap on the pause (`pause_cap_ns`, off).
+- H17. Decoupled issue: scalar-only bundles keep issuing while up to Q vector bundles wait on a pop
+  (`vector_queue`, off). In paged decode a 125-cycle MXU pop is followed by ~340 scalar bundles, and
+  hardware is ~85 cycles per iteration faster than in-order issue. Q >= 16 brings calibration paged
+  from +5.5% to +1.3%. `pop_scalar` could not test it because the compiler predicated its cond;
+  phase3u's `pop_loop` uses a real inner loop.
 - H10. DMA queueing structure: one FIFO per direction, heads interleaving (`model/dma.py:DirFifoHbm`).
   Chosen because it fits F14/F15 better than processor sharing or one FIFO; not observed directly.
 - H6. Meaning of each bundle mnemonic and slot.

@@ -51,10 +51,11 @@ class TableHbm:
 
 
 class _Xfer:
-    __slots__ = ("d", "ready", "left", "cap", "write", "post")
+    __slots__ = ("d", "ready", "left", "cap", "write", "post", "paused")
 
     def __init__(self, d, ready, nbytes, cap, write):
         self.d, self.ready, self.left, self.cap, self.write = d, ready, float(nbytes), cap, write
+        self.paused = 0.0  # cycles of start-up already paused (pause_latency)
         self.post = math.inf  # posted completion time (writes), if earlier than the data finishing
 
 
@@ -97,10 +98,10 @@ class SharedHbm:
 
     def project(self, t):
         self._advance(t)
-        state = [(x, x.ready, x.left) for x in self.active]
+        state = [(x, x.ready, x.left, x.paused) for x in self.active]
         done = self._run(list(self.active), self.now, until=math.inf)
-        for x, ready, left in state:
-            x.ready, x.left = ready, left
+        for x, ready, left, paused in state:
+            x.ready, x.left, x.paused = ready, left, paused
         for x in self.active:
             x.d.done = min(done[id(x)] + self.tail[x.write], x.post)
 
@@ -134,13 +135,15 @@ class SharedHbm:
         """Serve transfers from `now` until `until` (or all done); mutates xs; returns done times."""
         done = {}
         pause = getattr(self, "pause_latency", False)
+        cap = getattr(self, "pause_cap", math.inf)
         while xs and now < until:
             moving, rates = self._rates(xs, now)
             dirs = {x.write for x in moving}
             # with pause_latency, a transfer's start-up does not progress while the other direction moves data
             paused = [x for x in xs if pause and x.ready > now and (not x.write) in dirs
-                      and (pause != "reads" or not x.write)]
+                      and (pause != "reads" or not x.write) and x.paused < cap]
             nxt_ready = min((x.ready for x in xs if x.ready > now and x not in paused), default=math.inf)
+            nxt_ready = min([nxt_ready] + [now + cap - x.paused for x in paused])
             nxt_done = min((now + x.left / rates[id(x)] for x in moving), default=math.inf)
             step_to = min(nxt_ready, nxt_done, until)
             if step_to == math.inf:
@@ -149,6 +152,7 @@ class SharedHbm:
                 x.left -= rates[id(x)] * (step_to - now)
             for x in paused:
                 x.ready += step_to - now
+                x.paused += step_to - now
             now = step_to
             for x in [x for x in xs if x.ready <= now and x.left <= 1e-6]:
                 done[id(x)] = now
@@ -175,9 +179,10 @@ class DirFifoHbm(SharedHbm):
 
     def __init__(self, read_cycles, write_cycles, bw_read, bw_write, turnaround, issue_cycles,
                  mix_cycles=0.0, read_lat_adj=0.0, write_lat_adj=0.0, single_queue=False, bw_post=None,
-                 wake_cycles=0.0, pause_latency=False, read_tail=0.0, write_tail=0.0):
+                 wake_cycles=0.0, pause_latency=False, read_tail=0.0, write_tail=0.0, pause_cap=math.inf):
         super().__init__(read_cycles, write_cycles, bw_read, bw_write, None, issue_cycles, mix_cycles)
         self.pause_latency = pause_latency
+        self.pause_cap = pause_cap  # most cycles a start-up pauses (pause_latency)
         # part of each direction's single-stream latency comes after the data moves (completion
         # signalling): sequential copies see all of it, pipelined copies overlap the tail
         self.tail = {False: read_tail, True: write_tail}

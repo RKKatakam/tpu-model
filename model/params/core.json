@@ -9,6 +9,21 @@
     "vld.sshfl": 2.2962116901998018,
     "vst.sshfl": 2.2962116901998018,
     "vst.msk": 2.2962116901998018
+   },
+   "vadd": 2,
+   "vsub": 2,
+   "vmul": 2,
+   "vmax": 2,
+   "vshll": 2,
+   "vshrl": 2,
+   "vceil": 2,
+   "vfloor": 2,
+   "vcvt": 2,
+   "vpack": 2,
+   "vunpack": 2,
+   "vsel": 1,
+   "scalar": {
+    "smul": 2
    }
   },
   "units": {
@@ -90,7 +105,14 @@
     }
    }
   },
-  "issue_lead": 8.0
+  "issue_lead": 8.0,
+  "overlay": {
+   "capacity_bundles": 65536,
+   "slots": 2,
+   "chunk_bundles": 21700,
+   "switch_cycles": 450,
+   "load_cycles": 11850
+  }
  },
  "fit_report": {
   "valu_latency": {
@@ -334,7 +356,38 @@
     0.021857136390485143
    ],
    "note": "fitted on the calibration split (ragged paged attention); no microbenchmark emits these ops"
-  }
+  },
+  "valu_latency_phase3q": {
+   "2": [
+    "vadd",
+    "vsub",
+    "vmul",
+    "vmax",
+    "vshll",
+    "vshrl",
+    "vceil",
+    "vfloor",
+    "vcvt",
+    "vpack",
+    "vunpack"
+   ],
+   "1": [
+    "vsel"
+   ],
+   "source": "phase3q vop_chain2 (+ phase3a vadd/vmul/vmax)",
+   "unmeasured (default 1)": "logic (vand/vor/vxor), mask ops (vmor/vmand/vmmov), vweird, vlaneseq",
+   "vcmp": "<= 2 only (cmp_select round = max(vcmp, vsub 2) + vsel 1 = 3 cycles); default 1, as the compiler schedules mask consumers one bundle after vcmp"
+  },
+  "overlay_phase3st": {
+   "source": "phase3s/phase3t valu_loop/valu_straight 8k-96k bundles with sync-flag traces (sequencer_overlay events)",
+   "capacity_bundles": "64011 bundles: no overlay events; 72011: overlays. 65536 assumed",
+   "chunk_bundles": "switches every 14.67-14.70 us in straight-line code (1 bundle/cycle) = chunk + switch cost; grid-fitted 21600-21700",
+   "load_cycles": "Set -> end of blocking Wait = 7.7-7.96 us in loops; fitted 11700-12000",
+   "switch_cycles": "unexplained time per switch 270-300 ns; fitted 400-500",
+   "slots": "2: philox's last iteration reloads a chunk evicted one switch earlier",
+   "fit_errors": "valu loops/straight within 0.5%; check (not fitted): philox_b1024x1024 (calib) -15.4% -> about -1%"
+  },
+  "scalar_phase3t": "smul.u32 -> sadd.s32 multiply-add chain: exactly 3.0 cycles per round (pop_scalar n=64/128/256 slope; the compiler schedules it in 2), so smul latency 2, sadd 1"
  },
  "provenance": {
   "sources": [

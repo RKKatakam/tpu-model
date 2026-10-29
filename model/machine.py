@@ -17,6 +17,8 @@ import re
 import struct
 from dataclasses import dataclass, field
 
+from model.overlay import Overlays
+
 BRANCH_DELAY = 4
 GRANULE_BYTES = 32
 MASK = 0xFFFFFFFF
@@ -64,9 +66,11 @@ class Machine:
     OPERAND_SHIFT = 20
     WORDS_PER_GRANULE = 8  # 32 B DMA granules (hbm_to_smem moves 16 for s32[8], s32[16] and s32[32])
 
-    def __init__(self, program, operand_bases=None, smem=None, max_bundles=50_000_000, core=None, operands=None):
+    def __init__(self, program, operand_bases=None, smem=None, max_bundles=50_000_000, core=None, operands=None,
+                 overlay=None):
         self.p = program
         self.core = core
+        self.overlays = Overlays(program, overlay)
         self.regs = {}
         self.smem = dict(smem or {})
         self.flags = {}
@@ -241,6 +245,8 @@ class Machine:
             if trace.bundles_issued >= self.max_bundles:
                 raise RuntimeError("bundle budget exceeded; runaway loop?")
             b = bundles[pc]
+            if self.overlays.on:
+                t = self.overlays.enter(pc, t)
             for op in b.ops:
                 if op.mnemonic == "dma.done.wait" and self.pred_ok(op):
                     flag, need = self.val(op.args[0]), self.val(op.args[1])
@@ -264,6 +270,8 @@ class Machine:
             writes, new_branch, pseudo = [], None, []
             for j, op in enumerate(b.ops):
                 if not self.pred_ok(op):
+                    if self.overlays.on and op.mnemonic == "sbr.rel":
+                        t = self.overlays.not_taken(pc, self.p.target(int(re.search(r"\$region(\d+)", op.args[0]).group(1))), t)
                     continue
                 m = op.mnemonic
                 if m.startswith("inlined_call_operand"):

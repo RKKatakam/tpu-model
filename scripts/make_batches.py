@@ -327,6 +327,61 @@ def phase3r_configs():
     return cfgs
 
 
+def phase3s_configs():
+    """Program size vs instruction memory: VALU loops whose body is ~8k-96k bundles (nv=8 vadd rounds
+    take 2 bundles each), with sync-flag tracing to see sequencer_overlay loads."""
+    trace = {"advanced_configuration": {"tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"}}
+    cfgs = []
+    runs = [("valu_loop", 4, k) for k in (4000, 8000, 12000, 16000, 20000, 24000, 32000, 48000)]
+    runs += [("valu_loop", 1, k) for k in (16000, 48000)] + [("valu_straight", None, k) for k in (16000, 48000)]
+    for kernel, trip, k in runs:
+        p = {"k": k, "nv": 8} | ({"trip": trip} if trip else {})
+        c = device(kernel, p, f"{kernel}__imem_k{k}" + (f"_t{trip}" if trip else ""), reps=20, warmup=3)
+        c["profiler_options"] = trace
+        c["timeout_s"] = 2400
+        cfgs.append(c)
+    return cfgs
+
+
+def phase3t_configs():
+    """phase3s sizes lost to a false session-gone stop, finer sizes between 40k (no overlays) and
+    85k bundles (philox overlays), and pop -> scalar-region overlap (pop_scalar)."""
+    trace = {"advanced_configuration": {"tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"}}
+    cfgs = []
+    runs = [("valu_loop", 4, k) for k in (22000, 24000, 28000, 32000, 36000, 48000)]
+    runs += [("valu_loop", 1, k) for k in (16000, 48000)] + [("valu_straight", None, k) for k in (16000, 48000)]
+    for kernel, trip, k in runs:
+        p = {"k": k, "nv": 8} | ({"trip": trip} if trip else {})
+        c = device(kernel, p, f"{kernel}__imem_k{k}" + (f"_t{trip}" if trip else ""), reps=20, warmup=3)
+        c["profiler_options"] = trace
+        c["timeout_s"] = 2400
+        cfgs.append(c)
+    pops = [(kind, n, 0) for kind in ("mxu", "xlane") for n in (0, 64, 128, 256)] + [("mxu", 256, m) for m in (8, 16, 32)]
+    for kind, n, m in pops:
+        cfgs.append(device("pop_scalar", {"kind": kind, "n": n, "m": m, "trip": 64}, f"pop_scalar__{kind}_n{n}_m{m}"))
+    return cfgs
+
+
+def phase3u_configs():
+    """Decoupled issue (pop_loop: a pop, `m` queued vector ops, then an inner scalar loop of n trips)
+    and 1-read 1-write streams with 1-2 MiB blocks and per-step compute near the DMA time (rope's
+    read waits)."""
+    cfgs = []
+    for kind in ("mxu", "xlane"):
+        for n in (0, 8, 16, 32, 64):
+            cfgs.append(device("pop_loop", {"kind": kind, "n": n, "m": 0, "trip": 64}, f"pop_loop__{kind}_n{n}_m0"))
+    for m in (8, 16, 32, 64):
+        cfgs.append(device("pop_loop", {"kind": "mxu", "n": 64, "m": m, "trip": 64}, f"pop_loop__mxu_n64_m{m}"))
+    for br, amounts in ((256, (512, 1024, 2048, 3072)), (512, (1024, 2048, 3072, 4096, 6144))):
+        for amount in amounts:
+            p = {"block_rows": br, "kind": "valu", "amount": amount, "reads": 1, "writes": 1}
+            cfgs.append(device("dma_compute", p, f"dma_compute__r1w1_b{br}_valu{amount}", reps=50))
+    for reads, writes in ((1, 0), (0, 1)):
+        p = {"block_rows": 512, "kind": "valu", "amount": 2048, "reads": reads, "writes": writes}
+        cfgs.append(device("dma_compute", p, f"dma_compute__r{reads}w{writes}_b512_valu2048", reps=50))
+    return cfgs
+
+
 def trace_probe_configs():
     """Does an in-kernel named_scope produce trace events, and under which profiler option?"""
     cfgs = []
@@ -550,6 +605,9 @@ BATCHES = {
     "diag_sync": {"flags": DUMP_FLAGS, "configs": diag_sync_configs()},
     "phase3q": {"flags": DUMP_FLAGS, "configs": phase3q_configs()},
     "phase3r": {"flags": DUMP_FLAGS, "configs": phase3r_configs()},
+    "phase3s": {"flags": DUMP_FLAGS, "configs": phase3s_configs()},
+    "phase3t": {"flags": DUMP_FLAGS, "configs": phase3t_configs()},
+    "phase3u": {"flags": DUMP_FLAGS, "configs": phase3u_configs()},
     "phase3o2": {"flags": DUMP_FLAGS, "configs": [c for c in phase3o_configs() if c["params"]["step"] > 1]},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},

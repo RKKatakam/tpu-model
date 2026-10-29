@@ -2,9 +2,11 @@
 
 import json
 import os
+import re
 import statistics
 from dataclasses import asdict, dataclass
 
+from capture import xplane
 from model.core import CoreParams, Scoreboard
 from model.dma import FifoHbm, SharedHbm, TableHbm
 from model.machine import Machine
@@ -35,15 +37,34 @@ class Record:
     raw: dict
 
     @property
+    def hlo_name(self):
+        return xplane.custom_call_name(self.raw["timing"]["profile_summary"])
+
+    @property
     def tag(self):
-        return self.raw["config"]["kernel_tag"]
+        """Dump-file stem: the HLO name without its '.N' suffix."""
+        return re.sub(r"\.\d+$", "", self.hlo_name)
 
     @property
     def dump(self):
         return os.path.join(self.dir, "dump")
 
+    def samples_ns(self):
+        by_line = self.raw["timing"]["by_line"]
+        if LINE in by_line:
+            return by_line[LINE]["samples_ns"]
+        # The capture-time tag missed the kernel (corpus1); re-extract from the saved xplane.
+        cache = os.path.join(self.dir, "samples_offline.json")
+        if not os.path.exists(cache):
+            profile = xplane.load(xplane.find_xplane(os.path.join(self.dir, "profile")))
+            samples = xplane.kernel_durations(profile, f"%{self.hlo_name} = ")[LINE]
+            with open(cache, "w") as f:
+                json.dump(samples, f)
+        with open(cache) as f:
+            return json.load(f)
+
     def measured_ns(self):
-        return statistics.median(self.raw["timing"]["by_line"][LINE]["samples_ns"])
+        return statistics.median(self.samples_ns())
 
     def program(self):
         return bundles.parse_file(dumps.final_bundles_path(self.dump, self.tag))

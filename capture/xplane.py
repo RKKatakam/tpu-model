@@ -63,6 +63,16 @@ def kernel_durations(profile, kernel_tag):
     return {line: [dur for _, dur in sorted(h)] for line, h in hits.items()}
 
 
+def custom_call_name(summary):
+    """HLO name (e.g. 'flash_attention.1') of the one tpu_custom_call op in a summarize() result.
+    Dump files and profiler events are named by it, not by the Pallas kernel function."""
+    names = {e["name"].split(" = ")[0].lstrip("%") for e in summary["device_events"]
+             if e["line"] == "XLA Ops" and 'custom_call_target="tpu_custom_call"' in e["name"]}
+    if len(names) != 1:
+        raise ValueError(f"expected one tpu_custom_call op, found {sorted(names)}")
+    return names.pop()
+
+
 def stats(samples):
     s = sorted(samples)
     n = len(s)

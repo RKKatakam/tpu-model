@@ -49,6 +49,8 @@ def _splash_mask(kind, s, h, window):
         m = sm.FullMask((s, s))
     elif kind == "local":
         m = sm.LocalMask((s, s), window_size=(window, 0), offset=0)
+    elif kind == "chunked":
+        m = sm.ChunkedCausalMask((s, s), chunk_size=window)
     else:
         raise ValueError(kind)
     return sm.MultiHeadMask([m] * h)
@@ -56,19 +58,23 @@ def _splash_mask(kind, s, h, window):
 
 def splash(params):
     h, s, d = params["h"], params["s"], params["d"]
+    mqa = params.get("mqa", False)
     bs = sk.BlockSizes(
         block_q=params["block_q"], block_kv=params["block_kv"],
         block_kv_compute=params.get("block_kv_compute", params["block_kv"]),
     )
-    kernel = sk.make_splash_mha_single_device(
-        mask=_splash_mask(params["mask"], s, h, params.get("window", 256)), block_sizes=bs
+    make = sk.make_splash_mqa_single_device if mqa else sk.make_splash_mha_single_device
+    kernel = make(
+        mask=_splash_mask(params["mask"], s, h, params.get("window", 256)), block_sizes=bs,
+        attn_logits_soft_cap=params.get("soft_cap"),
     )
 
     def fn(q, k, v):
         return kernel(q * d ** -0.5, k, v)
 
-    spec = jax.ShapeDtypeStruct((h, s, d), BF16)
-    return fn, [spec, spec, spec]
+    q = jax.ShapeDtypeStruct((h, s, d), BF16)
+    kv = jax.ShapeDtypeStruct((s, d) if mqa else (h, s, d), BF16)
+    return fn, [q, kv, kv]
 
 
 def paged(params):

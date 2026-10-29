@@ -200,6 +200,33 @@ def corpus_configs():
     return cfgs
 
 
+SPLASH_TILES = ((128, 128, 128), (256, 512, 256), (512, 512, 512), (512, 1024, 512), (1024, 1024, 1024))
+
+
+def corpus2_configs():
+    """Splash attention (the TPU production attention kernel) across head dim, length, MQA,
+    mask type and logit soft cap; each line is one autotune sweep over SPLASH_TILES."""
+    shapes = [
+        {"h": 16, "s": 4096, "d": 64, "mask": "causal"},
+        {"h": 4, "s": 2048, "d": 256, "mask": "causal"},
+        {"h": 8, "s": 4096, "d": 128, "mask": "causal", "mqa": True},
+        {"h": 8, "s": 8192, "d": 128, "mask": "causal"},
+        {"h": 8, "s": 4096, "d": 128, "mask": "chunked", "window": 1024},
+        {"h": 8, "s": 2048, "d": 128, "mask": "causal", "soft_cap": 30.0},
+        {"h": 8, "s": 1024, "d": 128, "mask": "full"},
+    ]
+    cfgs = []
+    for shape in shapes:
+        for bq, bkv, bkc in SPLASH_TILES:
+            if max(bq, bkv) > shape["s"]:
+                continue
+            p = shape | {"block_q": bq, "block_kv": bkv, "block_kv_compute": bkc}
+            tag = "_".join(f"{k}{v}" for k, v in shape.items() if k not in ("h", "s", "d", "mask"))
+            rid = f"splash__h{shape['h']}_s{shape['s']}_d{shape['d']}_{shape['mask']}{'_' + tag if tag else ''}_q{bq}_kv{bkv}_c{bkc}"
+            cfgs.append(corpus("splash", p, rid.replace("True", "").replace(".0", "")))
+    return cfgs
+
+
 def split(cfgs, parts):
     return [cfgs[i::parts] for i in range(parts)]
 
@@ -226,6 +253,12 @@ BATCHES = {
 
 for i, part in enumerate(split(corpus_configs(), 2)):
     BATCHES[f"corpus1_part{i}"] = {"flags": DUMP_FLAGS, "configs": part}
+# These aborted in corpus1 because XLA's static LLO profiler is fatal on their DMAs; rerun with the
+# run_batch fallback. matmul__n8192_1024_1024_1024 is not rerun: it exceeds scoped VMEM (infeasible).
+BATCHES["corpus1_rerun"] = {"flags": DUMP_FLAGS,
+                            "configs": [c for c in corpus_configs() if c["kernel"] in ("splash", "paged", "gmm")]}
+
+BATCHES["corpus2_splash"] = {"flags": DUMP_FLAGS, "configs": corpus2_configs()}
 
 for batch_id, batch in BATCHES.items():
     with open(os.path.join(HERE, "batches", f"{batch_id}.json"), "w") as f:

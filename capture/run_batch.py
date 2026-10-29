@@ -74,11 +74,11 @@ def flag_env(batch, cfg, dump):
     return env
 
 
-def run_one(batch, cfg, out_dir):
-    record_dir = os.path.join(out_dir, cfg["record_id"])
-    if os.path.exists(os.path.join(record_dir, "record.json")):
-        print(f"skip {cfg['record_id']}", flush=True)
-        return True
+STATIC_PROFILE_FLAG = "--xla_jf_dump_static_llo_profile_to"
+STATIC_PROFILE_FATAL = "Static LLO profiling of"
+
+
+def attempt(batch, cfg, record_dir):
     shutil.rmtree(record_dir, ignore_errors=True)
     dump = os.path.join(record_dir, "dump")
     os.makedirs(dump)
@@ -94,11 +94,32 @@ def run_one(batch, cfg, out_dir):
             rc = subprocess.run(cmd, env=env, stdout=out, stderr=err, timeout=cfg.get("timeout_s", 900)).returncode
         except subprocess.TimeoutExpired:
             rc = "timeout"
+    with open(os.path.join(record_dir, "stderr.txt")) as f:
+        return rc, f.read()
+
+
+def without_static_profile(batch, cfg, reason):
+    """XLA's static LLO profiler aborts the process on some programs (e.g. DMA direction 10).
+    Rerun without it; the record then carries no XLA estimate and says why."""
+    flags = cfg.get("flags", batch["flags"])
+    cfg = dict(cfg, flags=dict(flags, libtpu=[f for f in flags["libtpu"] if not f.startswith(STATIC_PROFILE_FLAG)]))
+    cfg["xla_static_profile"] = "unsupported: " + reason
+    return cfg
+
+
+def run_one(batch, cfg, out_dir):
+    record_dir = os.path.join(out_dir, cfg["record_id"])
+    if os.path.exists(os.path.join(record_dir, "record.json")):
+        print(f"skip {cfg['record_id']}", flush=True)
+        return True
+    rc, stderr = attempt(batch, cfg, record_dir)
+    fatal = [line for line in stderr.splitlines() if STATIC_PROFILE_FATAL in line]
+    if rc != 0 and fatal:
+        print(f"retry {cfg['record_id']} without static profile: {fatal[0][-120:]}", flush=True)
+        rc, stderr = attempt(batch, without_static_profile(batch, cfg, fatal[0].split("] ", 1)[-1]), record_dir)
     ok = rc == 0
     if not ok:
-        with open(os.path.join(record_dir, "stderr.txt")) as f:
-            tail = f.read()[-3000:]
-        print(f"FAIL {cfg['record_id']} rc={rc}\n{tail}", flush=True)
+        print(f"FAIL {cfg['record_id']} rc={rc}\n{stderr[-3000:]}", flush=True)
     else:
         print(f"ok   {cfg['record_id']}", flush=True)
     return ok

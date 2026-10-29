@@ -1,0 +1,702 @@
+{
+ "batch_id": "corpus2_splash",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "splash__h16_s4096_d64_causal_q128_kv128_c128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 16,
+    "s": 4096,
+    "d": 64,
+    "mask": "causal",
+    "block_q": 128,
+    "block_kv": 128,
+    "block_kv_compute": 128
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h16_s4096_d64_causal_q256_kv512_c256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 16,
+    "s": 4096,
+    "d": 64,
+    "mask": "causal",
+    "block_q": 256,
+    "block_kv": 512,
+    "block_kv_compute": 256
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h16_s4096_d64_causal_q512_kv512_c512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 16,
+    "s": 4096,
+    "d": 64,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 512,
+    "block_kv_compute": 512
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h16_s4096_d64_causal_q512_kv1024_c512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 16,
+    "s": 4096,
+    "d": 64,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 1024,
+    "block_kv_compute": 512
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h16_s4096_d64_causal_q1024_kv1024_c1024",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 16,
+    "s": 4096,
+    "d": 64,
+    "mask": "causal",
+    "block_q": 1024,
+    "block_kv": 1024,
+    "block_kv_compute": 1024
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h4_s2048_d256_causal_q128_kv128_c128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 4,
+    "s": 2048,
+    "d": 256,
+    "mask": "causal",
+    "block_q": 128,
+    "block_kv": 128,
+    "block_kv_compute": 128
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h4_s2048_d256_causal_q256_kv512_c256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 4,
+    "s": 2048,
+    "d": 256,
+    "mask": "causal",
+    "block_q": 256,
+    "block_kv": 512,
+    "block_kv_compute": 256
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h4_s2048_d256_causal_q512_kv512_c512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 4,
+    "s": 2048,
+    "d": 256,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 512,
+    "block_kv_compute": 512
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h4_s2048_d256_causal_q512_kv1024_c512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 4,
+    "s": 2048,
+    "d": 256,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 1024,
+    "block_kv_compute": 512
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h4_s2048_d256_causal_q1024_kv1024_c1024",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 4,
+    "s": 2048,
+    "d": 256,
+    "mask": "causal",
+    "block_q": 1024,
+    "block_kv": 1024,
+    "block_kv_compute": 1024
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s4096_d128_causal_mqa_q128_kv128_c128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "mqa": true,
+    "block_q": 128,
+    "block_kv": 128,
+    "block_kv_compute": 128
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s4096_d128_causal_mqa_q256_kv512_c256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "mqa": true,
+    "block_q": 256,
+    "block_kv": 512,
+    "block_kv_compute": 256
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s4096_d128_causal_mqa_q512_kv512_c512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "mqa": true,
+    "block_q": 512,
+    "block_kv": 512,
+    "block_kv_compute": 512
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s4096_d128_causal_mqa_q512_kv1024_c512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "mqa": true,
+    "block_q": 512,
+    "block_kv": 1024,
+    "block_kv_compute": 512
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s4096_d128_causal_mqa_q1024_kv1024_c1024",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "causal",
+    "mqa": true,
+    "block_q": 1024,
+    "block_kv": 1024,
+    "block_kv_compute": 1024
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s8192_d128_causal_q128_kv128_c128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 8192,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 128,
+    "block_kv": 128,
+    "block_kv_compute": 128
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s8192_d128_causal_q256_kv512_c256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 8192,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 256,
+    "block_kv": 512,
+    "block_kv_compute": 256
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s8192_d128_causal_q512_kv512_c512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 8192,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 512,
+    "block_kv_compute": 512
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s8192_d128_causal_q512_kv1024_c512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 8192,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 512,
+    "block_kv": 1024,
+    "block_kv_compute": 512
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s8192_d128_causal_q1024_kv1024_c1024",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 8192,
+    "d": 128,
+    "mask": "causal",
+    "block_q": 1024,
+    "block_kv": 1024,
+    "block_kv_compute": 1024
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s4096_d128_chunked_window1024_q128_kv128_c128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "chunked",
+    "window": 1024,
+    "block_q": 128,
+    "block_kv": 128,
+    "block_kv_compute": 128
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s4096_d128_chunked_window1024_q256_kv512_c256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "chunked",
+    "window": 1024,
+    "block_q": 256,
+    "block_kv": 512,
+    "block_kv_compute": 256
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s4096_d128_chunked_window1024_q512_kv512_c512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "chunked",
+    "window": 1024,
+    "block_q": 512,
+    "block_kv": 512,
+    "block_kv_compute": 512
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s4096_d128_chunked_window1024_q512_kv1024_c512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "chunked",
+    "window": 1024,
+    "block_q": 512,
+    "block_kv": 1024,
+    "block_kv_compute": 512
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s4096_d128_chunked_window1024_q1024_kv1024_c1024",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 4096,
+    "d": 128,
+    "mask": "chunked",
+    "window": 1024,
+    "block_q": 1024,
+    "block_kv": 1024,
+    "block_kv_compute": 1024
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s2048_d128_causal_soft_cap30_q128_kv128_c128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 2048,
+    "d": 128,
+    "mask": "causal",
+    "soft_cap": 30.0,
+    "block_q": 128,
+    "block_kv": 128,
+    "block_kv_compute": 128
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s2048_d128_causal_soft_cap30_q256_kv512_c256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 2048,
+    "d": 128,
+    "mask": "causal",
+    "soft_cap": 30.0,
+    "block_q": 256,
+    "block_kv": 512,
+    "block_kv_compute": 256
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s2048_d128_causal_soft_cap30_q512_kv512_c512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 2048,
+    "d": 128,
+    "mask": "causal",
+    "soft_cap": 30.0,
+    "block_q": 512,
+    "block_kv": 512,
+    "block_kv_compute": 512
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s2048_d128_causal_soft_cap30_q512_kv1024_c512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 2048,
+    "d": 128,
+    "mask": "causal",
+    "soft_cap": 30.0,
+    "block_q": 512,
+    "block_kv": 1024,
+    "block_kv_compute": 512
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s2048_d128_causal_soft_cap30_q1024_kv1024_c1024",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 2048,
+    "d": 128,
+    "mask": "causal",
+    "soft_cap": 30.0,
+    "block_q": 1024,
+    "block_kv": 1024,
+    "block_kv_compute": 1024
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s1024_d128_full_q128_kv128_c128",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 1024,
+    "d": 128,
+    "mask": "full",
+    "block_q": 128,
+    "block_kv": 128,
+    "block_kv_compute": 128
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s1024_d128_full_q256_kv512_c256",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 1024,
+    "d": 128,
+    "mask": "full",
+    "block_q": 256,
+    "block_kv": 512,
+    "block_kv_compute": 256
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s1024_d128_full_q512_kv512_c512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 1024,
+    "d": 128,
+    "mask": "full",
+    "block_q": 512,
+    "block_kv": 512,
+    "block_kv_compute": 512
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s1024_d128_full_q512_kv1024_c512",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 1024,
+    "d": 128,
+    "mask": "full",
+    "block_q": 512,
+    "block_kv": 1024,
+    "block_kv_compute": 512
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "splash__h8_s1024_d128_full_q1024_kv1024_c1024",
+   "kernel": "splash",
+   "kernel_tag": "splash_mha_fwd",
+   "params": {
+    "h": 8,
+    "s": 1024,
+    "d": 128,
+    "mask": "full",
+    "block_q": 1024,
+    "block_kv": 1024,
+    "block_kv_compute": 1024
+   },
+   "mode": "device",
+   "reps": 50,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600
+  }
+ ]
+}

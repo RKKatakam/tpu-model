@@ -702,7 +702,49 @@ def vmem_ops(params):
     return fn, [jax.ShapeDtypeStruct((2 * r * n, 128), dt)]
 
 
+def tgmm_tile(params):
+    """`reps` copies of megablox tgmm's inner step on fresh (tm, tk) / (tm, tn) bf16 tiles in VMEM:
+    rows outside [lo, hi) (scalar prefetch) are zeroed by lax.select on the f32 upcast, cast back,
+    lhs swapped to (tk, tm), acc (tk, tn) += lhs @ rhs. `masked=False` drops the selects.
+
+    isolates: masked weight pushes (vmatpush.*.msk) and the transposed masked LHS, against the same
+    matmul without masks.
+    """
+    tm, tk, tn, reps, masked = params["tm"], params["tk"], params["tn"], params["reps"], params["masked"]
+
+    def kernel(bounds_ref, x_hbm, o_ref, lhs_buf, rhs_buf, acc):
+        def body(i, carry):
+            lhs, rhs = lhs_buf[i], rhs_buf[i]
+            if masked:
+                lo, hi = bounds_ref[0], bounds_ref[1]
+                rl = jax.lax.broadcasted_iota(jnp.int32, (tm, tk), 0)
+                rr = jax.lax.broadcasted_iota(jnp.int32, (tm, tn), 0)
+                lhs = jax.lax.select((rl >= lo) & (rl < hi), lhs.astype(jnp.float32), jnp.zeros((tm, tk), jnp.float32))
+                rhs = jax.lax.select((rr >= lo) & (rr < hi), rhs.astype(jnp.float32), jnp.zeros((tm, tn), jnp.float32))
+            lhs = lhs.astype(jnp.float32).swapaxes(0, 1).astype(jnp.bfloat16)
+            acc[...] += jax.lax.dot(lhs, rhs.astype(jnp.bfloat16), preferred_element_type=jnp.float32)
+            return carry
+
+        jax.lax.fori_loop(0, reps, body, 0)
+        o_ref[...] = acc[pl.ds(0, 8), pl.ds(0, 128)]
+
+    grid_spec = pltpu.PrefetchScalarGridSpec(
+        num_scalar_prefetch=1, grid=(1,), in_specs=[HBM],
+        out_specs=pl.BlockSpec((8, 128), lambda i, b: (0, 0)),
+        scratch_shapes=[pltpu.VMEM((reps, tm, tk), jnp.bfloat16), pltpu.VMEM((reps, tm, tn), jnp.bfloat16),
+                        pltpu.VMEM((tk, tn), jnp.float32)],
+    )
+
+    def fn(bounds, x):
+        return pl.pallas_call(kernel, out_shape=jax.ShapeDtypeStruct((8, 128), jnp.float32),
+                              grid_spec=grid_spec, name="k_tgmm_tile")(bounds, x)
+
+    specs = [jax.ShapeDtypeStruct((2,), jnp.int32), jax.ShapeDtypeStruct((8, 128), jnp.float32)]
+    return fn, specs, lambda seed: [np.array([tm // 4, 3 * tm // 4], np.int32), np.zeros((8, 128), np.float32)]
+
+
 MICRO = {
+    "tgmm_tile": (tgmm_tile, "micro"),
     "vmem_ops": (vmem_ops, "micro"),
     "vmem_access": (vmem_access, "micro"),
     "xpose_chain": (xpose_chain, "micro"),

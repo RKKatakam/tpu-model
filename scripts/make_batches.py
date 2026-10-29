@@ -235,6 +235,17 @@ def phase3m_configs():
     return cfgs
 
 
+def phase3n_configs():
+    """megablox tgmm's masked inner step vs the same matmul unmasked (masked weight pushes)."""
+    cfgs = []
+    for tm, tk, tn in ((128, 128, 128), (256, 256, 256), (512, 128, 128)):
+        for masked in (True, False):
+            for reps in (8, 32):
+                p = {"tm": tm, "tk": tk, "tn": tn, "reps": reps, "masked": masked}
+                cfgs.append(device("tgmm_tile", p, f"tgmm_tile__{tm}_{tk}_{tn}_{'msk' if masked else 'plain'}_x{reps}"))
+    return cfgs
+
+
 def phase3b_configs():
     cfgs = []
     for rows in (1, 8, 64, 512, 2048, 8192):
@@ -411,6 +422,7 @@ BATCHES = {
     "phase3k": {"flags": DUMP_FLAGS, "configs": phase3k_configs()},
     "phase3l": {"flags": DUMP_FLAGS, "configs": phase3l_configs()},
     "phase3m": {"flags": DUMP_FLAGS, "configs": phase3m_configs()},
+    "phase3n": {"flags": DUMP_FLAGS, "configs": phase3n_configs()},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},
     "phase0_aot": {

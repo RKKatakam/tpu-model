@@ -108,6 +108,11 @@ def check(kernel, params, program):
         if params["kind"] == "vmem":
             vst = sum(v for m, v in c.items() if m.startswith("vst"))
             expect(vst >= params["amount"] * 1024 // 1024, f"vst={vst}: VMEM copy eliminated?")
+    elif kernel == "tgmm_tile":
+        msk = sum(v for m, v in c.items() if m.startswith("vmatpush") and ".msk" in m)
+        if params["masked"]:
+            expect(msk >= 1, f"no masked pushes: {sorted(m for m in c if m.startswith('vmatpush'))}")
+        expect(not {m for m in dma_ops(c) if not m.endswith("_to_smem")} - {"dma.vmem_to_hbm", "dma.done.wait"}, f"dma {dma_ops(c)}")
     elif kernel == "vmem_ops":
         want = {"vst_msk": "vst.msk", "vld_sshfl": "vld.sshfl", "vst_sshfl": "vst.sshfl", "vrot_slane": "vrot.slane"}.get(params["form"])
         if want:

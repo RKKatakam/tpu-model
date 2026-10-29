@@ -1,0 +1,202 @@
+{
+ "batch_id": "phase3n",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "tgmm_tile__128_128_128_msk_x8",
+   "kernel": "tgmm_tile",
+   "kernel_tag": "k_tgmm_tile",
+   "params": {
+    "tm": 128,
+    "tk": 128,
+    "tn": 128,
+    "reps": 8,
+    "masked": true
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "tgmm_tile__128_128_128_msk_x32",
+   "kernel": "tgmm_tile",
+   "kernel_tag": "k_tgmm_tile",
+   "params": {
+    "tm": 128,
+    "tk": 128,
+    "tn": 128,
+    "reps": 32,
+    "masked": true
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "tgmm_tile__128_128_128_plain_x8",
+   "kernel": "tgmm_tile",
+   "kernel_tag": "k_tgmm_tile",
+   "params": {
+    "tm": 128,
+    "tk": 128,
+    "tn": 128,
+    "reps": 8,
+    "masked": false
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "tgmm_tile__128_128_128_plain_x32",
+   "kernel": "tgmm_tile",
+   "kernel_tag": "k_tgmm_tile",
+   "params": {
+    "tm": 128,
+    "tk": 128,
+    "tn": 128,
+    "reps": 32,
+    "masked": false
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "tgmm_tile__256_256_256_msk_x8",
+   "kernel": "tgmm_tile",
+   "kernel_tag": "k_tgmm_tile",
+   "params": {
+    "tm": 256,
+    "tk": 256,
+    "tn": 256,
+    "reps": 8,
+    "masked": true
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "tgmm_tile__256_256_256_msk_x32",
+   "kernel": "tgmm_tile",
+   "kernel_tag": "k_tgmm_tile",
+   "params": {
+    "tm": 256,
+    "tk": 256,
+    "tn": 256,
+    "reps": 32,
+    "masked": true
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "tgmm_tile__256_256_256_plain_x8",
+   "kernel": "tgmm_tile",
+   "kernel_tag": "k_tgmm_tile",
+   "params": {
+    "tm": 256,
+    "tk": 256,
+    "tn": 256,
+    "reps": 8,
+    "masked": false
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "tgmm_tile__256_256_256_plain_x32",
+   "kernel": "tgmm_tile",
+   "kernel_tag": "k_tgmm_tile",
+   "params": {
+    "tm": 256,
+    "tk": 256,
+    "tn": 256,
+    "reps": 32,
+    "masked": false
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "tgmm_tile__512_128_128_msk_x8",
+   "kernel": "tgmm_tile",
+   "kernel_tag": "k_tgmm_tile",
+   "params": {
+    "tm": 512,
+    "tk": 128,
+    "tn": 128,
+    "reps": 8,
+    "masked": true
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "tgmm_tile__512_128_128_msk_x32",
+   "kernel": "tgmm_tile",
+   "kernel_tag": "k_tgmm_tile",
+   "params": {
+    "tm": 512,
+    "tk": 128,
+    "tn": 128,
+    "reps": 32,
+    "masked": true
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "tgmm_tile__512_128_128_plain_x8",
+   "kernel": "tgmm_tile",
+   "kernel_tag": "k_tgmm_tile",
+   "params": {
+    "tm": 512,
+    "tk": 128,
+    "tn": 128,
+    "reps": 8,
+    "masked": false
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "tgmm_tile__512_128_128_plain_x32",
+   "kernel": "tgmm_tile",
+   "kernel_tag": "k_tgmm_tile",
+   "params": {
+    "tm": 512,
+    "tk": 128,
+    "tn": 128,
+    "reps": 32,
+    "masked": false
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  }
+ ]
+}

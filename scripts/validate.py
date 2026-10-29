@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from corpus.split import split_of  # noqa: E402
 from model.predict import Params, load_core, load_dma, load_records, predict_record_ns  # noqa: E402
 
-TILE_KEYS = {"block_q", "block_k_major", "block_k", "block_kv", "block_kv_compute", "pages_per_compute_block",
+TILE_KEYS = {"m_blocks", "d_blocks", "block_q", "block_k_major", "block_k", "block_kv", "block_kv_compute", "pages_per_compute_block",
              "tm", "tk", "tn", "block_rows", "block_cols", "bm", "bn", "bk"}
 CLASSES = ("compute", "streaming", "latency")
 # User directive (2026-10-29): splash is the TPU attention benchmark; flash is reported separately.

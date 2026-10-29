@@ -67,7 +67,9 @@ class Program:
     region_start: dict[int, int]
 
     def target(self, region):
-        return self.region_start[region]
+        # A region with no bundles (e.g. the exit a kernel jumps to when its work range is empty)
+        # has no marker in the dump; branching there ends the program.
+        return self.region_start.get(region, len(self.bundles))
 
 
 def phys(name):

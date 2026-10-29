@@ -89,7 +89,8 @@
   "bw_write_GBps": 653.5311125109688,
   "turnaround_ns_per_byte": 0.00020922655388640592,
   "issue_ns": 11.256062537332756,
-  "mix_ns": 85.07063716911944
+  "mix_ns": 0.0,
+  "pause_latency": "reads"
  },
  "fit_report": {
   "fit_err": {
@@ -209,6 +210,8 @@
    "data/raw/phase3c"
   ],
   "script": "scripts/fit_dma.py",
-  "engine": "DirFifoHbm"
+  "engine": "DirFifoHbm",
+  "pause_latency": "reads",
+  "note": "mix_ns set to 0 and a read's start-up paused while write data moves (H16): fixes 1-read 1-write streams with core work (-20% -> +3%) at equal overall DMA microbenchmark fit"
  }
 }

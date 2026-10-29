@@ -242,6 +242,11 @@ xprof 2.24.1, Python 3.12.3 (see `VERSIONS.lock`).
   emits these ops: f32 and bf16 masked/strided Pallas accesses, and ragged's own strided uint32 K/V
   load in isolation, all compile to plain vld/vst, which cost what the model says; phase3k-3o2).
   Model parameter from the calibration corpus, not a measured fact.
+- H16. A read's start-up does not progress while write data is moving (replaces a fixed mixed-direction
+  start-up cost). With it, 1-read 1-write 32-row streams with 128-512 vadds/step go from -20% to
+  -5..+3% and the overall DMA microbenchmark fit is unchanged (98-99/123 within 5%); a free refit
+  wants a negative start-up (unphysical), so mix is held at 0. Calibration family biases move toward 0
+  (layernorm -9% -> +2%, softmax -9% -> +3%, gmm -4% -> -1%). Inferred structure.
 - H10. DMA queueing structure: one FIFO per direction, heads interleaving (`model/dma.py:DirFifoHbm`).
   Chosen because it fits F14/F15 better than processor sharing or one FIFO; not observed directly.
 - H6. Meaning of each bundle mnemonic and slot.

@@ -130,15 +130,22 @@ class SharedHbm:
     def _run(self, xs, now, until):
         """Serve transfers from `now` until `until` (or all done); mutates xs; returns done times."""
         done = {}
+        pause = getattr(self, "pause_latency", False)
         while xs and now < until:
             moving, rates = self._rates(xs, now)
-            nxt_ready = min((x.ready for x in xs if x.ready > now), default=math.inf)
+            dirs = {x.write for x in moving}
+            # with pause_latency, a transfer's start-up does not progress while the other direction moves data
+            paused = [x for x in xs if pause and x.ready > now and (not x.write) in dirs
+                      and (pause != "reads" or not x.write)]
+            nxt_ready = min((x.ready for x in xs if x.ready > now and x not in paused), default=math.inf)
             nxt_done = min((now + x.left / rates[id(x)] for x in moving), default=math.inf)
             step_to = min(nxt_ready, nxt_done, until)
             if step_to == math.inf:
                 break
             for x in moving:
                 x.left -= rates[id(x)] * (step_to - now)
+            for x in paused:
+                x.ready += step_to - now
             now = step_to
             for x in [x for x in xs if x.ready <= now and x.left <= 1e-6]:
                 done[id(x)] = now
@@ -165,8 +172,9 @@ class DirFifoHbm(SharedHbm):
 
     def __init__(self, read_cycles, write_cycles, bw_read, bw_write, turnaround, issue_cycles,
                  mix_cycles=0.0, read_lat_adj=0.0, write_lat_adj=0.0, single_queue=False, bw_post=None,
-                 wake_cycles=0.0):
+                 wake_cycles=0.0, pause_latency=False):
         super().__init__(read_cycles, write_cycles, bw_read, bw_write, None, issue_cycles, mix_cycles)
+        self.pause_latency = pause_latency
         self.single_queue = single_queue
         # Semaphore wake-up: paid by the core only when a dma.done.wait actually blocks (Machine).
         # The single-stream curves come from start-then-wait loops, so they include it once per copy.

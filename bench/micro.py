@@ -454,17 +454,21 @@ def unit_chain(params):
 
 
 def dma_compute(params):
-    """Pipelined 1-read + 1-write stream over a (16384, 1024) f32 array in `block_rows` blocks, with
-    per-step compute: 'none'; 'valu' = `amount` dependent vadds on one vreg (no VMEM traffic);
-    'vmem' = copy an (`amount`, 1024) f32 VMEM scratch block (vld/vst traffic, no HBM).
+    """Pipelined stream over a (16384, 1024) f32 array in `block_rows` blocks with `reads` inputs
+    (0/1) and `writes` outputs (0/1) and per-step compute: 'none'; 'valu' = `amount` dependent vadds
+    on one vreg (no VMEM traffic); 'vmem' = copy an (`amount`, 1024) f32 VMEM scratch block whose
+    first rows feed the output (vld/vst traffic, kept live).
 
-    isolates: whether core work, and VMEM traffic in particular, slows the DMA stream.
+    isolates: how core work, and VMEM traffic in particular, interacts with pipelined DMAs.
     """
     rows, cols, br, kind, amount = 16384, 1024, params["block_rows"], params["kind"], params["amount"]
+    nr, nw = params.get("reads", 1), params.get("writes", 1)
     blk = pl.BlockSpec((br, cols), lambda i: (i, 0))
+    resident = pl.BlockSpec((8, cols), lambda i: (0, 0))
 
-    def kernel(x_ref, o_ref, s1, s2):
-        o_ref[...] = x_ref[...]
+    def kernel(*refs):
+        ins, o_ref, s1, s2 = refs[:nr], refs[nr], refs[nr + 1], refs[nr + 2]
+        val = ins[0][...] if nr else jnp.full((br, cols), 1.0, jnp.float32)
         if kind == "valu":
             v = s1[pl.ds(0, 8), pl.ds(0, 128)]
             for _ in range(amount):
@@ -472,18 +476,29 @@ def dma_compute(params):
             s1[pl.ds(0, 8), pl.ds(0, 128)] = v
         elif kind == "vmem":
             s2[...] = s1[...] + 1.0
+            val = val + s2[pl.ds(0, 8), :][0:1, :]
+        if nw:
+            o_ref[...] = val
+        else:
+            o_ref[...] = val[:8]
 
     n = max(amount, 8) if kind == "vmem" else 8
 
-    def fn(x):
+    def fn(*xs):
         return pl.pallas_call(
-            kernel, out_shape=jax.ShapeDtypeStruct((rows, cols), jnp.float32), grid=(rows // br,),
-            in_specs=[blk], out_specs=blk,
+            kernel, out_shape=jax.ShapeDtypeStruct((rows, cols) if nw else (8, cols), jnp.float32),
+            grid=(rows // br,), in_specs=[blk] * nr, out_specs=blk if nw else resident,
             scratch_shapes=[pltpu.VMEM((n, cols), jnp.float32), pltpu.VMEM((n, cols), jnp.float32)],
             name="k_dma_compute",
-        )(x)
+        )(*xs)
 
-    return fn, [jax.ShapeDtypeStruct((rows, cols), jnp.float32)]
+    if nr:
+        return fn, [jax.ShapeDtypeStruct((rows, cols), jnp.float32)]
+
+    def fn0(dummy):
+        return fn()
+
+    return fn0, [jax.ShapeDtypeStruct((8, 128), jnp.float32)]
 
 
 def sld_use(params):
@@ -514,7 +529,62 @@ def sld_use(params):
     return fn, specs, make_inputs
 
 
+def mxu_fresh(params):
+    """reps x (acc += x @ W[i]) with a different (k, n) weight tile per rep, all in VMEM: weights
+    are loaded and pushed fresh every rep, as in tiled matmuls (contrast mxu_dot, which reuses W).
+
+    isolates: the VMEM load -> weight push -> matmul path; k < 128 exercises masked pushes.
+    """
+    m, kk, n, reps = params["m"], params["k"], params["n"], params["reps"]
+
+    def kernel(x_hbm, o_hbm, xs, ws, acc):
+        def body(i, carry):
+            acc[...] += jnp.dot(xs[...], ws[i], preferred_element_type=jnp.float32)
+            return carry
+
+        jax.lax.fori_loop(0, reps, body, 0)
+
+    scratch = [pltpu.VMEM((m, kk), jnp.bfloat16), pltpu.VMEM((reps, kk, n), jnp.bfloat16), pltpu.VMEM((m, n), jnp.float32)]
+    return _no_dma_call(kernel, scratch, "k_mxu_fresh")
+
+
+def vmem_chain(params):
+    """n rounds of buf[a] = buf[b] + 1 where a and b come from a scalar-prefetched table and are equal
+    at run time, so each round's load must see the previous round's store through VMEM.
+
+    isolates: VMEM store -> load -> use latency (vld latency).
+    """
+    n = params["n"]
+
+    def kernel(idx_ref, x_hbm, o_ref, buf):
+        def body(i, carry):
+            buf[pl.ds(idx_ref[2 * i + 1], 8), :] = buf[pl.ds(idx_ref[2 * i], 8), :] + 1.0
+            return carry
+
+        jax.lax.fori_loop(0, n, body, 0)
+        o_ref[...] = buf[pl.ds(0, 8), :]
+
+    grid_spec = pltpu.PrefetchScalarGridSpec(
+        num_scalar_prefetch=1, grid=(1,), in_specs=[HBM],
+        out_specs=pl.BlockSpec((8, 128), lambda i, idx: (0, 0)),
+        scratch_shapes=[pltpu.VMEM((64, 128), jnp.float32)],
+    )
+
+    def fn(idx, x):
+        return pl.pallas_call(kernel, out_shape=jax.ShapeDtypeStruct((8, 128), jnp.float32),
+                              grid_spec=grid_spec, name="k_vmem_chain")(idx, x)
+
+    specs = [jax.ShapeDtypeStruct((2 * n,), jnp.int32), jax.ShapeDtypeStruct((8, 128), jnp.float32)]
+
+    def make_inputs(seed):
+        return [np.zeros(2 * n, np.int32), np.zeros((8, 128), np.float32)]
+
+    return fn, specs, make_inputs
+
+
 MICRO = {
+    "mxu_fresh": (mxu_fresh, "micro"),
+    "vmem_chain": (vmem_chain, "micro"),
     "unit_chain": (unit_chain, "micro"),
     "dma_compute": (dma_compute, "micro"),
     "sld_use": (sld_use, "micro"),

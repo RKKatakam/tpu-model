@@ -168,6 +168,33 @@ def phase3g_configs():
     return cfgs
 
 
+def phase3h_configs():
+    """DMA streams with per-step core work: which direction slows when the core computes, and does
+    VMEM traffic contend with DMA (small-tile pipelines: matmul, tgmm, ragged, layernorm b8)."""
+    cfgs = []
+    for reads, writes in ((1, 0), (0, 1), (1, 1)):
+        for br in (32, 128):
+            for amount in (0, 128, 256, 512, 1024):
+                p = {"block_rows": br, "kind": "valu" if amount else "none", "amount": amount, "reads": reads, "writes": writes}
+                cfgs.append(device("dma_compute", p, f"dma_compute__r{reads}w{writes}_b{br}_valu{amount}"))
+    for br in (32, 128):
+        for amount in (32, 128):
+            p = {"block_rows": br, "kind": "vmem", "amount": amount, "reads": 1, "writes": 1}
+            cfgs.append(device("dma_compute", p, f"dma_compute__r1w1_b{br}_vmem{amount}"))
+    return cfgs
+
+
+def phase3i_configs():
+    """Fresh-weight matmuls (load -> push path, masked pushes) and a VMEM store->load chain."""
+    cfgs = []
+    for m, k, n in ((8, 128, 128), (128, 128, 128), (256, 128, 128), (1024, 128, 128), (256, 256, 256), (256, 64, 128)):
+        for reps in (8, 32):
+            cfgs.append(device("mxu_fresh", {"m": m, "k": k, "n": n, "reps": reps}, f"mxu_fresh__{m}_{k}_{n}_x{reps}"))
+    for n in (256, 2048):
+        cfgs.append(device("vmem_chain", {"n": n}, f"vmem_chain__n{n}"))
+    return cfgs
+
+
 def phase3b_configs():
     cfgs = []
     for rows in (1, 8, 64, 512, 2048, 8192):
@@ -338,6 +365,8 @@ BATCHES = {
     "phase3e": {"flags": DUMP_FLAGS, "configs": phase3e_configs()},
     "phase3f": {"flags": DUMP_FLAGS, "configs": phase3f_configs()},
     "phase3g": {"flags": DUMP_FLAGS, "configs": phase3g_configs()},
+    "phase3h": {"flags": DUMP_FLAGS, "configs": phase3h_configs()},
+    "phase3i": {"flags": DUMP_FLAGS, "configs": phase3i_configs()},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},
     "phase0_aot": {

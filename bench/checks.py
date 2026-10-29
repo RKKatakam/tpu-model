@@ -98,9 +98,23 @@ def check(kernel, params, program):
         g = params["block_rows"] * 1024 * 4 // 32
         starts = {(op.mnemonic, op.labels.get("size_in_granules")) for b in program.bundles for op in b.ops
                   if op.mnemonic.startswith("dma.") and op.mnemonic != "dma.done.wait"}
-        expect(starts == {("dma.hbm_to_vmem", str(g)), ("dma.vmem_to_hbm", str(g))}, f"dma starts {sorted(starts)}")
+        want = set()
+        if params.get("reads", 1):
+            want.add(("dma.hbm_to_vmem", str(g)))
+        want.add(("dma.vmem_to_hbm", str(g) if params.get("writes", 1) else str(8 * 1024 * 4 // 32)))
+        expect(starts == want, f"dma starts {sorted(starts)} want {sorted(want)}")
         if params["kind"] == "valu":
             expect(c["vadd.f32"] >= params["amount"], f"vadd.f32={c['vadd.f32']}")
+        if params["kind"] == "vmem":
+            vst = sum(v for m, v in c.items() if m.startswith("vst"))
+            expect(vst >= params["amount"] * 1024 // 1024, f"vst={vst}: VMEM copy eliminated?")
+    elif kernel == "mxu_fresh":
+        expect(any(m.startswith("vmatpush") for m in c), "no weight pushes")
+        expect(not dma_ops(c), f"unexpected DMA ops {dma_ops(c)}")
+        expect(not has_spill(program), "spills")
+    elif kernel == "vmem_chain":
+        expect(any(m.startswith("vld") for m in c) and any(m.startswith("vst") for m in c), "no vld/vst")
+        expect(c["sbr.rel"] >= 1, "no loop")
     elif kernel == "sld_use":
         expect(c["sld"] >= 1 and c["sbr.rel"] >= 1, f"sld={c['sld']} branches={c['sbr.rel']}")
     elif kernel == "sld_chain":

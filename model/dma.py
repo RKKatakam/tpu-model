@@ -160,18 +160,24 @@ class DirFifoHbm(SharedHbm):
     direction is in flight pays `mix_cycles` more start-up."""
 
     def __init__(self, read_cycles, write_cycles, bw_read, bw_write, turnaround, issue_cycles,
-                 mix_cycles=0.0, read_lat_adj=0.0, write_lat_adj=0.0):
+                 mix_cycles=0.0, read_lat_adj=0.0, write_lat_adj=0.0, single_queue=False):
         super().__init__(read_cycles, write_cycles, bw_read, bw_write, None, issue_cycles, mix_cycles)
+        self.single_queue = single_queue
         self.pair_rate = 1.0 / (1.0 / bw_read + 1.0 / bw_write + turnaround)
         # start-up latency = single-stream time - bytes / bw - adj (adj fitted: back-to-back
         # per-copy times include more than a pipelined transfer waits for)
         self.lat_adj = {False: read_lat_adj, True: write_lat_adj}
+
+    single_queue = False  # one FIFO for both directions (set by DirFifoHbm(..., single_queue=True))
 
     def _rates(self, xs, now):
         heads = {}
         for x in xs:  # xs is in issue order
             if x.left > 0 and x.write not in heads:
                 heads[x.write] = x
+        if self.single_queue and heads:
+            first = min(heads.values(), key=xs.index)
+            heads = {first.write: first}
         moving = [x for x in heads.values() if x.ready <= now]
         if len(moving) == 2:
             return moving, {id(x): self.pair_rate for x in moving}

@@ -537,15 +537,19 @@ def mxu_fresh(params):
     isolates: the VMEM load -> weight push -> matmul path; k < 128 exercises masked pushes.
     """
     m, kk, n, reps = params["m"], params["k"], params["n"], params["reps"]
+    lhs = {"bf16": jnp.bfloat16, "f32": jnp.float32}[params.get("lhs", "bf16")]
+    rhs_t = params.get("rhs_t", False)  # weights stored (n, k), as K in attention scores q @ K^T
+    dims = (((1,), (1,)), ((), ())) if rhs_t else (((1,), (0,)), ((), ()))
 
     def kernel(x_hbm, o_hbm, xs, ws, acc):
         def body(i, carry):
-            acc[...] += jnp.dot(xs[...], ws[i], preferred_element_type=jnp.float32)
+            acc[...] += jax.lax.dot_general(xs[...], ws[i], dims, preferred_element_type=jnp.float32)
             return carry
 
         jax.lax.fori_loop(0, reps, body, 0)
 
-    scratch = [pltpu.VMEM((m, kk), jnp.bfloat16), pltpu.VMEM((reps, kk, n), jnp.bfloat16), pltpu.VMEM((m, n), jnp.float32)]
+    w_shape = (reps, n, kk) if rhs_t else (reps, kk, n)
+    scratch = [pltpu.VMEM((m, kk), lhs), pltpu.VMEM(w_shape, jnp.bfloat16), pltpu.VMEM((m, n), jnp.float32)]
     return _no_dma_call(kernel, scratch, "k_mxu_fresh")
 
 

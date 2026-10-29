@@ -314,6 +314,19 @@ def phase3q_configs():
     return cfgs
 
 
+def phase3r_configs():
+    """Decode-shaped attention scores: few query rows against fresh, transposed K tiles (paged decode's
+    push -> short matmul pattern)."""
+    cfgs = []
+    for lhs in ("f32", "bf16"):
+        for m in (8, 32):
+            for n in (128, 256, 512):
+                for reps in (8, 32):
+                    p = {"m": m, "k": 128, "n": n, "reps": reps, "lhs": lhs, "rhs_t": True}
+                    cfgs.append(device("mxu_fresh", p, f"mxu_fresh__{lhs}xbf16T_{m}_128_{n}_x{reps}"))
+    return cfgs
+
+
 def trace_probe_configs():
     """Does an in-kernel named_scope produce trace events, and under which profiler option?"""
     cfgs = []
@@ -536,6 +549,7 @@ BATCHES = {
     "phase3p": {"flags": DUMP_FLAGS, "configs": phase3p_configs()},
     "diag_sync": {"flags": DUMP_FLAGS, "configs": diag_sync_configs()},
     "phase3q": {"flags": DUMP_FLAGS, "configs": phase3q_configs()},
+    "phase3r": {"flags": DUMP_FLAGS, "configs": phase3r_configs()},
     "phase3o2": {"flags": DUMP_FLAGS, "configs": [c for c in phase3o_configs() if c["params"]["step"] > 1]},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},

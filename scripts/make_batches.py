@@ -255,6 +255,19 @@ def phase3o_configs():
     return cfgs
 
 
+def phase3p_configs():
+    """int8 matmuls (s8 x s8 -> s32, as vLLM's w8a8 quantized matmul) and f32 transposed weight
+    pushes (w8a16), plain and transposed weights; fit on reps 4, check on reps 16."""
+    cfgs = []
+    shapes = [(32, 128, 128), (256, 128, 128), (1024, 128, 128), (256, 256, 256), (1024, 256, 256)]
+    for lhs, rhs, rhs_t in (("s8", "s8", False), ("s8", "s8", True), ("f32", "f32", True)):
+        for m, k, n in shapes:
+            for reps in (4, 16):
+                p = {"m": m, "k": k, "n": n, "reps": reps, "lhs": lhs, "rhs": rhs, "rhs_t": rhs_t}
+                cfgs.append(device("mxu_dot", p, f"mxu_dot__{lhs}x{rhs}{'T' if rhs_t else ''}_{m}_{k}_{n}_x{reps}"))
+    return cfgs
+
+
 def trace_probe_configs():
     """Does an in-kernel named_scope produce trace events, and under which profiler option?"""
     cfgs = []
@@ -474,6 +487,7 @@ BATCHES = {
     "phase3n": {"flags": DUMP_FLAGS, "configs": phase3n_configs()},
     "phase3o": {"flags": DUMP_FLAGS, "configs": phase3o_configs()},
     "trace_probe": {"flags": DUMP_FLAGS, "configs": trace_probe_configs()},
+    "phase3p": {"flags": DUMP_FLAGS, "configs": phase3p_configs()},
     "phase3o2": {"flags": DUMP_FLAGS, "configs": [c for c in phase3o_configs() if c["params"]["step"] > 1]},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},

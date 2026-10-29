@@ -151,15 +151,16 @@ def mxu_dot(params):
     isolates: MXU weight push, LHS streaming, result pop; no DMA.
     """
     m, kk, n, reps = params["m"], params["k"], params["n"], params["reps"]
-    dt = {"bf16": jnp.bfloat16, "f32": jnp.float32}
+    dt = {"bf16": jnp.bfloat16, "f32": jnp.float32, "s8": jnp.int8}
     lhs, rhs = dt[params.get("lhs", "bf16")], dt[params.get("rhs", "bf16")]
+    acc_dt = jnp.int32 if lhs == jnp.int8 else jnp.float32
 
     rhs_t = params.get("rhs_t", False)  # weights stored (n, k) and contracted on their last dim
     dims = (((1,), (1,)), ((), ())) if rhs_t else (((1,), (0,)), ((), ()))
 
     def kernel(x_hbm, o_hbm, xs, ws, acc):
         def body(_, carry):
-            acc[...] += jax.lax.dot_general(xs[...], ws[...], dims, preferred_element_type=jnp.float32)
+            acc[...] += jax.lax.dot_general(xs[...], ws[...], dims, preferred_element_type=acc_dt)
             return carry
 
         jax.lax.fori_loop(0, reps, body, 0)
@@ -167,7 +168,7 @@ def mxu_dot(params):
     scratch = [
         pltpu.VMEM((m, kk), lhs),
         pltpu.VMEM((n, kk) if rhs_t else (kk, n), rhs),
-        pltpu.VMEM((m, n), jnp.float32),
+        pltpu.VMEM((m, n), acc_dt),
     ]
     return _no_dma_call(kernel, scratch, "k_mxu_dot")
 

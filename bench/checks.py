@@ -82,6 +82,15 @@ def check(kernel, params, program):
         expect(mm and all(m.startswith(f"vmatmul.{lhs}.") for m in mm), f"matmul ops {sorted(mm)} want vmatmul.{lhs}.*")
         expect(not dma_ops(c), f"unexpected DMA ops {dma_ops(c)}")
         expect(not has_spill(program), "spills")
+    elif kernel == "dma_gather":
+        g = params["rows"] * 128 * 4 // 32
+        starts = {(op.mnemonic, op.labels.get("size_in_granules")) for b in program.bundles for op in b.ops
+                  if op.mnemonic.startswith("dma.") and op.mnemonic != "dma.done.wait"
+                  and not op.mnemonic.endswith("_to_smem")}
+        want = {("dma.hbm_to_vmem", str(g)), ("dma.vmem_to_hbm", str(g))}
+        expect(starts == want, f"dma starts {sorted(starts)} want {sorted(want)}")
+        vec = {m for m in c if m.startswith("v") and not m.startswith(("vsync", "vld", "vst", "vpop.sfrf", "vmov", "vnop"))}
+        expect(not vec, f"vector ops {sorted(vec)}")
     elif kernel == "dma_stream":
         g = params["block_rows"] * params["cols"] * 4 // 32
         starts = {(op.mnemonic, op.labels.get("size_in_granules")) for b in program.bundles for op in b.ops

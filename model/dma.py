@@ -74,6 +74,7 @@ class SharedHbm:
         self.engine_free = 0.0
         self.active = []
         self.now = 0.0
+        self.lat_adj = {False: 0.0, True: 0.0}
 
     def issue(self, d, t):
         self._advance(t)
@@ -81,7 +82,7 @@ class SharedHbm:
         nbytes = d.granules * GRANULE_BYTES
         start = max(t, self.engine_free)
         self.engine_free = start + self.issue_cycles
-        latency = max(0.0, self.curves[write](nbytes) - nbytes / self.bw[write])
+        latency = max(0.0, self.curves[write](nbytes) - nbytes / self.bw[write] - self.lat_adj[write])
         if any(x.write != write and x.left > 0 for x in self.active):
             latency += self.mix_cycles
         self.active.append(_Xfer(d, start + latency, nbytes, math.inf, write))
@@ -155,11 +156,16 @@ class DirFifoHbm(SharedHbm):
     freely; bytes move in issue order within a direction. The two queue heads interleave: alone, a
     head moves at its direction's bandwidth; together each moves at 1 / (1/bw_read + 1/bw_write +
     turnaround) bytes per cycle (bench dma_stream: reads cost 1/bw_read, writes 1/bw_write, and
-    overlapped bytes pay `turnaround` cycles per byte pair)."""
+    overlapped bytes pay `turnaround` cycles per byte pair). A transfer issued while the other
+    direction is in flight pays `mix_cycles` more start-up."""
 
-    def __init__(self, read_cycles, write_cycles, bw_read, bw_write, turnaround, issue_cycles):
-        super().__init__(read_cycles, write_cycles, bw_read, bw_write, None, issue_cycles, 0.0)
+    def __init__(self, read_cycles, write_cycles, bw_read, bw_write, turnaround, issue_cycles,
+                 mix_cycles=0.0, read_lat_adj=0.0, write_lat_adj=0.0):
+        super().__init__(read_cycles, write_cycles, bw_read, bw_write, None, issue_cycles, mix_cycles)
         self.pair_rate = 1.0 / (1.0 / bw_read + 1.0 / bw_write + turnaround)
+        # start-up latency = single-stream time - bytes / bw - adj (adj fitted: back-to-back
+        # per-copy times include more than a pipelined transfer waits for)
+        self.lat_adj = {False: read_lat_adj, True: write_lat_adj}
 
     def _rates(self, xs, now):
         heads = {}

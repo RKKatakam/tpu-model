@@ -1,6 +1,6 @@
 """Fit vector-side core parameters (latencies, EUP/XLU/MXU unit timings) from phase3a microbenchmarks.
 
-usage: fit_core.py PHASE3A_DIR OUT_JSON
+usage: fit_core.py PHASE3A_DIR PHASE3D_DIR OUT_JSON
 Each parameter family is fitted only on the microbenchmark that isolates it; MXU parameters are
 fitted on reps=4 runs and checked on reps=16 runs.
 """
@@ -43,7 +43,7 @@ def fit(objective_records, build, x0, names):
     return dict(zip(names, res.x)), res
 
 
-def main(batch_dir, out_json):
+def main(batch_dir, f32_dir, out_json):
     recs = load_records(batch_dir)
     vop = {r.raw["record_id"]: r for r in recs if r.raw["kernel"] == "vop_chain"}
     report = {}
@@ -110,15 +110,35 @@ def main(batch_dir, out_json):
     report["mxu"] = mxu
     report["mxu_train_err"] = {r.raw["record_id"]: float(e) for r, e in zip(train, rel_errors(train, final))}
     report["mxu_check_err"] = {r.raw["record_id"]: float(e) for r, e in zip(check, rel_errors(check, final))}
+    # f32 matmuls (phase3d): an f32 vreg is 8 rows, so vmatmul.f32 occupies the MXU 8 cycles
+    # (1024 -> 4096 rows: 8.0 cycles per extra vmatmul per MXU) and yields one result vreg
+    # (32 vmatmul.f32 : 32 vpop per MXU). Fitted: its result latency and the cost of an f32 weight
+    # push (f32 weights take twice the vmatpush ops yet no more time); the rest stays as fitted on bf16.
+    f32_recs = [r for r in load_records(f32_dir) if r.raw["kernel"] == "mxu_dot"]
+    f32_train = [r for r in f32_recs if r.raw["params"]["reps"] == 4]
+    f32_check = [r for r in f32_recs if r.raw["params"]["reps"] == 16]
+
+    def with_f32(x):
+        u = final.units | {"mxu": dict(final.units["mxu"])}
+        u["mxu"]["work"] = dict(u["mxu"]["work"], f32={"occupancy": 8, "latency": x[0], "interval": 0, "results": 1})
+        u["mxu"]["push_cycles_f32"] = x[1]
+        return with_units(u)
+
+    f32, _ = fit(f32_train, with_f32, [120.0, 2.0], ["result_latency", "push_cycles_f32"])
+    final = with_f32([f32["result_latency"], f32["push_cycles_f32"]])
+    report["mxu_f32"] = f32
+    report["mxu_f32_train_err"] = {r.raw["record_id"]: float(e) for r, e in zip(f32_train, rel_errors(f32_train, final))}
+    report["mxu_f32_check_err"] = {r.raw["record_id"]: float(e) for r, e in zip(f32_check, rel_errors(f32_check, final))}
+
     # cast and roll_sublane chains were folded by the compiler (1 to 4 bundles); not usable.
     usable = [r for r in vop.values() if r.raw["params"]["op"] not in ("cast", "roll_sublane")]
     report["vop_err"] = {r.raw["record_id"]: float(e) for r, e in zip(usable, rel_errors(usable, final))}
 
     with open(out_json, "w") as f:
         json.dump({"core": {"latency": final.latency, "units": final.units}, "fit_report": report,
-                   "provenance": {"source": batch_dir, "script": "scripts/fit_core.py"}}, f, indent=1)
+                   "provenance": {"sources": [batch_dir, f32_dir], "script": "scripts/fit_core.py"}}, f, indent=1)
     print(json.dumps(report, indent=1))
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    main(*sys.argv[1:4])

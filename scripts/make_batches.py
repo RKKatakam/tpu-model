@@ -120,6 +120,17 @@ def phase3d_configs():
     return cfgs
 
 
+def phase3e_configs():
+    """Small DMAs at random vs sequential addresses with 1..16 in flight (paged attention)."""
+    cfgs = []
+    for rows, pages in ((8, 4096), (32, 4096), (128, 1024)):
+        for order in ("seq", "random"):
+            for inflight in (1, 4, 16):
+                p = {"rows": rows, "pages": pages, "n": 512, "inflight": inflight, "order": order}
+                cfgs.append(device("dma_gather", p, f"dma_gather__r{rows}_{order}_c{inflight}", reps=50))
+    return cfgs
+
+
 def phase3b_configs():
     cfgs = []
     for rows in (1, 8, 64, 512, 2048, 8192):
@@ -251,6 +262,7 @@ BATCHES = {
     "phase3b": {"flags": DUMP_FLAGS, "configs": phase3b_configs()},
     "phase3c": {"flags": DUMP_FLAGS, "configs": phase3c_configs()},
     "phase3d": {"flags": DUMP_FLAGS, "configs": phase3d_configs()},
+    "phase3e": {"flags": DUMP_FLAGS, "configs": phase3e_configs()},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},
     "phase0_aot": {

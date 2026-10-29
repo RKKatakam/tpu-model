@@ -8,8 +8,8 @@ FIFO units (MXU, XLU, EUP) take work ops and return results through `vpop.*`:
   `results` entries that become poppable `latency` (+ j * `interval`) cycles after start;
 - a pop waits for its unit's oldest entry; the popped vreg is ready `pop_latency` later.
 MXU weights: `vmatpush.<msr>` streams into staging register msr (one push path per MXU,
-`push_cycles` each); a `vmatmul.vlgmr.<msr>` first waits until those pushes finish plus
-`load_latency`.
+`push_cycles` each, `push_cycles_f32` for f32 weights, which take two pushes per bf16 one); a
+`vmatmul.vlgmr.<msr>` first waits until those pushes finish plus `load_latency`.
 """
 
 import re
@@ -101,7 +101,8 @@ class Units:
             q = self.fifo.setdefault(key, [])
             q.extend(t + wp["latency"] + j * wp.get("interval", 0) for j in range(wp.get("results", 1)))
         elif role == "push":
-            done = t + self.p[cls]["push_cycles"]
+            up = self.p[cls]
+            done = t + (up["push_cycles"] if ".bf16" in mnemonic else up.get("push_cycles_f32", up["push_cycles"]))
             self.push_busy[key] = done
             msr = re.search(r"\.(msr\w)\.", mnemonic).group(1)
             self.staged[(key, msr)] = done

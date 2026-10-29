@@ -5,6 +5,8 @@ Inputs and outputs stay in HBM (memory_space=HBM) so the pipeline emits no
 DMAs; work happens on VMEM scratch whose contents are irrelevant to timing.
 """
 
+import numpy as np
+
 import jax
 import jax.numpy as jnp
 from jax.experimental import pallas as pl
@@ -316,7 +318,57 @@ def dma_stream(params):
     return fn, specs
 
 
+def dma_gather(params):
+    """`n` copies of one (rows, 128) f32 page of a (pages, rows, 128) HBM array into VMEM, at page
+    indices read from SMEM (scalar prefetch), keeping `inflight` copies outstanding. order 'seq'
+    reads pages 0..n-1, 'random' a fixed random permutation.
+
+    isolates: small-DMA throughput vs address pattern and concurrency (paged attention's page loads).
+    """
+    rows, n, c, pages = params["rows"], params["n"], params["inflight"], params["pages"]
+
+    def kernel(idx_ref, x_hbm, o_ref, buf, sems):
+        def copy(i, slot):
+            return pltpu.make_async_copy(x_hbm.at[idx_ref[i]], buf.at[slot], sems.at[slot])
+
+        for s in range(c):
+            copy(s, s).start()
+
+        def body(i, carry):
+            slot = i % c
+            copy(i, slot).wait()
+
+            @pl.when(i + c < n)
+            def _():
+                copy(i + c, slot).start()
+
+            return carry
+
+        jax.lax.fori_loop(0, n, body, 0)
+        o_ref[...] = buf[0]
+
+    grid_spec = pltpu.PrefetchScalarGridSpec(
+        num_scalar_prefetch=1, grid=(1,), in_specs=[HBM],
+        out_specs=pl.BlockSpec((rows, 128), lambda i, idx: (0, 0)),
+        scratch_shapes=[pltpu.VMEM((c, rows, 128), jnp.float32), pltpu.SemaphoreType.DMA((c,))],
+    )
+
+    def fn(idx, x):
+        return pl.pallas_call(kernel, out_shape=jax.ShapeDtypeStruct((rows, 128), jnp.float32),
+                              grid_spec=grid_spec, name="k_dma_gather")(idx, x)
+
+    specs = [jax.ShapeDtypeStruct((n,), jnp.int32), jax.ShapeDtypeStruct((pages, rows, 128), jnp.float32)]
+
+    def make_inputs(seed):
+        rng = np.random.default_rng(seed)
+        idx = rng.permutation(pages)[:n] if params["order"] == "random" else np.arange(n)
+        return [idx.astype(np.int32), np.zeros((pages, rows, 128), np.float32)]
+
+    return fn, specs, make_inputs
+
+
 MICRO = {
+    "dma_gather": (dma_gather, "micro"),
     "dma_stream": (dma_stream, "micro"),
     "vop_chain": (vop_chain, "micro"),
     "mem_chain": (mem_chain, "micro"),

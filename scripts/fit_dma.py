@@ -2,9 +2,9 @@
 
 usage: fit_dma.py PHASE1_DIR PHASE3B_DIR PHASE3C_DIR OUT_JSON
 Read curve: bench dma_seq (phase 1). Write curve: bench dma_out (phase 3b). Both per-copy
-= (t(8 copies) - t(1 copy)) / 7. Read and write bandwidth, read/write turnaround and per-DMA
-issue cost are fitted on bench dma_stream (pipelined read/write mixes), dma_conc (concurrent
-reads) and dma_inout (read then write); dma_seq / dma_out / dma_strided are reported as checks.
+= (t(8 copies) - t(1 copy)) / 7. Bandwidths, read/write turnaround,
+per-DMA issue cost, mixed-direction start-up and per-direction start-up adjustments are fitted
+on dma_stream, dma_conc, dma_inout, dma_seq and dma_out; dma_strided is reported as a check.
 """
 
 import json
@@ -20,8 +20,8 @@ from model.machine import Machine  # noqa: E402
 from model.predict import dma_model, load_records  # noqa: E402
 
 CLOCK_GHZ = 1.5  # HARDWARE_FACTS F7
-FIT = ("dma_stream", "dma_conc", "dma_inout")
-CHECK = ("dma_seq", "dma_out", "dma_strided")
+FIT = ("dma_stream", "dma_conc", "dma_inout", "dma_seq", "dma_out")
+CHECK = ("dma_strided",)
 
 
 def per_copy_table(recs, kernel, size_of):
@@ -36,10 +36,11 @@ def per_copy_table(recs, kernel, size_of):
 
 
 def params_of(read_ns, write_ns, x):
-    bw_read, bw_write, turnaround_ps, issue_ns = x
+    bw_read, bw_write, turnaround_ps, issue_ns, mix_ns, read_adj, write_adj = x
     return {"engine": "DirFifoHbm", "read_table_ns": read_ns, "write_table_ns": write_ns,
             "bw_read_GBps": bw_read, "bw_write_GBps": bw_write,
-            "turnaround_ns_per_byte": turnaround_ps / 1000, "issue_ns": issue_ns}
+            "turnaround_ns_per_byte": turnaround_ps / 1000, "issue_ns": issue_ns, "mix_ns": mix_ns,
+            "read_lat_adj_ns": read_adj, "write_lat_adj_ns": write_adj}
 
 
 def errors(recs, dma):
@@ -58,11 +59,11 @@ def main(p1, p3b, p3c, out_json):
     fit_recs = [r for r in everything if r.raw["kernel"] in FIT]
     check = [r for r in everything if r.raw["kernel"] in CHECK]
 
-    # x = (bw_read GB/s, bw_write GB/s, turnaround ps/byte, issue ns); start from the dma_stream
-    # closed form: 751 / 655 GB/s sustained, 0.2 ps/byte overlapped.
+    # x = (bw_read GB/s, bw_write GB/s, turnaround ps/byte, issue ns, mix ns, read / write latency
+    # adjustment ns); start from the previous fit.
     loss = lambda x: float(np.sum(errors(fit_recs, params_of(read_ns, write_ns, x)) ** 2))  # noqa: E731
-    res = minimize(loss, [751.0, 655.0, 0.2, 11.4], method="Nelder-Mead",
-                   options={"xatol": 0.05, "fatol": 1e-8, "maxiter": 400})
+    res = minimize(loss, [730.0, 672.0, 0.25, 12.8, 75.0, 0.0, 0.0], method="Nelder-Mead",
+                   options={"xatol": 0.05, "fatol": 1e-8, "maxiter": 900})
     dma = params_of(read_ns, write_ns, res.x)
     fit_err, check_err = errors(fit_recs, dma), errors(check, dma)
     out = {

@@ -78,8 +78,8 @@ def all_pallas_operands(record):
     with jax.default_device(jax.devices("cpu")[0]):
         fn, specs, _, _ = kernels.build(record.raw["kernel"], record.raw["params"])
         ints = record.raw.get("integer_inputs") or {}
-        args = [jnp.asarray(np.array(ints[str(i)], dtype=s.dtype)) if str(i) in ints else jnp.zeros(s.shape, s.dtype)
-                for i, s in enumerate(specs)]
+        args = [jnp.asarray(np.array(ints[str(i)], dtype=s.dtype)) if isinstance(ints.get(str(i)), list)
+                else jnp.zeros(s.shape, s.dtype) for i, s in enumerate(specs)]
         closed = jax.make_jaxpr(fn)(*specs)
         found = []
         _eval_collect(closed.jaxpr, closed.consts, args, found)

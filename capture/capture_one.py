@@ -23,6 +23,7 @@ if "jax" in sys.modules:
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import jax  # noqa: E402
+import numpy as np  # noqa: E402
 
 from capture import xplane  # noqa: E402
 from corpus import kernels  # noqa: E402
@@ -111,14 +112,16 @@ def make_inputs(specs, factory, seed):
     return [jax.random.normal(k, s.shape, s.dtype) for k, s in zip(keys, specs)]
 
 
-def integer_inputs(args):
-    """Integer arguments (page tables, lengths, group sizes) by position, for SMEM replay."""
-    import numpy as np
-
+def integer_inputs(args, limit=65536):
+    """Integer argument values the replay may need (SMEM tables: page indices, lengths, group sizes).
+    Larger integer arrays are data (e.g. int8 weights), recorded by shape only."""
     out = {}
     for i, a in enumerate(args):
         if jax.numpy.issubdtype(a.dtype, jax.numpy.integer):
-            out[str(i)] = np.asarray(a).tolist()
+            if a.size <= limit:
+                out[str(i)] = np.asarray(a).tolist()
+            else:
+                out[str(i)] = {"omitted_shape": list(a.shape), "dtype": str(a.dtype)}
     return out
 
 

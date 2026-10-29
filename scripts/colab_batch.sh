@@ -78,5 +78,6 @@ wait "$runner" || true
 grep -E '^(ok|FAIL|retry|done)' "$out/run_batch.log" | tail -3 || true
 if [ "$lost" -lt 2 ]; then
   fetch_parts
-  retry 3 900 colab download -s "$session" "$final" "$out/results.tgz" && tar xzf "$out/results.tgz" -C "$repo/data/raw"
+  # -k: keep records already extracted from per-config archives (rewriting them raced once)
+  retry 3 900 colab download -s "$session" "$final" "$out/results.tgz" && tar xzkf "$out/results.tgz" -C "$repo/data/raw" 2>/dev/null; true
 fi

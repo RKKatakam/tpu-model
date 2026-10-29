@@ -232,6 +232,12 @@ xprof 2.24.1, Python 3.12.3 (see `VERSIONS.lock`).
   most 8 cycles ahead (`issue_lead`). Fitted on core microbenchmarks (every one within 2.9%; strictly
   in-order issue leaves the 8-32-wide XLU chains 4-9% slow); the queue structure is inferred.
 - H13. Scalar divide (`sdivrem` -> `spop.drf`) has no stall beyond the compiler's spacing. Unmeasured.
+- H14 (sharpened with sync-flag traces, diag_sync): in a 32-row write-only pipeline a 128 KiB write must
+  complete within ~600 cycles of issue (step 319 cycles, two buffers), while the start-then-wait
+  per-copy time is 713 cycles; splitting write latency into head and tail (completion after the data)
+  does not change this, because consecutive writes already overlap their start-up in the replay.
+  Write waits stall 10-20 ns on hardware vs 80-100 ns in the replay in every small-block kernel traced
+  (layernorm/softmax b8, matmul 256-tiles), and read waits stall more on hardware (300 vs 250 ns).
 - H14. Pipelined writes complete faster than start-then-wait writes imply (32-row write-only stream:
   <= ~426 ns issue-to-done vs ~560 ns per sequential copy; replay +21%), and 1-read 1-write streams
   with moderate core work run slower than the replay (-17..-21%). Tested and rejected (fit does not

@@ -198,6 +198,8 @@ class Scoreboard:
     def __init__(self, params):
         self.p = params
         self.lead = params.issue_lead
+        # A DMA start may have to wait for queued vector stores (it might read what they write).
+        self.dma_waits_stores = params.latency.get("dma_waits_stores", 1)
         self.ready_at = {}
         self.producer = {}  # reg -> mnemonic class of its last writer (stall attribution)
         self.stall_by = {}  # cause -> front-end stall cycles
@@ -262,7 +264,7 @@ class Scoreboard:
             tr = self.ready_at.get(r, 0.0) + lag
             if tr > t:
                 t, cause = tr, "wait " + self.producer.get(r, "?")
-        if inf.dma_start and self.slot_free.get("vst", 0.0) > t:
+        if inf.dma_start and self.dma_waits_stores and self.slot_free.get("vst", 0.0) > t:
             t, cause = self.slot_free["vst"], "dma start waits for vector stores"
         floor, latest, latest_cause = {}, t, None
         for slot, ops in inf.groups.items():

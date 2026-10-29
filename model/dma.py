@@ -76,6 +76,7 @@ class SharedHbm:
         self.active = []
         self.now = 0.0
         self.lat_adj = {False: 0.0, True: 0.0}
+        self.tail = {False: 0.0, True: 0.0}  # completion delay after the last byte (not occupying the pipe)
 
     def issue(self, d, t):
         self._advance(t)
@@ -83,7 +84,9 @@ class SharedHbm:
         nbytes = d.granules * GRANULE_BYTES
         start = max(t, self.engine_free)
         self.engine_free = start + self.issue_cycles
-        latency = max(0.0, self.curves[write](nbytes) - nbytes / self.bw[write] - self.lat_adj[write])
+        # start-up = single-stream time - transfer - adjustment - tail (the tail comes after the data)
+        latency = max(0.0, self.curves[write](nbytes) - nbytes / self.bw[write] - self.lat_adj[write]
+                      - self.tail[write])
         if any(x.write != write and x.left > 0 for x in self.active):
             latency += self.mix_cycles
         x = _Xfer(d, start + latency, nbytes, math.inf, write)
@@ -99,7 +102,7 @@ class SharedHbm:
         for x, ready, left in state:
             x.ready, x.left = ready, left
         for x in self.active:
-            x.d.done = min(done[id(x)], x.post)
+            x.d.done = min(done[id(x)] + self.tail[x.write], x.post)
 
     def _rates(self, xs, now):
         moving = [x for x in xs if x.ready <= now and x.left > 0]
@@ -158,7 +161,7 @@ class SharedHbm:
         finished = self._run(self.active, self.now, until=t)
         for x in list(self.active):
             if id(x) in finished:
-                x.d.done = min(finished[id(x)], x.post)
+                x.d.done = min(finished[id(x)] + self.tail[x.write], x.post)
         self.now = t
 
 
@@ -172,9 +175,12 @@ class DirFifoHbm(SharedHbm):
 
     def __init__(self, read_cycles, write_cycles, bw_read, bw_write, turnaround, issue_cycles,
                  mix_cycles=0.0, read_lat_adj=0.0, write_lat_adj=0.0, single_queue=False, bw_post=None,
-                 wake_cycles=0.0, pause_latency=False):
+                 wake_cycles=0.0, pause_latency=False, read_tail=0.0, write_tail=0.0):
         super().__init__(read_cycles, write_cycles, bw_read, bw_write, None, issue_cycles, mix_cycles)
         self.pause_latency = pause_latency
+        # part of each direction's single-stream latency comes after the data moves (completion
+        # signalling): sequential copies see all of it, pipelined copies overlap the tail
+        self.tail = {False: read_tail, True: write_tail}
         self.single_queue = single_queue
         # Semaphore wake-up: paid by the core only when a dma.done.wait actually blocks (Machine).
         # The single-stream curves come from start-then-wait loops, so they include it once per copy.

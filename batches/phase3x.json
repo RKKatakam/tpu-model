@@ -1,0 +1,100 @@
+{
+ "batch_id": "phase3x",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "sld_unrolled__n64_u64",
+   "kernel": "sld_unrolled",
+   "kernel_tag": "k_sld_unrolled",
+   "params": {
+    "n": 64,
+    "unroll": 64,
+    "size": 64
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "sld_unrolled__n256_u256",
+   "kernel": "sld_unrolled",
+   "kernel_tag": "k_sld_unrolled",
+   "params": {
+    "n": 256,
+    "unroll": 256,
+    "size": 64
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "sld_unrolled__n256_u16",
+   "kernel": "sld_unrolled",
+   "kernel_tag": "k_sld_unrolled",
+   "params": {
+    "n": 256,
+    "unroll": 16,
+    "size": 64
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "sld_unrolled__n1024_u16",
+   "kernel": "sld_unrolled",
+   "kernel_tag": "k_sld_unrolled",
+   "params": {
+    "n": 1024,
+    "unroll": 16,
+    "size": 64
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "sld_unrolled__n256_u4",
+   "kernel": "sld_unrolled",
+   "kernel_tag": "k_sld_unrolled",
+   "params": {
+    "n": 256,
+    "unroll": 4,
+    "size": 64
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "sld_unrolled__n1024_u4",
+   "kernel": "sld_unrolled",
+   "kernel_tag": "k_sld_unrolled",
+   "params": {
+    "n": 1024,
+    "unroll": 4,
+    "size": 64
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  }
+ ]
+}

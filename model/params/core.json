@@ -24,7 +24,13 @@
    "vsel": 1,
    "scalar": {
     "smul": 2
-   }
+   },
+   "vmin": 2,
+   "vand": 2,
+   "vor": 2,
+   "vclamps": 2,
+   "vector_queue": 12,
+   "sld": 6
   },
   "units": {
    "eup": {
@@ -387,7 +393,14 @@
    "slots": "2: philox's last iteration reloads a chunk evicted one switch earlier",
    "fit_errors": "valu loops/straight within 0.5%; check (not fitted): philox_b1024x1024 (calib) -15.4% -> about -1%"
   },
-  "scalar_phase3t": "smul.u32 -> sadd.s32 multiply-add chain: exactly 3.0 cycles per round (pop_scalar n=64/128/256 slope; the compiler schedules it in 2), so smul latency 2, sadd 1"
+  "scalar_phase3t": "smul.u32 -> sadd.s32 multiply-add chain: exactly 3.0 cycles per round (pop_scalar n=64/128/256 slope; the compiler schedules it in 2), so smul latency 2, sadd 1",
+  "valu_latency_phase3v": {
+   "vmin": "2: min_f32 chain 4.0 cycles/round (vmin + vadd 2)",
+   "vand/vor/vclamps": "2 each assumed: round_clip round = 13 = vmul 2 + 2 vcvt 2 + vsel 1 + vand + vor + vclamps, so the three sum to 6",
+   "vcmp": "eq_select also 3.0 cycles/round: vcmp <= 2, kept at 1"
+  },
+  "vector_queue_phase3u": "12 (11-13): pop_loop hides an 8-trip scalar inner loop under a 178-cycle MXU pop chain (in-order issue: +37%); 8 queued vadds after the pop stay hidden, 16 stall the front end",
+  "sld_phase3wx": "sld load-to-use 6 cycles: phase3w loop variants (use 3/4/5 bundles after the load: +3/+2/+1 cycles) and phase3x unrolled pointer chases (6.0 cycles per load, straight-line and in loops; the compiler packs them 1-2 bundles apart). A 2-cycle address lag (H11) is refuted: +25-30% on the chases. sld_chain keeps 1 unexplained cycle per iteration."
  },
  "provenance": {
   "sources": [

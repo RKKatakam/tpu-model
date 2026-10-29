@@ -236,10 +236,9 @@ class Scoreboard:
                 m = op.mnemonic
                 slot = slot_of(m)
                 if self.scalar:
-                    # address generation: sld/sst/vld/vst address operands and scalar_lea inputs
-                    is_lea = m.startswith("scalar_lea")
+                    # `saddr` lag: a scalar register used as an SMEM (sld/sst) address (bench sld_chain)
                     for a in op.args:
-                        addr = is_lea or (a.lstrip().startswith("[") and (slot in ("vld", "vst") or m.startswith(("sld", "sst"))))
+                        addr = a.lstrip().startswith("[") and m.startswith(("sld", "sst"))
                         if slot is None or addr:
                             ssrcs.update((r, self.saddr if addr else 0) for r in SREG.findall(a))
                 if slot is None:

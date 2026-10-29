@@ -132,10 +132,14 @@ def check(kernel, params, program):
         expect(vec >= params["k"] * params["nv"], f"vector ops {vec} < k*nv={params['k'] * params['nv']} (folded?)")
         expect(not dma_ops(c), f"unexpected DMA ops {dma_ops(c)}")
         expect(not has_spill(program), "spills")
+    elif kernel == "sld_unrolled":
+        expect(c["sld"] >= params["unroll"], f"sld={c['sld']} want >= {params['unroll']}")
+        expect((c["sbr.rel"] == 0) == (params["unroll"] == params["n"]), f"branches={c['sbr.rel']}")
     elif kernel == "pop_loop":
         pop = "vpop.f32.mrf" if params["kind"] == "mxu" else "vpop.xlane"
         expect(any(m.startswith(pop) for m in c), f"no {pop}: {sorted(m for m in c if m.startswith('vpop'))}")
-        expect(sum(v for m, v in c.items() if m.startswith("smul")) >= 1, "no scalar multiply")
+        if params.get("step", "mul").startswith("mul"):
+            expect(sum(v for m, v in c.items() if m.startswith("smul")) >= 1, "no scalar multiply")
         expect(c["sbr.rel"] >= 2, f"branches={c['sbr.rel']} (want outer + inner loop)")
     elif kernel == "pop_scalar":
         pop = "vpop.f32.mrf" if params["kind"] == "mxu" else "vpop.xlane"

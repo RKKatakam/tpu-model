@@ -259,6 +259,25 @@ xprof 2.24.1, Python 3.12.3 (see `VERSIONS.lock`).
   match untraced runs. The "Tensor Core Sync Flag" line has SyncWait (blocked, with duration) or
   SyncNoWait per dma.done.wait, plus Set/Add events (`scripts/sync_diff.py`).
 
+### F27. A scalar load's result is usable 6 cycles after the load
+- Experiments: `pop_loop` inner loops (phase3w) whose step uses an in-loop `sld` 3, 4 or 5 bundles
+  after it; `sld_unrolled` dependent pointer chases (phase3x), straight-line and unrolled 4 or 16 per
+  loop iteration.
+- Results:
+  - The loops take +3, +2 and +1 cycles over their bundles, which is 6 minus the use distance.
+  - The chases cost 6.0-6.25 cycles per load, although the compiler packs them 1-2 bundles apart.
+  - With sld = 6 the model fits all of them within 3%.
+  - A 2-cycle address lag on top (H11) overshoots the chases by 25-30%, so H11's lag is refuted.
+- Open: `sld_chain` (F17) still takes one cycle per iteration more than the model.
+
+### F28. Decoupled issue: scalar bundles run ahead of vector bundles waiting on a pop
+- Experiment: `pop_loop` (phase3u): a pop, m dependent vadds, then an inner scalar loop of n trips.
+- Results:
+  - An 8-trip loop costs nothing on top of a 178-cycle MXU pop chain; in-order issue would be +37%.
+  - 8 queued vector ops stay hidden; 16 stall the front end.
+  - The model (`vector_queue` 12, range 11-13) fits within 0.5% except m=16 (+6%).
+- Replaces H17. Calibration paged attention goes from +5.5% to +2%.
+
 ## Hypotheses (not yet tested; the model must not depend on these)
 
 - H2. MXU is 128x128.

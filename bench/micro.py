@@ -594,15 +594,16 @@ def xpose_chain(params):
     """
     k, nv = params["k"], params["nv"]
     dt = {"bf16": jnp.bfloat16, "f32": jnp.float32}[params["dtype"]]
+    rows = params.get("rows", 128)  # rows < 128: one-vreg tiles, transposed there and back each round
 
     def kernel(x_hbm, o_hbm, buf):
         vs = [buf[i] for i in range(nv)]
         for _ in range(k):
-            vs = [(v.T + 1).astype(dt) for v in vs]
+            vs = [(v.T + 1).astype(dt) for v in vs] if rows == 128 else [((v.T + 1).astype(dt).T + 1).astype(dt) for v in vs]
         for i, v in enumerate(vs):
             buf[i] = v
 
-    return _no_dma_call(kernel, [pltpu.VMEM((nv, 128, 128), dt)], "k_xpose_chain")
+    return _no_dma_call(kernel, [pltpu.VMEM((nv, rows, 128), dt)], "k_xpose_chain")
 
 
 def mxu_masked(params):
@@ -824,6 +825,10 @@ VOPS2 = {
     "cvt_f32_s32": (jnp.float32, lambda v, c: (v.astype(jnp.int32) + 1).astype(jnp.float32)),
     "pack_bf16": (jnp.float32, lambda v, c: (v.astype(jnp.bfloat16) * c.astype(jnp.bfloat16)).astype(jnp.float32)),
     "div_f32": (jnp.float32, lambda v, c: v / c),
+    "min_f32": (jnp.float32, lambda v, c: jnp.minimum(v, c) + c),
+    "eq_select": (jnp.float32, lambda v, c: jnp.where(v == c, v - c, v + c)),
+    "pack_s8": (jnp.float32, lambda v, c: v.astype(jnp.int8).astype(jnp.float32) + c),
+    "round_clip": (jnp.float32, lambda v, c: jnp.clip(jnp.round(v * c), -127.0, 127.0)),
 }
 
 
@@ -905,8 +910,19 @@ def pop_loop(params):
     pop (decoupled issue), and how many vector bundles can queue.
     """
     kind, m, trip = params["kind"], params["m"], params["trip"]
+    # inner-loop step: "mul" s * tbl[3] + tbl[1]; "add" s + tbl[3]; "xor" (s ^ tbl[3]) + tbl[1];
+    # "mul_hoisted" s * k + tbl[1] with k = tbl[3] loaded before the loop
+    step = params.get("step", "mul")
 
     def kernel(tbl_ref, x_hbm, o_ref, buf, ws):
+        def inner(s):
+            if step == "mul_hoisted":
+                k = tbl_ref[3]
+                return jax.lax.fori_loop(0, tbl_ref[4], lambda j, s: s * k + tbl_ref[1], s)
+            f = {"mul": lambda j, s: s * tbl_ref[3] + tbl_ref[1], "add": lambda j, s: s + tbl_ref[3],
+                 "xor": lambda j, s: (s ^ tbl_ref[3]) + tbl_ref[1]}[step]
+            return jax.lax.fori_loop(0, tbl_ref[4], f, s)
+
         def body(i, s):
             v = buf[...]
             if kind == "mxu":
@@ -916,7 +932,7 @@ def pop_loop(params):
             for _ in range(m):
                 v = v + 0.5
             buf[...] = v
-            return jax.lax.fori_loop(0, tbl_ref[4], lambda j, s: s * tbl_ref[3] + tbl_ref[1], s)
+            return inner(s)
 
         s = jax.lax.fori_loop(0, trip, body, tbl_ref[2])
         o_ref[...] = jnp.zeros((8, 128), jnp.float32) + s.astype(jnp.float32)
@@ -939,7 +955,46 @@ def pop_loop(params):
     return fn, specs, make_inputs
 
 
+def sld_unrolled(params):
+    """`n` dependent SMEM loads j = table[j], unrolled `unroll` times per loop iteration (unroll = n:
+    straight-line code, no branch).
+
+    isolates: scalar load-to-use latency away from branches (sld_chain and pop_loop load right after
+    a taken branch).
+    """
+    n, unroll, size = params["n"], params["unroll"], params["size"]
+
+    def kernel(tbl_ref, x_hbm, o_ref):
+        def body(i, j):
+            for _ in range(unroll):
+                j = tbl_ref[j]
+            return j
+
+        j = body(0, 0) if unroll == n else jax.lax.fori_loop(0, n // unroll, body, 0)
+        o_ref[...] = jnp.zeros((8, 128), jnp.float32) + j.astype(jnp.float32)
+
+    grid_spec = pltpu.PrefetchScalarGridSpec(
+        num_scalar_prefetch=1, grid=(1,), in_specs=[HBM],
+        out_specs=pl.BlockSpec((8, 128), lambda i, tbl: (0, 0)),
+    )
+
+    def fn(tbl, x):
+        return pl.pallas_call(kernel, out_shape=jax.ShapeDtypeStruct((8, 128), jnp.float32),
+                              grid_spec=grid_spec, name="k_sld_unrolled")(tbl, x)
+
+    specs = [jax.ShapeDtypeStruct((size,), jnp.int32), jax.ShapeDtypeStruct((8, 128), jnp.float32)]
+
+    def make_inputs(seed):
+        order = np.random.default_rng(seed).permutation(size)
+        tbl = np.empty(size, np.int32)
+        tbl[order] = np.roll(order, -1)
+        return [tbl, np.zeros((8, 128), np.float32)]
+
+    return fn, specs, make_inputs
+
+
 MICRO = {
+    "sld_unrolled": (sld_unrolled, "micro"),
     "pop_loop": (pop_loop, "micro"),
     "pop_scalar": (pop_scalar, "micro"),
     "vop_chain2": (vop_chain2, "micro"),

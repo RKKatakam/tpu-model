@@ -1,0 +1,142 @@
+{
+ "batch_id": "phase3w",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "pop_loop__xlane_n32_m0_mul",
+   "kernel": "pop_loop",
+   "kernel_tag": "k_pop_loop",
+   "params": {
+    "kind": "xlane",
+    "n": 32,
+    "m": 0,
+    "trip": 64,
+    "step": "mul"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "pop_loop__xlane_n64_m0_mul",
+   "kernel": "pop_loop",
+   "kernel_tag": "k_pop_loop",
+   "params": {
+    "kind": "xlane",
+    "n": 64,
+    "m": 0,
+    "trip": 64,
+    "step": "mul"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "pop_loop__xlane_n32_m0_add",
+   "kernel": "pop_loop",
+   "kernel_tag": "k_pop_loop",
+   "params": {
+    "kind": "xlane",
+    "n": 32,
+    "m": 0,
+    "trip": 64,
+    "step": "add"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "pop_loop__xlane_n64_m0_add",
+   "kernel": "pop_loop",
+   "kernel_tag": "k_pop_loop",
+   "params": {
+    "kind": "xlane",
+    "n": 64,
+    "m": 0,
+    "trip": 64,
+    "step": "add"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "pop_loop__xlane_n32_m0_xor",
+   "kernel": "pop_loop",
+   "kernel_tag": "k_pop_loop",
+   "params": {
+    "kind": "xlane",
+    "n": 32,
+    "m": 0,
+    "trip": 64,
+    "step": "xor"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "pop_loop__xlane_n64_m0_xor",
+   "kernel": "pop_loop",
+   "kernel_tag": "k_pop_loop",
+   "params": {
+    "kind": "xlane",
+    "n": 64,
+    "m": 0,
+    "trip": 64,
+    "step": "xor"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "pop_loop__xlane_n32_m0_mul_hoisted",
+   "kernel": "pop_loop",
+   "kernel_tag": "k_pop_loop",
+   "params": {
+    "kind": "xlane",
+    "n": 32,
+    "m": 0,
+    "trip": 64,
+    "step": "mul_hoisted"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "pop_loop__xlane_n64_m0_mul_hoisted",
+   "kernel": "pop_loop",
+   "kernel_tag": "k_pop_loop",
+   "params": {
+    "kind": "xlane",
+    "n": 64,
+    "m": 0,
+    "trip": 64,
+    "step": "mul_hoisted"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  }
+ ]
+}

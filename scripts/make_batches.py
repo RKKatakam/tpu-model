@@ -382,6 +382,40 @@ def phase3u_configs():
     return cfgs
 
 
+def phase3v_configs():
+    """Ops of int8-quantizing kernels the model has not measured: one-vreg transposes (short vxpose),
+    f32 <-> int8 packing, min, compare-equal select, round + clip."""
+    cfgs = []
+    for op in ("min_f32", "eq_select", "pack_s8", "round_clip"):
+        for nv, k in ((1, 256), (1, 1024), (8, 128)):
+            cfgs.append(device("vop_chain2", {"k": k, "nv": nv, "op": op}, f"vop_chain2__{op}_nv{nv}_k{k}"))
+    for dtype, rows in (("bf16", 16), ("f32", 8)):
+        for nv, k in ((1, 16), (1, 64), (4, 16)):
+            cfgs.append(device("xpose_chain", {"k": k, "nv": nv, "dtype": dtype, "rows": rows},
+                               f"xpose_chain__{dtype}_r{rows}_nv{nv}_k{k}"))
+    return cfgs
+
+
+def phase3w_configs():
+    """What makes pop_loop's 7-bundle inner loop take 10 cycles: the in-loop sld feeding a multiply,
+    an add or an xor, or a multiplier loaded before the loop."""
+    cfgs = []
+    for step in ("mul", "add", "xor", "mul_hoisted"):
+        for n in (32, 64):
+            p = {"kind": "xlane", "n": n, "m": 0, "trip": 64, "step": step}
+            cfgs.append(device("pop_loop", p, f"pop_loop__xlane_n{n}_m0_{step}"))
+    return cfgs
+
+
+def phase3x_configs():
+    """Scalar load-to-use latency away from branches: unrolled pointer chases, straight-line and in
+    loops of 4 and 16 loads per iteration."""
+    cfgs = []
+    for n, unroll in ((64, 64), (256, 256), (256, 16), (1024, 16), (256, 4), (1024, 4)):
+        cfgs.append(device("sld_unrolled", {"n": n, "unroll": unroll, "size": 64}, f"sld_unrolled__n{n}_u{unroll}"))
+    return cfgs
+
+
 def trace_probe_configs():
     """Does an in-kernel named_scope produce trace events, and under which profiler option?"""
     cfgs = []
@@ -608,6 +642,9 @@ BATCHES = {
     "phase3s": {"flags": DUMP_FLAGS, "configs": phase3s_configs()},
     "phase3t": {"flags": DUMP_FLAGS, "configs": phase3t_configs()},
     "phase3u": {"flags": DUMP_FLAGS, "configs": phase3u_configs()},
+    "phase3v": {"flags": DUMP_FLAGS, "configs": phase3v_configs()},
+    "phase3w": {"flags": DUMP_FLAGS, "configs": phase3w_configs()},
+    "phase3x": {"flags": DUMP_FLAGS, "configs": phase3x_configs()},
     "phase3o2": {"flags": DUMP_FLAGS, "configs": [c for c in phase3o_configs() if c["params"]["step"] > 1]},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},
     "phase1_device": {"flags": DUMP_FLAGS, "configs": phase1_configs("device")},

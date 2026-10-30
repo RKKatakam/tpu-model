@@ -148,6 +148,7 @@ def dma_model(dma, clock_ghz):
             dma.get("read_tail_ns", 0.0) * clock_ghz, dma.get("write_tail_ns", 0.0) * clock_ghz,
             dma.get("pause_cap_ns", math.inf) * clock_ghz,
         )
+        e.write_waits_idle_read = dma.get("write_waits_idle_read", False)
         e.stride_piece_bytes = dma.get("stride_piece_bytes", 0.0)
         e.stride_piece_bytes_conc = dma.get("stride_piece_bytes_conc")
         e.stride_conc_min_ratio = dma.get("stride_conc_min_ratio", 8)

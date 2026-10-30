@@ -51,11 +51,12 @@ class TableHbm:
 
 
 class _Xfer:
-    __slots__ = ("d", "ready", "left", "cap", "write", "post", "paused")
+    __slots__ = ("d", "ready", "left", "cap", "write", "post", "paused", "wait_for")
 
     def __init__(self, d, ready, nbytes, cap, write):
         self.d, self.ready, self.left, self.cap, self.write = d, ready, float(nbytes), cap, write
         self.paused = 0.0  # cycles of start-up already paused (pause_latency)
+        self.wait_for = None
         self.post = math.inf  # posted completion time (writes), if earlier than the data finishing
 
 
@@ -120,6 +121,12 @@ class SharedHbm:
             elif ratio >= 8:
                 moved += d.granules / piece * getattr(self, "stride_piece_bytes", 0.0)
         x = _Xfer(d, start + latency, moved, math.inf, write)
+        if write and getattr(self, "write_waits_idle_read", False):
+            # a write issued onto an idle write queue behind a read still in its start-up starts moving
+            # data only once that read does (dma_inout: read then write, both waited)
+            if not any(y.write and y.left > 0 for y in self.active):
+                pend = [y for y in self.active if not y.write and y.left > 0 and y.ready > t]
+                x.wait_for = pend[-1] if pend else None
         if write and getattr(self, "bw_post", None):
             x.post = x.ready + nbytes / self.bw_post
         self.active.append(x)
@@ -239,7 +246,8 @@ class DirFifoHbm(SharedHbm):
         if self.single_queue and heads:
             first = min(heads.values(), key=xs.index)
             heads = {first.write: first}
-        moving = [x for x in heads.values() if x.ready <= now]
+        moving = [x for x in heads.values() if x.ready <= now
+                  and not (x.wait_for is not None and x.wait_for.ready > now and x.wait_for.left > 0)]
         if len(moving) == 2:
             return moving, {id(x): self.pair_rate for x in moving}
         return moving, {id(x): self.bw[x.write] for x in moving}

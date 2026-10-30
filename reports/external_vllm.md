@@ -4,11 +4,11 @@ Never used to fit the model. Error = predicted / measured - 1 on median device t
 
 | kernel | n | ours median abs | ours worst | within 2% | within 5% | within 10% | XLA median abs (n) |
 |---|---|---|---|---|---|---|---|
-| vllm_flash | 6 | 0.4% | 3.2% | 5 | 6 | 6 | 4.5% (6) |
-| vllm_gmm | 3 | 0.9% | 1.4% | 3 | 3 | 3 | n/a |
+| vllm_flash | 6 | 0.9% | 3.2% | 5 | 6 | 6 | 4.5% (6) |
+| vllm_gmm | 3 | 1.3% | 1.4% | 3 | 3 | 3 | n/a |
 | vllm_qmm | 8 | 5.5% | 8.1% | 1 | 4 | 8 | 35.0% (8) |
 | vllm_rpa | 9 | 0.8% | 1.5% | 9 | 9 | 9 | n/a |
-| **all** | 26 | 0.8% | 8.1% | 18 | 22 | 26 | |
+| **all** | 26 | 1.0% | 8.1% | 18 | 22 | 26 | |
 
 ## Ranking within sweeps
 
@@ -25,14 +25,14 @@ Never used to fit the model. Error = predicted / measured - 1 on median device t
 
 | id | kernels | measured us | ours | XLA |
 |---|---|---|---|---|
-| vllm_flash__s2048_c1_q256_k256 | 1 | 221.15 | +0.8% | +27.1% |
-| vllm_flash__s2048_c1_q512_k1024 | 1 | 114.69 | +0.5% | +2.5% |
-| vllm_flash__s2048_c1_q512_k512 | 1 | 109.39 | +0.3% | +5.6% |
+| vllm_flash__s2048_c1_q256_k256 | 1 | 221.15 | +1.2% | +27.1% |
+| vllm_flash__s2048_c1_q512_k1024 | 1 | 114.69 | +0.8% | +2.5% |
+| vllm_flash__s2048_c1_q512_k512 | 1 | 109.39 | +0.9% | +5.6% |
 | vllm_flash__s4096_c0_q256_k256 | 1 | 1229.87 | -3.2% | +25.3% |
 | vllm_flash__s4096_c0_q512_k1024 | 1 | 509.05 | +0.4% | +0.3% |
 | vllm_flash__s4096_c0_q512_k512 | 1 | 536.14 | +0.1% | +3.3% |
 | vllm_gmm__m4096_k2048_n1024_g8_t128_128_128 | 1 | 1769.48 | -0.2% | +nan% |
-| vllm_gmm__m4096_k2048_n1024_g8_t256_512_512 | 1 | 238.57 | +0.9% | +nan% |
+| vllm_gmm__m4096_k2048_n1024_g8_t256_512_512 | 1 | 238.57 | +1.3% | +nan% |
 | vllm_gmm__m4096_k2048_n1024_g8_t512_1024_512 | 1 | 205.71 | -1.4% | +nan% |
 | vllm_qmm__w8a16_m128_k4096_n4096 | 1 | 344.90 | -4.3% | +50.0% |
 | vllm_qmm__w8a16_m16_k4096_n4096 | 1 | 308.19 | -1.3% | +64.6% |

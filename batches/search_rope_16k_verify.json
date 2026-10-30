@@ -1,0 +1,102 @@
+{
+ "batch_id": "search_rope_16k_verify",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "rope_16k__block_tokens256",
+   "kernel": "rope",
+   "kernel_tag": "k_rope",
+   "params": {
+    "tokens": 16384,
+    "heads": 32,
+    "head_dim": 128,
+    "block_tokens": 256
+   },
+   "mode": "device",
+   "seed": 0,
+   "timeout_s": 600,
+   "reps": 50,
+   "warmup": 5
+  },
+  {
+   "record_id": "rope_16k__block_tokens128",
+   "kernel": "rope",
+   "kernel_tag": "k_rope",
+   "params": {
+    "tokens": 16384,
+    "heads": 32,
+    "head_dim": 128,
+    "block_tokens": 128
+   },
+   "mode": "device",
+   "seed": 0,
+   "timeout_s": 600,
+   "reps": 50,
+   "warmup": 5
+  },
+  {
+   "record_id": "rope_16k__block_tokens64",
+   "kernel": "rope",
+   "kernel_tag": "k_rope",
+   "params": {
+    "tokens": 16384,
+    "heads": 32,
+    "head_dim": 128,
+    "block_tokens": 64
+   },
+   "mode": "device",
+   "seed": 0,
+   "timeout_s": 600,
+   "reps": 50,
+   "warmup": 5
+  },
+  {
+   "record_id": "rope_16k__block_tokens32",
+   "kernel": "rope",
+   "kernel_tag": "k_rope",
+   "params": {
+    "tokens": 16384,
+    "heads": 32,
+    "head_dim": 128,
+    "block_tokens": 32
+   },
+   "mode": "device",
+   "seed": 0,
+   "timeout_s": 600,
+   "reps": 50,
+   "warmup": 5
+  },
+  {
+   "record_id": "rope_16k__block_tokens16",
+   "kernel": "rope",
+   "kernel_tag": "k_rope",
+   "params": {
+    "tokens": 16384,
+    "heads": 32,
+    "head_dim": 128,
+    "block_tokens": 16
+   },
+   "mode": "device",
+   "seed": 0,
+   "timeout_s": 600,
+   "reps": 50,
+   "warmup": 5
+  }
+ ]
+}

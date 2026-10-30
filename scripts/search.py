@@ -118,7 +118,9 @@ def rank(space, k=6):
         f.write("\n".join(md) + "\n")
     # verify: the top k, plus controls at evenly spaced predicted ranks (for rank correlation)
     picks = [r for r, _, _ in ok[:k]]
-    picks += [ok[int(i)][0] for i in np.linspace(k, len(ok) - 1, 6) if ok[int(i)][0] not in picks]
+    for i in np.linspace(k, len(ok) - 1, 6) if len(ok) > k else []:
+        if ok[int(i)][0] not in picks:
+            picks.append(ok[int(i)][0])
     verify = []
     for r in picks:
         c = dict(by_id[r].raw["config"], mode="device", reps=50, warmup=5)

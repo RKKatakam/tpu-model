@@ -1,0 +1,267 @@
+{
+ "batch_id": "phase4g",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "diag__dma_inout__r128_x1",
+   "kernel": "dma_inout",
+   "kernel_tag": "k_dma_inout",
+   "params": {
+    "rows": 128,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 10,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   }
+  },
+  {
+   "record_id": "diag__dma_inout__r128_x2",
+   "kernel": "dma_inout",
+   "kernel_tag": "k_dma_inout",
+   "params": {
+    "rows": 128,
+    "reps": 2
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 10,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   }
+  },
+  {
+   "record_id": "diag__dma_inout__r128_x8",
+   "kernel": "dma_inout",
+   "kernel_tag": "k_dma_inout",
+   "params": {
+    "rows": 128,
+    "reps": 8
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 10,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   }
+  },
+  {
+   "record_id": "diag__dma_inout__r512_x1",
+   "kernel": "dma_inout",
+   "kernel_tag": "k_dma_inout",
+   "params": {
+    "rows": 512,
+    "reps": 1
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 10,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   }
+  },
+  {
+   "record_id": "diag__dma_inout__r512_x2",
+   "kernel": "dma_inout",
+   "kernel_tag": "k_dma_inout",
+   "params": {
+    "rows": 512,
+    "reps": 2
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 10,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   }
+  },
+  {
+   "record_id": "diag__dma_inout__r512_x8",
+   "kernel": "dma_inout",
+   "kernel_tag": "k_dma_inout",
+   "params": {
+    "rows": 512,
+    "reps": 8
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 10,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   }
+  },
+  {
+   "record_id": "diag__layernorm__r16384_c1024_b8",
+   "kernel": "layernorm",
+   "kernel_tag": "k_layernorm",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 8
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   }
+  },
+  {
+   "record_id": "diag__layernorm__r16384_c1024_b16",
+   "kernel": "layernorm",
+   "kernel_tag": "k_layernorm",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 16
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   }
+  },
+  {
+   "record_id": "diag__layernorm__r16384_c1024_b64",
+   "kernel": "layernorm",
+   "kernel_tag": "k_layernorm",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 64
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   }
+  },
+  {
+   "record_id": "diag__softmax__r16384_c1024_b8",
+   "kernel": "softmax",
+   "kernel_tag": "k_softmax",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 8
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   }
+  },
+  {
+   "record_id": "diag__softmax__r16384_c1024_b16",
+   "kernel": "softmax",
+   "kernel_tag": "k_softmax",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 16
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   }
+  },
+  {
+   "record_id": "diag__softmax__r16384_c1024_b64",
+   "kernel": "softmax",
+   "kernel_tag": "k_softmax",
+   "params": {
+    "rows": 16384,
+    "cols": 1024,
+    "block_rows": 64
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   }
+  },
+  {
+   "record_id": "diag__matmul_tpu__2048_4096_2048_512_1024_512",
+   "kernel": "matmul_tpu",
+   "kernel_tag": "matmul",
+   "params": {
+    "m": 2048,
+    "k": 4096,
+    "n": 2048,
+    "bm": 512,
+    "bn": 1024,
+    "bk": 512
+   },
+   "mode": "device",
+   "reps": 20,
+   "warmup": 5,
+   "seed": 0,
+   "timeout_s": 600,
+   "profiler_options": {
+    "advanced_configuration": {
+     "tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"
+    }
+   }
+  }
+ ]
+}

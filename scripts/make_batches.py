@@ -550,6 +550,24 @@ def phase4f_configs():
     return cfgs
 
 
+def phase4g_configs():
+    """Diagnostic sync-traced runs (record ids diag__*, never scored), new shapes only: small read+write
+    pairs over 1-8 rounds, 1024-wide layernorm/softmax, and a large-tile tiled matmul."""
+    trace = {"advanced_configuration": {"tpu_trace_mode": "TRACE_COMPUTE_AND_SYNC"}}
+    cfgs = []
+    for rows in (128, 512):
+        for reps in (1, 2, 8):
+            cfgs.append(device("dma_inout", {"rows": rows, "reps": reps}, f"diag__dma_inout__r{rows}_x{reps}", reps=20))
+    for kname in ("layernorm", "softmax"):
+        for br in (8, 16, 64):
+            cfgs.append(corpus(kname, {"rows": 16384, "cols": 1024, "block_rows": br}, f"diag__{kname}__r16384_c1024_b{br}", reps=20))
+    cfgs.append(corpus("matmul_tpu", {"m": 2048, "k": 4096, "n": 2048, "bm": 512, "bn": 1024, "bk": 512},
+                       "diag__matmul_tpu__2048_4096_2048_512_1024_512", reps=20))
+    for c in cfgs:
+        c["profiler_options"] = trace
+    return cfgs
+
+
 def trace_probe_configs():
     """Does an in-kernel named_scope produce trace events, and under which profiler option?"""
     cfgs = []
@@ -787,6 +805,7 @@ BATCHES = {
     "phase4d": {"flags": DUMP_FLAGS, "configs": phase4d_configs()},
     "phase4e": {"flags": DUMP_FLAGS, "configs": phase4e_configs()},
     "phase4f": {"flags": DUMP_FLAGS, "configs": phase4f_configs()},
+    "phase4g": {"flags": DUMP_FLAGS, "configs": phase4g_configs()},
     "aot_check": {"flags": DUMP_FLAGS, "configs": aot_check_configs()},
     "phase3o2": {"flags": DUMP_FLAGS, "configs": [c for c in phase3o_configs() if c["params"]["step"] > 1]},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},

@@ -147,7 +147,7 @@ class SharedHbm:
             dirs = {x.write for x in moving}
             # with pause_latency, a transfer's start-up does not progress while the other direction moves data
             paused = [x for x in xs if pause and x.ready > now and (not x.write) in dirs
-                      and (pause != "reads" or not x.write) and x.paused < cap]
+                      and (pause != "reads" or not x.write) and x.paused < cap - 1e-9]
             nxt_ready = min((x.ready for x in xs if x.ready > now and x not in paused), default=math.inf)
             nxt_ready = min([nxt_ready] + [now + cap - x.paused for x in paused])
             nxt_done = min((now + x.left / rates[id(x)] for x in moving), default=math.inf)
@@ -158,7 +158,9 @@ class SharedHbm:
                 x.left -= rates[id(x)] * (step_to - now)
             for x in paused:
                 x.ready += step_to - now
-                x.paused += step_to - now
+                x.paused = min(cap, x.paused + step_to - now)
+                if cap - x.paused < 1e-9:  # float rounding would otherwise leave zero-length steps
+                    x.paused = cap
             now = step_to
             for x in [x for x in xs if x.ready <= now and x.left <= 1e-6]:
                 done[id(x)] = now

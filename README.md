@@ -16,25 +16,24 @@ Device time error, `predicted / measured - 1`:
 
 | Test set | Kernels | Median abs error | Within 2% | Within 5% | Worst |
 |---|---|---|---|---|---|
-| Validation split (held out from fitting) | 71 | 2.2% | 31 | 63 | 7.8% |
-| Calibration split | 82 | 1.8% | 46 | 75 | 12.8% (rope) |
-| External: vLLM `tpu-inference` kernels (never fitted) | 26 | 2.0% | 13 | 20 | -17% (int8 matmul) |
-| DMA-free microbenchmarks | 328 | 0.4% | 252 | 295 | - |
+| Validation split (held out from fitting) | 71 | 1.1% | 49 | 67 | -10.2% (matmul) |
+| Calibration split | 82 | 1.0% | 62 | 77 | -7.3% (matmul) |
+| External: vLLM `tpu-inference` kernels (never fitted) | 26 | 1.0% | 18 | 22 | -8.1% (int8 matmul) |
 
-Against XLA's static estimate on the validation split: compute kernels median 2.2% vs 9.7%;
-streaming kernels 5.5% vs 31.4%. Within autotune sweeps (several tilings of one kernel), the model
-picks the fastest tiling in 27 of 31 sweeps; XLA's estimate picks it in 8.
+Against XLA's static estimate on the validation split: compute kernels median 1.1% vs 9.7%;
+streaming kernels 0.9% vs 31.4%. Within autotune sweeps (several tilings of one kernel), the model
+picks the fastest tiling in 24 of 30 sweeps; XLA's estimate, where it accepts the kernel, picks it
+in 8 of 13.
 
 The goal is every kernel within 2%. Known gaps:
 
-- Splash and flash attention have a tile-size bias, about +3% to +5% at 256-row tiles. It is
-  reproduced by an attention-step microbenchmark and is being localized.
-- Streaming kernels (layernorm, softmax, rmsnorm, rope) are off by 3-13%: a read issued right behind
-  a large write is modeled too pessimistically.
-- Tiled matmuls with two strided input streams are about 5% fast.
-- Ragged paged attention has a 2-6% spread; the mechanism is not identified.
-- External int8 quantized matmul (w8a8) is -15% to -17%; its int8 packing ops are not yet measured.
-- Programs of 65.4k-66k bundles, just over instruction-memory capacity, are -7%.
+- Tiled matmuls with large tiles and strided input streams are 5-10% fast.
+- Rope with small blocks is +7% to +10%. Its compute and its DMA pattern each fit on their own;
+  the error comes from how they interleave.
+- tgmm with 128 and 512 tiles is about -6%.
+- Paged and ragged decode attention with few pages per block is about +5%. Traces show the DMA
+  waits match the hardware, so the error is in core time.
+- External int8 quantized matmul (w8a8) is off by up to 8%.
 
 Scope: one v5e TensorCore, single chip, Pallas kernels. There is no multi-chip communication,
 SparseCore or whole-program XLA graph modeling.

@@ -535,6 +535,21 @@ def phase4e_configs():
     return cfgs
 
 
+def phase4f_configs():
+    """DMA copy-time curve between the table points (64 KiB - 2 MiB), single writes, single reads, a
+    read and a write together, and pipelined write-only / read-write streams of 128-256-row blocks."""
+    cfgs = []
+    for rows in (128, 256, 512, 1024, 2048, 4096):
+        for reps in (1, 8):
+            cfgs.append(device("dma_out", {"rows": rows, "reps": reps}, f"dma_out__r{rows}_x{reps}"))
+        cfgs.append(device("dma_inout", {"rows": rows, "reps": 5}, f"dma_inout__r{rows}_x5"))
+    for br in (128, 256):
+        for nr, nw in ((0, 1), (1, 1)):
+            p = {"rows": 16384, "cols": 1024, "block_rows": br, "reads": nr, "writes": nw}
+            cfgs.append(device("dma_stream", p, f"dma_stream__c1024_r{nr}w{nw}_b{br}", reps=50))
+    return cfgs
+
+
 def trace_probe_configs():
     """Does an in-kernel named_scope produce trace events, and under which profiler option?"""
     cfgs = []
@@ -771,6 +786,7 @@ BATCHES = {
     "phase4c": {"flags": DUMP_FLAGS, "configs": phase4c_configs()},
     "phase4d": {"flags": DUMP_FLAGS, "configs": phase4d_configs()},
     "phase4e": {"flags": DUMP_FLAGS, "configs": phase4e_configs()},
+    "phase4f": {"flags": DUMP_FLAGS, "configs": phase4f_configs()},
     "aot_check": {"flags": DUMP_FLAGS, "configs": aot_check_configs()},
     "phase3o2": {"flags": DUMP_FLAGS, "configs": [c for c in phase3o_configs() if c["params"]["step"] > 1]},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},

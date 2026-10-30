@@ -73,12 +73,28 @@
     273.2857142857143
    ],
    [
+    65536,
+    318.4
+   ],
+   [
+    131072,
+    404.1
+   ],
+   [
     262144,
     576.1428571428571
    ],
    [
+    524288,
+    924.0
+   ],
+   [
     1048576,
     1649.0714285714287
+   ],
+   [
+    2097152,
+    3222.3
    ],
    [
     4194304,
@@ -92,7 +108,7 @@
   "mix_ns": 0.0,
   "pause_latency": "reads",
   "stride_piece_bytes": 450,
-  "pause_cap_ns": 400,
+  "pause_cap_ns": 700,
   "stride_model": "piece",
   "stride_conc_bytes": 450,
   "stride_alone_max_piece": 4096,
@@ -220,7 +236,8 @@
   "pause_latency": "reads",
   "note": "mix_ns set to 0 and a read's start-up paused while write data moves (H16): fixes 1-read 1-write streams with core work (-20% -> +3%) at equal overall DMA microbenchmark fit",
   "stride_piece_bytes": "phase3b dma_strided + phase3z dma_mxu: strided copies whose 4 KiB HBM pieces are >= 8 pieces apart lose ~0.65 ns per piece (none at ratio 2); 450 B of extra transfer per piece",
-  "pause_cap_ns": "a read's start-up pauses behind moving write data for at most 400 ns (H16 refined). Fitted on dma_compute (phase3h, phase3u 1-2 MiB blocks), dma_stream, dma_inout and calib streaming kernels: within 2% 26 -> 37 of 51; calib rope +12.8% -> +0.7%. Tiled matmul kernels move 1-5 points more negative.",
-  "stride_model": "piece model (phase3b dma_strided, phase3z/phase4d dma_mxu tile streams): a strided copy's contiguous HBM pieces of <= 4 KiB pay 450 B each alone, scaled by stride ratio (2: none, 4: half, 8+: full); while another strided copy of the same direction is moving they pay 450 B more, pieces <= 4 KiB for any overlap and <= 8 KiB when the other copy reads a different operand (neighbouring tiles of one operand interleave for free). 16 KiB pieces cost nothing. phase4d tile streams: worst +11.6% -> within 2.0%; DMA micro within 2% 31 -> 39 of 48; calib within 2% 53 -> 54, within 5% 69 -> 71."
+  "pause_cap_ns": "read start-up pause behind moving write data capped at 700 ns, refit after the phase4f write-curve points (400 ns was fitted when 64 KiB-2 MiB writes were modeled 15-26% too slow); calib worst 12.0% -> 7.3%. Open: a read and a write in flight together (dma_inout) run 8-21% slower than modeled.",
+  "stride_model": "piece model (phase3b dma_strided, phase3z/phase4d dma_mxu tile streams): a strided copy's contiguous HBM pieces of <= 4 KiB pay 450 B each alone, scaled by stride ratio (2: none, 4: half, 8+: full); while another strided copy of the same direction is moving they pay 450 B more, pieces <= 4 KiB for any overlap and <= 8 KiB when the other copy reads a different operand (neighbouring tiles of one operand interleave for free). 16 KiB pieces cost nothing. phase4d tile streams: worst +11.6% -> within 2.0%; DMA micro within 2% 31 -> 39 of 48; calib within 2% 53 -> 54, within 5% 69 -> 71.",
+  "write_table_phase4f": "phase4f dma_out start-then-wait writes at 64, 128, 512 KiB and 2 MiB (reps 8) added to the write curve; 256 KiB / 1 MiB agree with the old points within 0.5%"
  }
 }

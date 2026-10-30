@@ -294,7 +294,15 @@ xprof 2.24.1, Python 3.12.3 (see `VERSIONS.lock`).
   - With pieces 2 apart, there is no extra cost.
   - MXU work does not slow tile reads: with no compute, the stream is already 7-10% slower than the
     contiguous model.
-- Model: 450 bytes of extra transfer per piece at ratio >= 8. Ratio 4 is unmeasured; calibration
+- Refined by phase4d (16 tile streams, 256-1024-wide tiles from 1024- and 4096-wide matrices): the
+  cost follows piece size, not stride ratio. This is consistent with DRAM page locality.
+  - 4 KiB pieces pay when far apart: half at ratio 4, full at ratio >= 8.
+  - 4 KiB pieces pay more while another strided copy is moving.
+  - 8 KiB pieces pay only when interleaved with a different operand.
+  - 16 KiB pieces never pay.
+  - Model (`stride_model` "piece"): 450 B per piece, plus 450 B when concurrent. dma_mxu goes from
+    21 to 29 of 30 within 2%. Calibration matmul_tpu goes from -3.6% to -0.5%.
+- Original model: 450 bytes of extra transfer per piece at ratio >= 8. Ratio 4 is unmeasured; calibration
   `add` (ratio 4, 16 KiB pieces) says it is free.
 - Calibration matmul_tpu goes from -6% to -2.5% (worst -10.6% -> -8.3%). Pipelined two-input tile
   streams are still about -5% with no compute (open).

@@ -46,6 +46,7 @@ class Dma:
     descriptor: str = ""
     stride_ratio: float = 1.0  # HBM-side stride / contiguous piece (strided 2-D copies), 1 if contiguous
     piece_granules: int = 0  # contiguous piece of a strided copy (granules)
+    hbm_operand: int = -1  # which kernel operand the HBM side belongs to (strided copies)
 
 
 @dataclass
@@ -308,6 +309,8 @@ class Machine:
                         hbm, piece = (src, dst) if m.startswith("dma.hbm_to") else (dst, src)
                         d.stride_ratio = hbm / piece if piece > 0 and hbm > piece else 1.0
                         d.piece_granules = piece
+                        hbm_ptr = op.labels.get("hbm")
+                        d.hbm_operand = self.val(hbm_ptr) >> (self.OPERAND_SHIFT + 4) if hbm_ptr else -1
                     if m.endswith("_to_smem"):
                         self.copy_to_smem(op, d.granules, trace)
                     dma_model.issue(d, t)

@@ -151,6 +151,10 @@ def dma_model(dma, clock_ghz):
         e.stride_piece_bytes = dma.get("stride_piece_bytes", 0.0)
         e.stride_piece_bytes_conc = dma.get("stride_piece_bytes_conc")
         e.stride_conc_min_ratio = dma.get("stride_conc_min_ratio", 8)
+        e.stride_model = dma.get("stride_model", "ratio")
+        e.stride_alone_max_piece = dma.get("stride_alone_max_piece", 4096)
+        e.stride_conc_max_piece = dma.get("stride_conc_max_piece", 8192)
+        e.stride_conc_bytes = dma.get("stride_conc_bytes", 0.0)
         return e
     return {"SharedHbm": SharedHbm, "FifoHbm": FifoHbm}[engine](
         cyc(dma["read_table_ns"]), cyc(dma["write_table_ns"]),

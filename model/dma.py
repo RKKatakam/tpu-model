@@ -95,7 +95,23 @@ class SharedHbm:
         # stride ratios 8-32; none at 2; ratio 4 unmeasured, calibration add says none)
         moved = nbytes
         ratio, piece = getattr(d, "stride_ratio", 1.0), getattr(d, "piece_granules", 0)
-        if ratio > 1 and piece > 0:
+        piece_bytes = piece * GRANULE_BYTES
+        if ratio > 1 and piece > 0 and getattr(self, "stride_model", "ratio") == "piece":
+            # Strided copies pay per contiguous HBM piece (bench dma_strided, dma_mxu phase3z/phase4d):
+            # alone, pieces up to `stride_alone_max_piece` cost `stride_piece_bytes` scaled by stride
+            # ratio (2: none, 4: half, 8+: full); while another strided copy of the same direction is
+            # moving, pieces pay `stride_conc_bytes` more at any ratio (see below for which pieces).
+            n = d.granules / piece
+            if piece_bytes <= self.stride_alone_max_piece:
+                moved += n * self.stride_piece_bytes * min(1.0, max(0.0, (math.log2(ratio) - 1) / 2))
+            # interleaving with a copy of the same operand (its neighbouring tiles) costs only small
+            # pieces; with another operand, pieces up to `stride_conc_max_piece`
+            others = [x.d for x in self.active if x.write == write and x.left > 0 and getattr(x.d, "stride_ratio", 1.0) > 1]
+            same = any(getattr(o, "hbm_operand", -1) == getattr(d, "hbm_operand", -2) for o in others)
+            diff = any(getattr(o, "hbm_operand", -1) != getattr(d, "hbm_operand", -2) for o in others)
+            if (diff and piece_bytes <= self.stride_conc_max_piece) or (same and piece_bytes <= self.stride_alone_max_piece):
+                moved += n * self.stride_conc_bytes
+        elif ratio > 1 and piece > 0:
             # pieces cost more while another strided copy of the same direction is moving (interleaved)
             conc_min = getattr(self, "stride_conc_min_ratio", 8)
             busy = any(x.write == write and x.left > 0 and getattr(x.d, "stride_ratio", 1.0) > 1 for x in self.active)

@@ -132,6 +132,10 @@ def check(kernel, params, program):
         expect(vec >= params["k"] * params["nv"], f"vector ops {vec} < k*nv={params['k'] * params['nv']} (folded?)")
         expect(not dma_ops(c), f"unexpected DMA ops {dma_ops(c)}")
         expect(not has_spill(program), "spills")
+    elif kernel == "scale_bcast":
+        if params["form"] == "row":
+            expect(any(m.startswith("vxpose") for m in c), "no transpose")
+        expect(not dma_ops(c), f"unexpected DMA ops {dma_ops(c)}")
     elif kernel == "attn_step":
         if not params.get("part", "full").startswith("load"):
             expect(sum(v for m, v in c.items() if m.startswith("vmatmul")) >= 1, "no vmatmul")

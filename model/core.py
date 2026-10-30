@@ -52,6 +52,8 @@ def classify(mnemonic):
             return cls, uid, "pop"
         if mnemonic.startswith("vmatpush"):
             return cls, uid, "push"
+        if mnemonic.startswith("vset."):  # configures the unit (permute pattern); no result to pop
+            return None
         return cls, uid, "work"
     if mnemonic == "vpop.eup":
         return "eup", 0, "pop"

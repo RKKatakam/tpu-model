@@ -506,6 +506,35 @@ def phase4c_configs():
     return cfgs
 
 
+def phase4d_configs():
+    """Concurrent strided tile reads (tiled matmul read waits) across tile sizes and matrix widths, and
+    pipelined streams of small (32-256 KiB) blocks (narrow layernorm/softmax)."""
+    cfgs = []
+    for cols in (1024, 4096):
+        for bm, bn in ((256, 256), (512, 512), (512, 1024), (1024, 512)):
+            for n_in in (1, 2):
+                p = {"rows": 4096, "cols": cols, "bm": bm, "bn": bn, "n_in": n_in, "work": "none", "amount": 0}
+                cfgs.append(device("dma_mxu", p, f"dma_mxu__c{cols}_{bm}x{bn}_in{n_in}", reps=50))
+    for br in (8, 16, 64):
+        for nr, nw in ((1, 1), (1, 0), (0, 1)):
+            p = {"rows": 16384, "cols": 1024, "block_rows": br, "reads": nr, "writes": nw}
+            cfgs.append(device("dma_stream", p, f"dma_stream__c1024_r{nr}w{nw}_b{br}", reps=50))
+    return cfgs
+
+
+def phase4e_configs():
+    """Per-row scale broadcast with and without the row -> column transpose (int8 activation
+    quantization step)."""
+    cfgs = []
+    for form in ("row", "col"):
+        for rows in (128, 256, 512):
+            for cv in (1, 4):
+                for reps in (8, 32):
+                    p = {"rows": rows, "cols_vregs": cv, "reps": reps, "form": form}
+                    cfgs.append(device("scale_bcast", p, f"scale_bcast__{form}_r{rows}_c{cv}_x{reps}"))
+    return cfgs
+
+
 def trace_probe_configs():
     """Does an in-kernel named_scope produce trace events, and under which profiler option?"""
     cfgs = []
@@ -740,6 +769,8 @@ BATCHES = {
     "phase4a": {"flags": DUMP_FLAGS, "configs": phase4a_configs()},
     "phase4b": {"flags": DUMP_FLAGS, "configs": phase4b_configs()},
     "phase4c": {"flags": DUMP_FLAGS, "configs": phase4c_configs()},
+    "phase4d": {"flags": DUMP_FLAGS, "configs": phase4d_configs()},
+    "phase4e": {"flags": DUMP_FLAGS, "configs": phase4e_configs()},
     "aot_check": {"flags": DUMP_FLAGS, "configs": aot_check_configs()},
     "phase3o2": {"flags": DUMP_FLAGS, "configs": [c for c in phase3o_configs() if c["params"]["step"] > 1]},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},

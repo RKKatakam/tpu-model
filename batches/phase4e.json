@@ -1,0 +1,358 @@
+{
+ "batch_id": "phase4e",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "scale_bcast__row_r128_c1_x8",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 128,
+    "cols_vregs": 1,
+    "reps": 8,
+    "form": "row"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__row_r128_c1_x32",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 128,
+    "cols_vregs": 1,
+    "reps": 32,
+    "form": "row"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__row_r128_c4_x8",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 128,
+    "cols_vregs": 4,
+    "reps": 8,
+    "form": "row"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__row_r128_c4_x32",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 128,
+    "cols_vregs": 4,
+    "reps": 32,
+    "form": "row"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__row_r256_c1_x8",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 256,
+    "cols_vregs": 1,
+    "reps": 8,
+    "form": "row"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__row_r256_c1_x32",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 256,
+    "cols_vregs": 1,
+    "reps": 32,
+    "form": "row"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__row_r256_c4_x8",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 256,
+    "cols_vregs": 4,
+    "reps": 8,
+    "form": "row"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__row_r256_c4_x32",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 256,
+    "cols_vregs": 4,
+    "reps": 32,
+    "form": "row"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__row_r512_c1_x8",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 512,
+    "cols_vregs": 1,
+    "reps": 8,
+    "form": "row"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__row_r512_c1_x32",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 512,
+    "cols_vregs": 1,
+    "reps": 32,
+    "form": "row"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__row_r512_c4_x8",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 512,
+    "cols_vregs": 4,
+    "reps": 8,
+    "form": "row"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__row_r512_c4_x32",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 512,
+    "cols_vregs": 4,
+    "reps": 32,
+    "form": "row"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__col_r128_c1_x8",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 128,
+    "cols_vregs": 1,
+    "reps": 8,
+    "form": "col"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__col_r128_c1_x32",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 128,
+    "cols_vregs": 1,
+    "reps": 32,
+    "form": "col"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__col_r128_c4_x8",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 128,
+    "cols_vregs": 4,
+    "reps": 8,
+    "form": "col"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__col_r128_c4_x32",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 128,
+    "cols_vregs": 4,
+    "reps": 32,
+    "form": "col"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__col_r256_c1_x8",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 256,
+    "cols_vregs": 1,
+    "reps": 8,
+    "form": "col"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__col_r256_c1_x32",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 256,
+    "cols_vregs": 1,
+    "reps": 32,
+    "form": "col"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__col_r256_c4_x8",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 256,
+    "cols_vregs": 4,
+    "reps": 8,
+    "form": "col"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__col_r256_c4_x32",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 256,
+    "cols_vregs": 4,
+    "reps": 32,
+    "form": "col"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__col_r512_c1_x8",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 512,
+    "cols_vregs": 1,
+    "reps": 8,
+    "form": "col"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__col_r512_c1_x32",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 512,
+    "cols_vregs": 1,
+    "reps": 32,
+    "form": "col"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__col_r512_c4_x8",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 512,
+    "cols_vregs": 4,
+    "reps": 8,
+    "form": "col"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "scale_bcast__col_r512_c4_x32",
+   "kernel": "scale_bcast",
+   "kernel_tag": "k_scale_bcast",
+   "params": {
+    "rows": 512,
+    "cols_vregs": 4,
+    "reps": 32,
+    "form": "col"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  }
+ ]
+}

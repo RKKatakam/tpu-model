@@ -1087,7 +1087,34 @@ def attn_step(params):
     return _no_dma_call(kernel, scratch, "k_attn_step")
 
 
+def scale_bcast(params):
+    """`reps` passes of per-row scaling of an (rows, 128 * cols_vregs) f32 tile: the scale arrives as
+    a (1, rows) row vector, is turned into a column (transpose) and broadcast across lanes ('row');
+    or arrives as a (rows, 1) column ('col', no transpose).
+
+    isolates: the transpose + lane-permute broadcast in int8 activation quantization (per-step cost of
+    vLLM-style quantized matmuls at small blocks).
+    """
+    rows, width, reps, form = params["rows"], 128 * params["cols_vregs"], params["reps"], params["form"]
+
+    def kernel(x_hbm, o_hbm, x, srow, scol, out):
+        def body(i, carry):
+            if form == "row":
+                c = jnp.transpose(1.0 / (srow[...] + i.astype(jnp.float32)))
+            else:
+                c = 1.0 / (scol[...] + i.astype(jnp.float32))
+            out[...] += x[...] * c
+            return carry
+
+        jax.lax.fori_loop(0, reps, body, 0)
+
+    scratch = [pltpu.VMEM((rows, width), jnp.float32), pltpu.VMEM((1, rows), jnp.float32),
+               pltpu.VMEM((rows, 1), jnp.float32), pltpu.VMEM((rows, width), jnp.float32)]
+    return _no_dma_call(kernel, scratch, "k_scale_bcast")
+
+
 MICRO = {
+    "scale_bcast": (scale_bcast, "micro"),
     "attn_step": (attn_step, "micro"),
     "dma_mxu": (dma_mxu, "micro"),
     "sld_unrolled": (sld_unrolled, "micro"),

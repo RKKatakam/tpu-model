@@ -94,11 +94,15 @@ class SharedHbm:
         # `stride_piece_bytes` of extra transfer (bench dma_strided, dma_mxu: ~0.65 ns per piece at
         # stride ratios 8-32; none at 2; ratio 4 unmeasured, calibration add says none)
         moved = nbytes
-        if getattr(d, "stride_ratio", 1.0) >= 8 and getattr(d, "piece_granules", 0) > 0:
+        ratio, piece = getattr(d, "stride_ratio", 1.0), getattr(d, "piece_granules", 0)
+        if ratio > 1 and piece > 0:
             # pieces cost more while another strided copy of the same direction is moving (interleaved)
-            busy = any(x.write == write and x.left > 0 and getattr(x.d, "stride_ratio", 1.0) >= 8 for x in self.active)
-            per = getattr(self, "stride_piece_bytes_conc", None) if busy else None
-            moved += d.granules / d.piece_granules * (per if per is not None else getattr(self, "stride_piece_bytes", 0.0))
+            conc_min = getattr(self, "stride_conc_min_ratio", 8)
+            busy = any(x.write == write and x.left > 0 and getattr(x.d, "stride_ratio", 1.0) > 1 for x in self.active)
+            if busy and ratio >= conc_min and getattr(self, "stride_piece_bytes_conc", None) is not None:
+                moved += d.granules / piece * self.stride_piece_bytes_conc
+            elif ratio >= 8:
+                moved += d.granules / piece * getattr(self, "stride_piece_bytes", 0.0)
         x = _Xfer(d, start + latency, moved, math.inf, write)
         if write and getattr(self, "bw_post", None):
             x.post = x.ready + nbytes / self.bw_post

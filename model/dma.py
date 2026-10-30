@@ -95,7 +95,10 @@ class SharedHbm:
         # stride ratios 8-32; none at 2; ratio 4 unmeasured, calibration add says none)
         moved = nbytes
         if getattr(d, "stride_ratio", 1.0) >= 8 and getattr(d, "piece_granules", 0) > 0:
-            moved += d.granules / d.piece_granules * getattr(self, "stride_piece_bytes", 0.0)
+            # pieces cost more while another strided copy of the same direction is moving (interleaved)
+            busy = any(x.write == write and x.left > 0 and getattr(x.d, "stride_ratio", 1.0) >= 8 for x in self.active)
+            per = getattr(self, "stride_piece_bytes_conc", None) if busy else None
+            moved += d.granules / d.piece_granules * (per if per is not None else getattr(self, "stride_piece_bytes", 0.0))
         x = _Xfer(d, start + latency, moved, math.inf, write)
         if write and getattr(self, "bw_post", None):
             x.post = x.ready + nbytes / self.bw_post

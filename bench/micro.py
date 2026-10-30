@@ -829,6 +829,8 @@ VOPS2 = {
     "eq_select": (jnp.float32, lambda v, c: jnp.where(v == c, v - c, v + c)),
     "pack_s8": (jnp.float32, lambda v, c: v.astype(jnp.int8).astype(jnp.float32) + c),
     "round_clip": (jnp.float32, lambda v, c: jnp.clip(jnp.round(v * c), -127.0, 127.0)),
+    "xmax": (jnp.float32, lambda v, c: v - jnp.max(v, axis=1, keepdims=True)),
+    "xsum": (jnp.float32, lambda v, c: v - jnp.sum(v, axis=1, keepdims=True)),
 }
 
 
@@ -1034,7 +1036,47 @@ def dma_mxu(params):
     return fn, [jax.ShapeDtypeStruct((rows, cols), jnp.bfloat16)] * n_in
 
 
+def attn_step(params):
+    """`reps` flash-attention compute steps on VMEM-resident tiles: s = q k^T (bf16 -> f32), row
+    max, p = exp(s - m), row sum, o += p v; q (bq, 128), k and v (bkv, 128).
+
+    isolates: how MXU work (transposed K pushes, score and PV matmuls) overlaps the cross-lane
+    reductions and exponentials at each tile size (splash's tile-size-dependent bias).
+    """
+    bq, bkv, reps = params["bq"], params["bkv"], params["reps"]
+    part = params.get("part", "full")  # qk | qk_max | qk_softmax | pv | full
+
+    def kernel(x_hbm, o_hbm, q, k, v, acc, mbuf, pbuf):
+        def body(i, carry):
+            if part == "pv":
+                acc[...] += jnp.dot(pbuf[...], v[...], preferred_element_type=jnp.float32)
+                return carry
+            s = jax.lax.dot_general(q[...], k[...], (((1,), (1,)), ((), ())), preferred_element_type=jnp.float32)
+            if part == "qk":
+                acc[...] += s[:, :128]
+                return carry
+            m = jnp.max(s, axis=1, keepdims=True)
+            if part == "qk_max":
+                mbuf[...] += m
+                return carry
+            p = jnp.exp(s - m)
+            mbuf[...] += jnp.sum(p, axis=1, keepdims=True) + m
+            if part == "qk_softmax":
+                acc[...] += p[:, :128]
+                return carry
+            acc[...] += jnp.dot(p.astype(jnp.bfloat16), v[...], preferred_element_type=jnp.float32)
+            return carry
+
+        jax.lax.fori_loop(0, reps, body, 0)
+
+    scratch = [pltpu.VMEM((bq, 128), jnp.bfloat16), pltpu.VMEM((bkv, 128), jnp.bfloat16),
+               pltpu.VMEM((bkv, 128), jnp.bfloat16), pltpu.VMEM((bq, 128), jnp.float32),
+               pltpu.VMEM((bq, 1), jnp.float32), pltpu.VMEM((bq, bkv), jnp.bfloat16)]
+    return _no_dma_call(kernel, scratch, "k_attn_step")
+
+
 MICRO = {
+    "attn_step": (attn_step, "micro"),
     "dma_mxu": (dma_mxu, "micro"),
     "sld_unrolled": (sld_unrolled, "micro"),
     "pop_loop": (pop_loop, "micro"),

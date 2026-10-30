@@ -467,6 +467,33 @@ def phase3z_configs():
     return cfgs
 
 
+def phase4a_configs():
+    """Flash-attention compute steps (attn_step) across tile sizes: splash is +4.8% at 256-row tiles
+    and -2..-3% at 1024 in the replay."""
+    cfgs = []
+    for bq in (128, 256, 512, 1024):
+        for bkv in (128, 256, 512):
+            for reps in (4, 16):
+                cfgs.append(device("attn_step", {"bq": bq, "bkv": bkv, "reps": reps}, f"attn_step__q{bq}_kv{bkv}_x{reps}"))
+    return cfgs
+
+
+def phase4b_configs():
+    """Where the attention-step overprediction comes from: parts of the step (QK^T, + max, + softmax,
+    PV alone) at small and large tiles, and max / sum cross-lane reduction chains (nv=1 latency, nv=8
+    throughput)."""
+    cfgs = []
+    for part in ("qk", "qk_max", "qk_softmax", "pv"):
+        for bq, bkv in ((128, 128), (512, 256), (1024, 256), (1024, 512)):
+            for reps in (4, 16):
+                cfgs.append(device("attn_step", {"bq": bq, "bkv": bkv, "reps": reps, "part": part},
+                                   f"attn_step__{part}_q{bq}_kv{bkv}_x{reps}"))
+    for op in ("xmax", "xsum"):
+        for nv, k in ((1, 64), (1, 256), (8, 64)):
+            cfgs.append(device("vop_chain2", {"k": k, "nv": nv, "op": op}, f"vop_chain2__{op}_nv{nv}_k{k}"))
+    return cfgs
+
+
 def trace_probe_configs():
     """Does an in-kernel named_scope produce trace events, and under which profiler option?"""
     cfgs = []
@@ -698,6 +725,8 @@ BATCHES = {
     "phase3x": {"flags": DUMP_FLAGS, "configs": phase3x_configs()},
     "phase3y": {"flags": DUMP_FLAGS, "configs": phase3y_configs()},
     "phase3z": {"flags": DUMP_FLAGS, "configs": phase3z_configs()},
+    "phase4a": {"flags": DUMP_FLAGS, "configs": phase4a_configs()},
+    "phase4b": {"flags": DUMP_FLAGS, "configs": phase4b_configs()},
     "aot_check": {"flags": DUMP_FLAGS, "configs": aot_check_configs()},
     "phase3o2": {"flags": DUMP_FLAGS, "configs": [c for c in phase3o_configs() if c["params"]["step"] > 1]},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},

@@ -352,6 +352,21 @@ xprof 2.24.1, Python 3.12.3 (see `VERSIONS.lock`).
   hardware is ~85 cycles per iteration faster than in-order issue. Q >= 16 brings calibration paged
   from +5.5% to +1.3%. `pop_scalar` could not test it because the compiler predicated its cond;
   phase3u's `pop_loop` uses a real inner loop.
+- H18 (open): splash/flash tile-size bias. The `attn_step` microbenchmark (phase4a/4b) reproduces it:
+  - Over-predicted +0.7% at 128x128 tiles, rising to +10% at 1024x256.
+  - QK^T and PV alone fit within 2%. Adding the row max makes it +6-7% at large tiles; the softmax
+    variant is +8%.
+  - Single cross-lane reductions are right: 110 cycles/round for chains of max or sum
+    (phase4b `vop_chain2` xmax/xsum, model 107), and 8 independent chains overlap fully.
+  - Ruled out, as single-parameter changes:
+    - a shorter sum-reduction latency (no effect);
+    - a per-slot run-ahead for pops (no effect);
+    - deeper vector queues (no effect);
+    - MXU result latency or interval (breaks mxu_dot);
+    - a global issue lead (breaks mxu_dot);
+    - a 90-cycle max-reduction latency (fixes attention but breaks the measured chains).
+  - In this context hardware is ~100 cycles per 1024-row step faster along MXU pop -> elementwise
+    max -> cross-lane max -> pop.
 - H10. DMA queueing structure: one FIFO per direction, heads interleaving (`model/dma.py:DirFifoHbm`).
   Chosen because it fits F14/F15 better than processor sharing or one FIFO; not observed directly.
 - H6. Meaning of each bundle mnemonic and slot.

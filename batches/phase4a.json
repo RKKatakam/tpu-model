@@ -1,0 +1,334 @@
+{
+ "batch_id": "phase4a",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "attn_step__q128_kv128_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 128,
+    "bkv": 128,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q128_kv128_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 128,
+    "bkv": 128,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q128_kv256_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 128,
+    "bkv": 256,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q128_kv256_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 128,
+    "bkv": 256,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q128_kv512_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 128,
+    "bkv": 512,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q128_kv512_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 128,
+    "bkv": 512,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q256_kv128_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 256,
+    "bkv": 128,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q256_kv128_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 256,
+    "bkv": 128,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q256_kv256_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 256,
+    "bkv": 256,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q256_kv256_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 256,
+    "bkv": 256,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q256_kv512_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 256,
+    "bkv": 512,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q256_kv512_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 256,
+    "bkv": 512,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q512_kv128_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 512,
+    "bkv": 128,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q512_kv128_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 512,
+    "bkv": 128,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q512_kv256_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 512,
+    "bkv": 256,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q512_kv256_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 512,
+    "bkv": 256,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q512_kv512_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 512,
+    "bkv": 512,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q512_kv512_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 512,
+    "bkv": 512,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q1024_kv128_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 1024,
+    "bkv": 128,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q1024_kv128_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 1024,
+    "bkv": 128,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q1024_kv256_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 1024,
+    "bkv": 256,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q1024_kv256_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 1024,
+    "bkv": 256,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q1024_kv512_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 1024,
+    "bkv": 512,
+    "reps": 4
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__q1024_kv512_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 1024,
+    "bkv": 512,
+    "reps": 16
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  }
+ ]
+}

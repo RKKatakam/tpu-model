@@ -132,6 +132,11 @@ def check(kernel, params, program):
         expect(vec >= params["k"] * params["nv"], f"vector ops {vec} < k*nv={params['k'] * params['nv']} (folded?)")
         expect(not dma_ops(c), f"unexpected DMA ops {dma_ops(c)}")
         expect(not has_spill(program), "spills")
+    elif kernel == "attn_step":
+        expect(sum(v for m, v in c.items() if m.startswith("vmatmul")) >= 1, "no vmatmul")
+        if params.get("part", "full") not in ("qk", "pv"):
+            expect(any(m.startswith("vpop.xlane") for m in c), "no cross-lane reduction")
+        expect(not dma_ops(c), f"unexpected DMA ops {dma_ops(c)}")
     elif kernel == "dma_mxu":
         reads = c["dma.hbm_to_vmem"]
         expect(reads >= params["n_in"], f"hbm_to_vmem starts {reads}")

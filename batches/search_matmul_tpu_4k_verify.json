@@ -1,0 +1,238 @@
+{
+ "batch_id": "search_matmul_tpu_4k_verify",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "matmul_tpu_4k__bm512_bn1024_bk1024",
+   "kernel": "matmul_tpu",
+   "kernel_tag": "matmul",
+   "params": {
+    "m": 4096,
+    "k": 4096,
+    "n": 4096,
+    "bm": 512,
+    "bn": 1024,
+    "bk": 1024
+   },
+   "mode": "device",
+   "seed": 0,
+   "timeout_s": 600,
+   "reps": 50,
+   "warmup": 5
+  },
+  {
+   "record_id": "matmul_tpu_4k__bm1024_bn512_bk1024",
+   "kernel": "matmul_tpu",
+   "kernel_tag": "matmul",
+   "params": {
+    "m": 4096,
+    "k": 4096,
+    "n": 4096,
+    "bm": 1024,
+    "bn": 512,
+    "bk": 1024
+   },
+   "mode": "device",
+   "seed": 0,
+   "timeout_s": 600,
+   "reps": 50,
+   "warmup": 5
+  },
+  {
+   "record_id": "matmul_tpu_4k__bm1024_bn1024_bk512",
+   "kernel": "matmul_tpu",
+   "kernel_tag": "matmul",
+   "params": {
+    "m": 4096,
+    "k": 4096,
+    "n": 4096,
+    "bm": 1024,
+    "bn": 1024,
+    "bk": 512
+   },
+   "mode": "device",
+   "seed": 0,
+   "timeout_s": 600,
+   "reps": 50,
+   "warmup": 5
+  },
+  {
+   "record_id": "matmul_tpu_4k__bm1024_bn1024_bk256",
+   "kernel": "matmul_tpu",
+   "kernel_tag": "matmul",
+   "params": {
+    "m": 4096,
+    "k": 4096,
+    "n": 4096,
+    "bm": 1024,
+    "bn": 1024,
+    "bk": 256
+   },
+   "mode": "device",
+   "seed": 0,
+   "timeout_s": 600,
+   "reps": 50,
+   "warmup": 5
+  },
+  {
+   "record_id": "matmul_tpu_4k__bm512_bn1024_bk512",
+   "kernel": "matmul_tpu",
+   "kernel_tag": "matmul",
+   "params": {
+    "m": 4096,
+    "k": 4096,
+    "n": 4096,
+    "bm": 512,
+    "bn": 1024,
+    "bk": 512
+   },
+   "mode": "device",
+   "seed": 0,
+   "timeout_s": 600,
+   "reps": 50,
+   "warmup": 5
+  },
+  {
+   "record_id": "matmul_tpu_4k__bm1024_bn512_bk512",
+   "kernel": "matmul_tpu",
+   "kernel_tag": "matmul",
+   "params": {
+    "m": 4096,
+    "k": 4096,
+    "n": 4096,
+    "bm": 1024,
+    "bn": 512,
+    "bk": 512
+   },
+   "mode": "device",
+   "seed": 0,
+   "timeout_s": 600,
+   "reps": 50,
+   "warmup": 5
+  },
+  {
+   "record_id": "matmul_tpu_4k__bm1024_bn1024_bk128",
+   "kernel": "matmul_tpu",
+   "kernel_tag": "matmul",
+   "params": {
+    "m": 4096,
+    "k": 4096,
+    "n": 4096,
+    "bm": 1024,
+    "bn": 1024,
+    "bk": 128
+   },
+   "mode": "device",
+   "seed": 0,
+   "timeout_s": 600,
+   "reps": 50,
+   "warmup": 5
+  },
+  {
+   "record_id": "matmul_tpu_4k__bm512_bn512_bk256",
+   "kernel": "matmul_tpu",
+   "kernel_tag": "matmul",
+   "params": {
+    "m": 4096,
+    "k": 4096,
+    "n": 4096,
+    "bm": 512,
+    "bn": 512,
+    "bk": 256
+   },
+   "mode": "device",
+   "seed": 0,
+   "timeout_s": 600,
+   "reps": 50,
+   "warmup": 5
+  },
+  {
+   "record_id": "matmul_tpu_4k__bm256_bn256_bk1024",
+   "kernel": "matmul_tpu",
+   "kernel_tag": "matmul",
+   "params": {
+    "m": 4096,
+    "k": 4096,
+    "n": 4096,
+    "bm": 256,
+    "bn": 256,
+    "bk": 1024
+   },
+   "mode": "device",
+   "seed": 0,
+   "timeout_s": 600,
+   "reps": 50,
+   "warmup": 5
+  },
+  {
+   "record_id": "matmul_tpu_4k__bm128_bn512_bk512",
+   "kernel": "matmul_tpu",
+   "kernel_tag": "matmul",
+   "params": {
+    "m": 4096,
+    "k": 4096,
+    "n": 4096,
+    "bm": 128,
+    "bn": 512,
+    "bk": 512
+   },
+   "mode": "device",
+   "seed": 0,
+   "timeout_s": 600,
+   "reps": 50,
+   "warmup": 5
+  },
+  {
+   "record_id": "matmul_tpu_4k__bm128_bn256_bk512",
+   "kernel": "matmul_tpu",
+   "kernel_tag": "matmul",
+   "params": {
+    "m": 4096,
+    "k": 4096,
+    "n": 4096,
+    "bm": 128,
+    "bn": 256,
+    "bk": 512
+   },
+   "mode": "device",
+   "seed": 0,
+   "timeout_s": 600,
+   "reps": 50,
+   "warmup": 5
+  },
+  {
+   "record_id": "matmul_tpu_4k__bm128_bn128_bk256",
+   "kernel": "matmul_tpu",
+   "kernel_tag": "matmul",
+   "params": {
+    "m": 4096,
+    "k": 4096,
+    "n": 4096,
+    "bm": 128,
+    "bn": 128,
+    "bk": 256
+   },
+   "mode": "device",
+   "seed": 0,
+   "timeout_s": 600,
+   "reps": 50,
+   "warmup": 5
+  }
+ ]
+}

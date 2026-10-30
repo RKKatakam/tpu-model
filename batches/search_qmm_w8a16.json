@@ -1,0 +1,1126 @@
+{
+ "batch_id": "search_qmm_w8a16",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "qmm_w8a16__bb128_ob256_ib512",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     128,
+     256,
+     512
+    ],
+    "bb": 128,
+    "ob": 256,
+    "ib": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb128_ob256_ib1024",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     128,
+     256,
+     1024
+    ],
+    "bb": 128,
+    "ob": 256,
+    "ib": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb128_ob256_ib2048",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     128,
+     256,
+     2048
+    ],
+    "bb": 128,
+    "ob": 256,
+    "ib": 2048
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb128_ob256_ib4096",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     128,
+     256,
+     4096
+    ],
+    "bb": 128,
+    "ob": 256,
+    "ib": 4096
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb128_ob512_ib512",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     128,
+     512,
+     512
+    ],
+    "bb": 128,
+    "ob": 512,
+    "ib": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb128_ob512_ib1024",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     128,
+     512,
+     1024
+    ],
+    "bb": 128,
+    "ob": 512,
+    "ib": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb128_ob512_ib2048",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     128,
+     512,
+     2048
+    ],
+    "bb": 128,
+    "ob": 512,
+    "ib": 2048
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb128_ob512_ib4096",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     128,
+     512,
+     4096
+    ],
+    "bb": 128,
+    "ob": 512,
+    "ib": 4096
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb128_ob1024_ib512",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     128,
+     1024,
+     512
+    ],
+    "bb": 128,
+    "ob": 1024,
+    "ib": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb128_ob1024_ib1024",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     128,
+     1024,
+     1024
+    ],
+    "bb": 128,
+    "ob": 1024,
+    "ib": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb128_ob1024_ib2048",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     128,
+     1024,
+     2048
+    ],
+    "bb": 128,
+    "ob": 1024,
+    "ib": 2048
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb128_ob1024_ib4096",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     128,
+     1024,
+     4096
+    ],
+    "bb": 128,
+    "ob": 1024,
+    "ib": 4096
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb128_ob2048_ib512",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     128,
+     2048,
+     512
+    ],
+    "bb": 128,
+    "ob": 2048,
+    "ib": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb128_ob2048_ib1024",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     128,
+     2048,
+     1024
+    ],
+    "bb": 128,
+    "ob": 2048,
+    "ib": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb128_ob2048_ib2048",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     128,
+     2048,
+     2048
+    ],
+    "bb": 128,
+    "ob": 2048,
+    "ib": 2048
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb128_ob2048_ib4096",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     128,
+     2048,
+     4096
+    ],
+    "bb": 128,
+    "ob": 2048,
+    "ib": 4096
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb256_ob256_ib512",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     256,
+     256,
+     512
+    ],
+    "bb": 256,
+    "ob": 256,
+    "ib": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb256_ob256_ib1024",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     256,
+     256,
+     1024
+    ],
+    "bb": 256,
+    "ob": 256,
+    "ib": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb256_ob256_ib2048",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     256,
+     256,
+     2048
+    ],
+    "bb": 256,
+    "ob": 256,
+    "ib": 2048
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb256_ob256_ib4096",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     256,
+     256,
+     4096
+    ],
+    "bb": 256,
+    "ob": 256,
+    "ib": 4096
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb256_ob512_ib512",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     256,
+     512,
+     512
+    ],
+    "bb": 256,
+    "ob": 512,
+    "ib": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb256_ob512_ib1024",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     256,
+     512,
+     1024
+    ],
+    "bb": 256,
+    "ob": 512,
+    "ib": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb256_ob512_ib2048",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     256,
+     512,
+     2048
+    ],
+    "bb": 256,
+    "ob": 512,
+    "ib": 2048
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb256_ob512_ib4096",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     256,
+     512,
+     4096
+    ],
+    "bb": 256,
+    "ob": 512,
+    "ib": 4096
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb256_ob1024_ib512",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     256,
+     1024,
+     512
+    ],
+    "bb": 256,
+    "ob": 1024,
+    "ib": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb256_ob1024_ib1024",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     256,
+     1024,
+     1024
+    ],
+    "bb": 256,
+    "ob": 1024,
+    "ib": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb256_ob1024_ib2048",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     256,
+     1024,
+     2048
+    ],
+    "bb": 256,
+    "ob": 1024,
+    "ib": 2048
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb256_ob1024_ib4096",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     256,
+     1024,
+     4096
+    ],
+    "bb": 256,
+    "ob": 1024,
+    "ib": 4096
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb256_ob2048_ib512",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     256,
+     2048,
+     512
+    ],
+    "bb": 256,
+    "ob": 2048,
+    "ib": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb256_ob2048_ib1024",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     256,
+     2048,
+     1024
+    ],
+    "bb": 256,
+    "ob": 2048,
+    "ib": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb256_ob2048_ib2048",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     256,
+     2048,
+     2048
+    ],
+    "bb": 256,
+    "ob": 2048,
+    "ib": 2048
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb256_ob2048_ib4096",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     256,
+     2048,
+     4096
+    ],
+    "bb": 256,
+    "ob": 2048,
+    "ib": 4096
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb512_ob256_ib512",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     512,
+     256,
+     512
+    ],
+    "bb": 512,
+    "ob": 256,
+    "ib": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb512_ob256_ib1024",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     512,
+     256,
+     1024
+    ],
+    "bb": 512,
+    "ob": 256,
+    "ib": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb512_ob256_ib2048",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     512,
+     256,
+     2048
+    ],
+    "bb": 512,
+    "ob": 256,
+    "ib": 2048
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb512_ob256_ib4096",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     512,
+     256,
+     4096
+    ],
+    "bb": 512,
+    "ob": 256,
+    "ib": 4096
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb512_ob512_ib512",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     512,
+     512,
+     512
+    ],
+    "bb": 512,
+    "ob": 512,
+    "ib": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb512_ob512_ib1024",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     512,
+     512,
+     1024
+    ],
+    "bb": 512,
+    "ob": 512,
+    "ib": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb512_ob512_ib2048",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     512,
+     512,
+     2048
+    ],
+    "bb": 512,
+    "ob": 512,
+    "ib": 2048
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb512_ob512_ib4096",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     512,
+     512,
+     4096
+    ],
+    "bb": 512,
+    "ob": 512,
+    "ib": 4096
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb512_ob1024_ib512",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     512,
+     1024,
+     512
+    ],
+    "bb": 512,
+    "ob": 1024,
+    "ib": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb512_ob1024_ib1024",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     512,
+     1024,
+     1024
+    ],
+    "bb": 512,
+    "ob": 1024,
+    "ib": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb512_ob1024_ib2048",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     512,
+     1024,
+     2048
+    ],
+    "bb": 512,
+    "ob": 1024,
+    "ib": 2048
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb512_ob1024_ib4096",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     512,
+     1024,
+     4096
+    ],
+    "bb": 512,
+    "ob": 1024,
+    "ib": 4096
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb512_ob2048_ib512",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     512,
+     2048,
+     512
+    ],
+    "bb": 512,
+    "ob": 2048,
+    "ib": 512
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb512_ob2048_ib1024",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     512,
+     2048,
+     1024
+    ],
+    "bb": 512,
+    "ob": 2048,
+    "ib": 1024
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb512_ob2048_ib2048",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     512,
+     2048,
+     2048
+    ],
+    "bb": 512,
+    "ob": 2048,
+    "ib": 2048
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  },
+  {
+   "record_id": "qmm_w8a16__bb512_ob2048_ib4096",
+   "kernel": "vllm_qmm",
+   "kernel_tag": "qmm",
+   "params": {
+    "m": 512,
+    "k": 4096,
+    "n": 4096,
+    "mode": "w8a16",
+    "blocks": [
+     512,
+     2048,
+     4096
+    ],
+    "bb": 512,
+    "ob": 2048,
+    "ib": 4096
+   },
+   "mode": "aot",
+   "topology": "v5e:1x1",
+   "seed": 0,
+   "timeout_s": 600
+  }
+ ]
+}

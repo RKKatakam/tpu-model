@@ -78,8 +78,13 @@ def vllm_qmm(params):
     m, k, n = params["m"], params["k"], params["n"]
     x_q = jnp.int8 if params["mode"] == "w8a8" else BF16
 
+    tuned = None
+    if params.get("blocks"):  # (batch, out, in) block sizes instead of the kernel's tuned table
+        from tpu_inference.kernels.quantized_matmul.tuned_block_sizes import TunedValue
+        tuned = TunedValue(*params["blocks"])
+
     def fn(x, w_q, w_scale):
-        return vqmm.quantized_matmul_kernel(x, w_q, w_scale, x_q_dtype=x_q)
+        return vqmm.quantized_matmul_kernel(x, w_q, w_scale, x_q_dtype=x_q, tuned_value=tuned)
 
     specs = [jax.ShapeDtypeStruct((m, k), BF16), jax.ShapeDtypeStruct((n, k), jnp.int8),
              jax.ShapeDtypeStruct((n,), jnp.float32)]

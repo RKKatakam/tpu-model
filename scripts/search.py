@@ -32,6 +32,16 @@ SPACES = {
                      {"block_q": [128, 256, 512, 1024], "block_kv": [128, 256, 512, 1024, 2048],
                       "block_kv_compute": [128, 256, 512, 1024]},
                      lambda p: p["block_kv_compute"] <= p["block_kv"] and p["block_kv"] % p["block_kv_compute"] == 0),
+    "qmm_w8a8": ("vllm_qmm", "qmm", {"m": 512, "k": 4096, "n": 4096, "mode": "w8a8"},
+                 {"bb": [128, 256, 512], "ob": [256, 512, 1024, 2048], "ib": [512, 1024, 2048, 4096]},
+                 lambda p: True),
+    "qmm_w8a16": ("vllm_qmm", "qmm", {"m": 512, "k": 4096, "n": 4096, "mode": "w8a16"},
+                  {"bb": [128, 256, 512], "ob": [256, 512, 1024, 2048], "ib": [512, 1024, 2048, 4096]},
+                  lambda p: True),
+    "rope_16k": ("rope", "k_rope", {"tokens": 16384, "heads": 32, "head_dim": 128},
+                 {"block_tokens": [16, 32, 64, 128, 256, 512, 1024, 2048]}, lambda p: True),
+    "rmsnorm_16k": ("rmsnorm", "k_rmsnorm", {"rows": 16384, "cols": 4096},
+                    {"block_rows": [8, 16, 32, 64, 128, 256, 512, 1024]}, lambda p: True),
     "tgmm_8k": ("tgmm", "tgmm", {"m": 8192, "k": 1024, "n": 1024, "groups": 8},
                 {"tm": [128, 256, 512, 1024], "tk": [128, 256, 512], "tn": [128, 256, 512, 1024]},
                 lambda p: True),
@@ -42,6 +52,8 @@ def candidates(space):
     kernel, tag, fixed, grid, ok = SPACES[space]
     for values in itertools.product(*grid.values()):
         p = fixed | dict(zip(grid, values))
+        if kernel == "vllm_qmm":  # the builder takes (batch, out, in) block sizes as one list
+            p = fixed | {"blocks": list(values)} | dict(zip(grid, values))
         if ok(p):
             yield kernel, tag, p
 

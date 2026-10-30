@@ -10,6 +10,7 @@ usage:
                                 (data/raw/search_SPACE_verify): top-1 regret, rank correlation
 """
 
+import glob
 import itertools
 import json
 import os
@@ -63,17 +64,27 @@ def rid(space, p):
     return f"{space}__" + "_".join(f"{k}{p[k]}" for k in grid)
 
 
-def flags():
+def flags(lean=False):
+    """Capture flags. `lean` (compile-only search) keeps what the replay reads (final bundles with
+    annotations, optimized HLO) and drops XLA's static profile, static-gap and Mosaic dumps."""
     with open(os.path.join(ROOT, "batches", "corpus3_part0.json")) as f:
-        return json.load(f)["flags"]
+        full = json.load(f)["flags"]
+    if not lean:
+        return full
+    drop = ("static_gaps", "mosaic", "static_llo_profile")
+    return dict(full, libtpu=[f for f in full["libtpu"] if not any(d in f for d in drop)])
 
 
 def plan(space):
     cfgs = [{"record_id": rid(space, p), "kernel": k, "kernel_tag": tag, "params": p, "mode": "aot",
              "topology": "v5e:1x1", "seed": 0, "timeout_s": 600} for k, tag, p in candidates(space)]
+    done = set()
+    for d in glob.glob(os.path.join(ROOT, "data", "raw", f"search_{space}", "*", "*", "record.json")):
+        done.add(os.path.basename(os.path.dirname(d)))
+    cfgs = [c for c in cfgs if c["record_id"] not in done]  # resume: skip compiled candidates
     out = os.path.join(ROOT, "batches", f"search_{space}.json")
     with open(out, "w") as f:
-        json.dump({"batch_id": f"search_{space}", "flags": flags(), "configs": cfgs}, f, indent=1)
+        json.dump({"batch_id": f"search_{space}", "flags": flags(lean=True), "parallel": 2, "configs": cfgs}, f, indent=1)
     print(out, len(cfgs), "candidates")
 
 

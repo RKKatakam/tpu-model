@@ -86,6 +86,8 @@ def attempt(batch, cfg, record_dir):
         json.dump(cfg, f, indent=1)
     env = flag_env(batch, cfg, dump)
     env["TPUM_SESSION"] = os.environ.get("TPUM_SESSION", "")
+    if batch.get("parallel", 1) > 1:  # concurrent compile-only processes: skip libtpu's single-process lock
+        env["ALLOW_MULTIPLE_LIBTPU_LOAD"] = "1"
     cmd = [PY, os.path.join(ROOT, "capture", "capture_one.py"), os.path.join(record_dir, "config.json"), record_dir]
     with open(os.path.join(record_dir, "stdout.txt"), "w") as out, open(
         os.path.join(record_dir, "stderr.txt"), "w"
@@ -139,15 +141,24 @@ def main():
     # One archive per finished config, so the driver can download results while the batch runs.
     parts = os.path.join(ROOT, "results", f"{batch['batch_id']}__{session}")
     os.makedirs(parts, exist_ok=True)
-    results = []
-    for cfg in batch["configs"]:
-        results.append(run_one(batch, cfg, out_dir))
+    def one(cfg):
+        ok = run_one(batch, cfg, out_dir)
         part = os.path.join(parts, f"{cfg['record_id']}.tgz")
         if not os.path.exists(part) and os.path.isdir(os.path.join(out_dir, cfg["record_id"])):
             with tarfile.open(part + ".tmp", "w:gz") as tar:
                 tar.add(os.path.join(out_dir, cfg["record_id"]),
                         arcname=os.path.join(batch["batch_id"], session, cfg["record_id"]))
             os.rename(part + ".tmp", part)
+        return ok
+
+    # Compile-only batches may run several configs at once (one per core); timed batches never do.
+    workers = min(batch.get("parallel", 1), os.cpu_count() or 1)
+    if workers > 1 and all(c["mode"] == "aot" for c in batch["configs"]):
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(workers) as pool:
+            results = list(pool.map(one, batch["configs"]))
+    else:
+        results = [one(cfg) for cfg in batch["configs"]]
     archive = os.path.join(ROOT, "results", f"{batch['batch_id']}__{session}.tgz")
     with tarfile.open(archive, "w:gz") as tar:
         tar.add(out_dir, arcname=os.path.join(batch["batch_id"], session))

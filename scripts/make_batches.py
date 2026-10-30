@@ -494,6 +494,18 @@ def phase4b_configs():
     return cfgs
 
 
+def phase4c_configs():
+    """H18: max reductions on VMEM-loaded scores (load_max), and QK^T / loaded scores reduced by
+    elementwise column max only (qk_colmax, load_colmax): MXU -> XLU hand-off vs reduction itself."""
+    cfgs = []
+    for part in ("load_max", "qk_colmax", "load_colmax"):
+        for bq, bkv in ((128, 128), (512, 256), (1024, 256), (1024, 512)):
+            for reps in (4, 16):
+                cfgs.append(device("attn_step", {"bq": bq, "bkv": bkv, "reps": reps, "part": part},
+                                   f"attn_step__{part}_q{bq}_kv{bkv}_x{reps}"))
+    return cfgs
+
+
 def trace_probe_configs():
     """Does an in-kernel named_scope produce trace events, and under which profiler option?"""
     cfgs = []
@@ -727,6 +739,7 @@ BATCHES = {
     "phase3z": {"flags": DUMP_FLAGS, "configs": phase3z_configs()},
     "phase4a": {"flags": DUMP_FLAGS, "configs": phase4a_configs()},
     "phase4b": {"flags": DUMP_FLAGS, "configs": phase4b_configs()},
+    "phase4c": {"flags": DUMP_FLAGS, "configs": phase4c_configs()},
     "aot_check": {"flags": DUMP_FLAGS, "configs": aot_check_configs()},
     "phase3o2": {"flags": DUMP_FLAGS, "configs": [c for c in phase3o_configs() if c["params"]["step"] > 1]},
     "phase1_aot": {"flags": DUMP_FLAGS, "configs": phase1_configs("aot")},

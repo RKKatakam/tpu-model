@@ -1,0 +1,358 @@
+{
+ "batch_id": "phase4c",
+ "flags": {
+  "libtpu": [
+   "--xla_jf_dump_to={dump}/jf",
+   "--xla_jf_dump_llo_text=true",
+   "--xla_jf_dump_llo_static_gaps=true",
+   "--xla_jf_emit_annotations=true",
+   "--xla_jf_debug_level=2",
+   "--xla_mosaic_dump_to={dump}/mosaic",
+   "--xla_mosaic_enable_dump_debug_info=true",
+   "--xla_mosaic_enable_llo_source_annotations=true",
+   "--xla_jf_dump_static_llo_profile_to={dump}/static_profile"
+  ],
+  "xla": [
+   "--xla_dump_to={dump}/xla",
+   "--xla_dump_hlo_as_text"
+  ]
+ },
+ "configs": [
+  {
+   "record_id": "attn_step__load_max_q128_kv128_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 128,
+    "bkv": 128,
+    "reps": 4,
+    "part": "load_max"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__load_max_q128_kv128_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 128,
+    "bkv": 128,
+    "reps": 16,
+    "part": "load_max"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__load_max_q512_kv256_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 512,
+    "bkv": 256,
+    "reps": 4,
+    "part": "load_max"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__load_max_q512_kv256_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 512,
+    "bkv": 256,
+    "reps": 16,
+    "part": "load_max"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__load_max_q1024_kv256_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 1024,
+    "bkv": 256,
+    "reps": 4,
+    "part": "load_max"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__load_max_q1024_kv256_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 1024,
+    "bkv": 256,
+    "reps": 16,
+    "part": "load_max"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__load_max_q1024_kv512_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 1024,
+    "bkv": 512,
+    "reps": 4,
+    "part": "load_max"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__load_max_q1024_kv512_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 1024,
+    "bkv": 512,
+    "reps": 16,
+    "part": "load_max"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__qk_colmax_q128_kv128_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 128,
+    "bkv": 128,
+    "reps": 4,
+    "part": "qk_colmax"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__qk_colmax_q128_kv128_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 128,
+    "bkv": 128,
+    "reps": 16,
+    "part": "qk_colmax"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__qk_colmax_q512_kv256_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 512,
+    "bkv": 256,
+    "reps": 4,
+    "part": "qk_colmax"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__qk_colmax_q512_kv256_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 512,
+    "bkv": 256,
+    "reps": 16,
+    "part": "qk_colmax"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__qk_colmax_q1024_kv256_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 1024,
+    "bkv": 256,
+    "reps": 4,
+    "part": "qk_colmax"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__qk_colmax_q1024_kv256_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 1024,
+    "bkv": 256,
+    "reps": 16,
+    "part": "qk_colmax"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__qk_colmax_q1024_kv512_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 1024,
+    "bkv": 512,
+    "reps": 4,
+    "part": "qk_colmax"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__qk_colmax_q1024_kv512_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 1024,
+    "bkv": 512,
+    "reps": 16,
+    "part": "qk_colmax"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__load_colmax_q128_kv128_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 128,
+    "bkv": 128,
+    "reps": 4,
+    "part": "load_colmax"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__load_colmax_q128_kv128_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 128,
+    "bkv": 128,
+    "reps": 16,
+    "part": "load_colmax"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__load_colmax_q512_kv256_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 512,
+    "bkv": 256,
+    "reps": 4,
+    "part": "load_colmax"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__load_colmax_q512_kv256_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 512,
+    "bkv": 256,
+    "reps": 16,
+    "part": "load_colmax"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__load_colmax_q1024_kv256_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 1024,
+    "bkv": 256,
+    "reps": 4,
+    "part": "load_colmax"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__load_colmax_q1024_kv256_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 1024,
+    "bkv": 256,
+    "reps": 16,
+    "part": "load_colmax"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__load_colmax_q1024_kv512_x4",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 1024,
+    "bkv": 512,
+    "reps": 4,
+    "part": "load_colmax"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  },
+  {
+   "record_id": "attn_step__load_colmax_q1024_kv512_x16",
+   "kernel": "attn_step",
+   "kernel_tag": "k_attn_step",
+   "params": {
+    "bq": 1024,
+    "bkv": 512,
+    "reps": 16,
+    "part": "load_colmax"
+   },
+   "mode": "device",
+   "reps": 100,
+   "warmup": 10
+  }
+ ]
+}

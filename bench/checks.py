@@ -133,8 +133,9 @@ def check(kernel, params, program):
         expect(not dma_ops(c), f"unexpected DMA ops {dma_ops(c)}")
         expect(not has_spill(program), "spills")
     elif kernel == "attn_step":
-        expect(sum(v for m, v in c.items() if m.startswith("vmatmul")) >= 1, "no vmatmul")
-        if params.get("part", "full") not in ("qk", "pv"):
+        if not params.get("part", "full").startswith("load"):
+            expect(sum(v for m, v in c.items() if m.startswith("vmatmul")) >= 1, "no vmatmul")
+        if params.get("part", "full") not in ("qk", "pv", "qk_colmax", "load_colmax"):
             expect(any(m.startswith("vpop.xlane") for m in c), "no cross-lane reduction")
         expect(not dma_ops(c), f"unexpected DMA ops {dma_ops(c)}")
     elif kernel == "dma_mxu":

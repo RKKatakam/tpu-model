@@ -1046,8 +1046,19 @@ def attn_step(params):
     bq, bkv, reps = params["bq"], params["bkv"], params["reps"]
     part = params.get("part", "full")  # qk | qk_max | qk_softmax | pv | full
 
-    def kernel(x_hbm, o_hbm, q, k, v, acc, mbuf, pbuf):
+    def kernel(x_hbm, o_hbm, q, k, v, acc, mbuf, pbuf, sbuf):
         def body(i, carry):
+            if part in ("load_max", "load_colmax"):  # scores from VMEM instead of the MXU
+                sv = sbuf[...] + i.astype(jnp.float32)
+                if part == "load_max":
+                    mbuf[...] += jnp.max(sv, axis=1, keepdims=True)
+                else:
+                    acc[...] += jnp.max(sv.reshape(bq, bkv // 128, 128), axis=1)
+                return carry
+            if part == "qk_colmax":  # QK^T then elementwise max over 128-lane column tiles (no cross-lane)
+                s = jax.lax.dot_general(q[...], k[...], (((1,), (1,)), ((), ())), preferred_element_type=jnp.float32)
+                acc[...] += jnp.max(s.reshape(bq, bkv // 128, 128), axis=1)
+                return carry
             if part == "pv":
                 acc[...] += jnp.dot(pbuf[...], v[...], preferred_element_type=jnp.float32)
                 return carry
@@ -1071,7 +1082,8 @@ def attn_step(params):
 
     scratch = [pltpu.VMEM((bq, 128), jnp.bfloat16), pltpu.VMEM((bkv, 128), jnp.bfloat16),
                pltpu.VMEM((bkv, 128), jnp.bfloat16), pltpu.VMEM((bq, 128), jnp.float32),
-               pltpu.VMEM((bq, 1), jnp.float32), pltpu.VMEM((bq, bkv), jnp.bfloat16)]
+               pltpu.VMEM((bq, 1), jnp.float32), pltpu.VMEM((bq, bkv), jnp.bfloat16),
+               pltpu.VMEM((bq, bkv), jnp.float32)]
     return _no_dma_call(kernel, scratch, "k_attn_step")
 
 

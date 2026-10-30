@@ -346,7 +346,11 @@ xprof 2.24.1, Python 3.12.3 (see `VERSIONS.lock`).
   (layernorm -9% -> +2%, softmax -9% -> +3%, gmm -4% -> -1%). Inferred structure.
   With 512 KiB-1 MiB blocks it looks too strong: a read issued just after a 1 MiB write waits the
   whole 1.65 us of write data, so rope (1 MiB blocks) is +6..13% and dma_compute r1w1 b128 valu512
-  is +6.4%. phase3u (2 MiB blocks) tests a cap on the pause (`pause_cap_ns`, off).
+  is +6.4%. The 2 MiB-block streams in phase3u show the pause is capped. With a 400 ns cap, 37 of 51
+  DMA microbenchmark and calibration streaming records are within 2% (26 without); calibration rope
+  goes from +12.8% to +0.7% and RMSNorm b32 from +5.3% to -2.2%. The model uses `pause_cap_ns` 400.
+  Side effect: tiled matmul kernels (two strided input streams) become 1-5 points more negative.
+  Their tile streams were already too fast in the model (dma_mxu with no work: -5%).
 - H17. Decoupled issue: scalar-only bundles keep issuing while up to Q vector bundles wait on a pop
   (`vector_queue`, off). In paged decode a 125-cycle MXU pop is followed by ~340 scalar bundles, and
   hardware is ~85 cycles per iteration faster than in-order issue. Q >= 16 brings calibration paged

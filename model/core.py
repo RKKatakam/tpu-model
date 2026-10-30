@@ -95,6 +95,7 @@ class Units:
         self.push_busy = {}
         self.staged = {}
         self.xcount = {}  # vregs pushed into the transpose in progress, per unit
+        self.last_work = {}  # unit -> issue cycle of its last work op
 
     def _wp(self, cls, mnemonic):
         up = self.p[cls]
@@ -159,7 +160,12 @@ class Units:
             wp = self._wp(cls, mnemonic)
             self.busy[key] = t + wp["occupancy"]
             q = self.fifo.setdefault(key, [])
-            q.extend(t + wp["latency"] + j * wp.get("interval", 0) for j in range(wp.get("results", 1)))
+            lat = wp["latency"]
+            # a unit fed back to back answers faster than an idle one (`warm_latency` within `warm_window`)
+            if "warm_latency" in wp and t - self.last_work.get(key, -1e18) <= wp["warm_window"]:
+                lat = wp["warm_latency"]
+            self.last_work[key] = t
+            q.extend(t + lat + j * wp.get("interval", 0) for j in range(wp.get("results", 1)))
         elif role == "push":
             up = self.p[cls]
             cost = push_cost(up, mnemonic)

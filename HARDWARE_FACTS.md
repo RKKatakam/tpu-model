@@ -301,6 +301,20 @@ xprof 2.24.1, Python 3.12.3 (see `VERSIONS.lock`).
 - Separately, the VMEM address parser now strips `ss:` stride fields. Strided vld/vst were missing
   their store->load wait (F20); vmem_access went from -35..-42% to within 0.2%.
 
+### F30. Cross-lane reductions return faster while the XLU is being fed back to back
+- Experiments: phase4a-c `attn_step` (attention steps and their parts at 128-1024 tiles) and
+  phase4b `vop_chain2` xmax/xsum chains.
+- Results:
+  - An isolated reduction (a dependent chain) takes 110 cycles per round.
+  - With no reductions, attention parts match exactly: QK^T, PV, and column max without the XLU,
+    on MXU or loaded data.
+  - Reductions on loaded data are over-predicted at large tiles (many back to back) and
+    under-predicted at small ones.
+- Model: a reduction issued within 48 cycles of the previous one on the same XLU returns after 90
+  cycles instead of 104. attn_step goes from 35 to 64 of 80 within 2%. Calibration splash's
+  256-tile cluster goes from +4.8% to +0.5%, and calibration within 2% from 46 to 53 of 75.
+  Resolves H18.
+
 ## Hypotheses (not yet tested; the model must not depend on these)
 
 - H2. MXU is 128x128.

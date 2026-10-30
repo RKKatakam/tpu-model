@@ -53,7 +53,9 @@
      "xlane": {
       "occupancy": 1,
       "latency": 103.8671875,
-      "results": 1
+      "results": 1,
+      "warm_latency": 90,
+      "warm_window": 48
      }
     },
     "pop_latency": 1,
@@ -431,7 +433,8 @@
   },
   "vector_queue_phase3u": "12 (11-13): pop_loop hides an 8-trip scalar inner loop under a 178-cycle MXU pop chain (in-order issue: +37%); 8 queued vadds after the pop stay hidden, 16 stall the front end",
   "sld_phase3wx": "sld load-to-use 6 cycles: phase3w loop variants (use 3/4/5 bundles after the load: +3/+2/+1 cycles) and phase3x unrolled pointer chases (6.0 cycles per load, straight-line and in loops; the compiler packs them 1-2 bundles apart). A 2-cycle address lag (H11) is refuted: +25-30% on the chases. sld_chain keeps 1 unexplained cycle per iteration.",
-  "xpose_modes_phase3v": "short/narrow transposes (op text '(short)'/'(narrow)', width = last operand) queue all their results at .end: ceil(width/S) x ceil(rows/128) vregs (S 8 b32, 16 packed b16; rows = inputs x S; binary = two transposes), matching every Pallas kernel's vpop.trf count. result j at end + latency + j*interval. Fitted on phase3v xpose_chain r8 f32 / r16 bf16 (nv1 = latency sum; nv4 splits short vs narrow); narrow input occupancy <= 4 (f32 nv4: 2 and 4 give +0.3%, 8.22 gives +5.2%). Unannotated (full) transposes keep the phase3j per-input stream."
+  "xpose_modes_phase3v": "short/narrow transposes (op text '(short)'/'(narrow)', width = last operand) queue all their results at .end: ceil(width/S) x ceil(rows/128) vregs (S 8 b32, 16 packed b16; rows = inputs x S; binary = two transposes), matching every Pallas kernel's vpop.trf count. result j at end + latency + j*interval. Fitted on phase3v xpose_chain r8 f32 / r16 bf16 (nv1 = latency sum; nv4 splits short vs narrow); narrow input occupancy <= 4 (f32 nv4: 2 and 4 give +0.3%, 8.22 gives +5.2%). Unannotated (full) transposes keep the phase3j per-input stream.",
+  "xlane_warm_phase4": "cross-lane reductions issued within 48 cycles of the previous one on the same XLU return after 90 cycles, isolated ones after 104 (chains: vop_chain2 xmax/xsum 110/round, unit_chain). Fitted on attn_step phase4a-c: 35 -> 64 of 80 within 2%, median 3.0% -> 0.6%; chains unchanged."
  },
  "provenance": {
   "sources": [

@@ -122,8 +122,9 @@ python scripts/sync_diff.py data/raw/diag_sync RECORD_ID                 # model
 3. `search.py check SPACE` times the top few and some controls on a TPU, and reports regret and rank
    correlation.
 
-Spaces so far: matmul 4096^3, causal splash at 4096, tgmm. The end-to-end hardware check of the
-search is in progress.
+Seven spaces have been checked on hardware (`reports/search_summary.md`): dense matmul, splash
+attention, int8 quantized matmul (w8a8 and w8a16), tgmm, rope and RMSNorm. In each, the model's pick
+was the measured best tiling or within 0.7% of it.
 
 ## Versions
 
